@@ -1,0 +1,27 @@
+
+  "lowmemgpu2afc" takes in the arguments below, and outputs a list with the values of these arguments as each element (except for "out", which is updated to reflect the output)
+
+
+Arguments:
+  
+  - rt (Double)  A vector of length "nrts" that contains the RTs (including the non-decision time component) that you wish to get likelihoods for
+
+- cell (Integer)  A vector of length "nrts" that contains the cell of the design that the corresponding RT is from (e.g. Correct response in condition 1  =  1 ;  Error response in condition 1  =  2 ;  etc.)
+
+- pars (Double)  A vector of length ("npars" * "nchains"), which contains all parameter values to be assessed. More detail can be seen in the comments of the function in the CUDA code
+
+- map (Integer)  One of the trickiest parts of the code. This is a vector of length ("npars" * "ncells"), which links together the different cells of the design to their relevant parameter values (this is in the code to maximise computational efficiency)
+
+- nrts (Integer)  The number of RTs to be assessed (single number)
+
+- npars (Integer)  The number of free parameters in the model (single number). For example, if the model included a free parameter for drift mean, threshold, starting point, and non-decision time, then this would be 4
+
+- nchains (Integer)  The number of different values of each free parameter to be assessed (single number)
+
+- ncells (Integer)  The number of cells in the design (single number), which is 2 (correct and error) * the number of within-subjects conditions
+
+- contaminants (Double)  A vector of length 2, which contains the probability of density contamination (first value), and the likelihood/density of this contamination (second value)
+
+- out (Double)  A vector of length "nchains", all with the value 0. The values returned in this element will be the log-likelihoods for each set of parameter values, summed over all RTs (NOTE: It's easy to get back the likelihood for each RT separately, but I assume you won't need/want this, as it's very inefficient)
+
+   - dologsums (Integer)  A binary for whether to do the summing mentioned above (=1) or not (=0)
