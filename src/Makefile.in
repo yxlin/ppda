@@ -1,0 +1,38 @@
+OBJS = util.o random.o reduce.o
+
+NVCC = @NVCC@
+CUDA_HOME = @CUDA_HOME@
+CUDA_INCLUDE = $(CUDA_HOME)/include
+CUDA_LIB = @CUDA_LIB@
+
+R_HOME = @R_HOME@
+R_INCLUDE = @R_INCLUDE@
+R_LIB = @R_LIB@
+
+CC = @CC@
+CFLAGS = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@
+CPICFLAGS = @CPICFLAGS@
+
+RPATH = @RPATH@
+LDFLAGS = @LDFLAGS@
+LFLAGS=-lcurand -lcufft  ## curand
+
+#compiler/preprocessor options
+INCLUDES = -I. -I"$(CUDA_INCLUDE)" -I"$(R_INCLUDE)"
+LIBS = -L"$(CUDA_LIB)" -lcublas $(R_LIB)
+
+TARGETS = gpda.so
+
+all: $(TARGETS)
+
+$(TARGETS): $(OBJS)
+	$(NVCC) -shared $(RPATH) $(LDFLAGS) $(LIBS) $(LFLAGS) $(OBJS) -o $@ 
+ 
+$(OBJS): %.o: %.cu
+	$(NVCC) -c -Xcompiler -arch=sm_35 "$(CPICFLAGS) $(CPPFLAGS) $(CFLAGS)" $(INCLUDES) $^ -o $@ 
+
+clean:
+	rm -rf *o
+
+.PHONY: all clean
