@@ -1,9 +1,9 @@
-# Probability Density Approximation using Graphic Processing Unit 
+# Probability Density Approximation using Graphics Processing Unit 
 
-The package uses GP-GPU to conduct Monte Carlo simulations of 
-basic and piece-wise linear ballistic accumulator models. The 
-simulations are used to approximate the model likelihood via a slihgtly
-modified method based on Homles (2015). 
+The package uses general purpose graphics processing uit (GP-GPU) 
+to conduct Monte Carlo simulations of basic and piece-wise linear ballistic 
+accumulator models. The simulations are then used to approximate the model 
+likelihood via a slihgtly modified method described in Homles (2015). 
 
 This project is still under active development. If you've found any bugs or
 have any suggestions to help us to improve it.  Please email the package 
@@ -16,10 +16,9 @@ Simulate more than 1,000,000 LBA model random numbers:
 
 ```
 require(gpda)
-
 m(list=ls())
-n <- 2^20
-dat1 <- gpda::rlba(n, nthread=64); 
+n <- 2^20     ## This must be a power of two
+dat1 <- gpda::rlba(n, nthread=64);  
 dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5, 
    silent=TRUE)
 names(dat3) <- c("RT","R")

@@ -1,7 +1,7 @@
 Package: gpda
 Version: 0.1.5
 Date: 2017-05-01
-Title: Probability Density Approximation Using Graphic Processing Unit
+Title: Probability Density Approximation Using Graphics Processing Unit
 Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
                     role = c("aut", "cre")),
   person("Andrew", "Heathcote", email = "andrew.heathcote@utas.edu.au",
@@ -10,10 +10,10 @@ Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
   role = "aut"))
 Maintainer: Yi-Shin Lin <yishin.lin@utas.edu.au>
 Depends: R (>= 3.0.2)
-Description: The package uses GP-GPU to conduct Monte Carlo simulations of 
-    cannoical and piece-wise linear ballistic accumulator models. The 
-    simulations are then used to approximate the model likelihood via a slihgtly
-    modified method based on Homles (2015). 
+Description: The package uses general purpose graphics processing uit (GP-GPU) 
+    to conduct Monte Carlo simulations of basic and piece-wise linear ballistic 
+    accumulator models. The simulations are then used to approximate the model 
+    likelihood via a slihgtly modified method described in Homles (2015). 
 License: GPL-2
 URL: https://github.com/TasCL/gpda
 BugReports: https://github.com/TasCL/gpda/issues
