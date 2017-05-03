@@ -51,7 +51,7 @@ lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
 
 
 ## Comparing the speed of using double-precision, single-precision, 
-## and R's script. 'dp=F' stands for turn off double-precision. 
+## and R's script. 'dp=F' stands for turning off double-precision. 
 library(microbenchmark)
 res <- microbenchmark(gpda::rlba(n, dp=F),
                       gpda::rlba(n, dp=T),
