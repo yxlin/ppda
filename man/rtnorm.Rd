@@ -4,7 +4,8 @@
 \alias{rtnorm}
 \title{Generate Random numbers form a Truncated Normal Distribution with GPU}
 \usage{
-rtnorm(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, nThread = 32)
+rtnorm(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, dp = FALSE,
+  nthread = 32)
 }
 \arguments{
 \item{n}{number of observations. Only accept an integer scalar}

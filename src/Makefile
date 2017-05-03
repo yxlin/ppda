@@ -1,4 +1,4 @@
-OBJS = util.o random.o reduce.o
+OBJS = util.o random.o reduce.o density.o sum.o
 
 NVCC = /usr/local/cuda/bin/nvcc
 CUDA_HOME = /usr/local/cuda
@@ -27,10 +27,10 @@ TARGETS = gpda.so
 all: $(TARGETS)
 
 $(TARGETS): $(OBJS)
-	$(NVCC) -shared $(RPATH) $(LDFLAGS) $(LIBS) $(LFLAGS) $(OBJS) -o $@ 
+	$(NVCC) -arch=sm_35 -shared $(RPATH) $(LDFLAGS) $(LIBS) $(LFLAGS) $(OBJS) -o $@ 
  
 $(OBJS): %.o: %.cu
-	$(NVCC) -c -Xcompiler -arch=sm_35 "$(CPICFLAGS) $(CPPFLAGS) $(CFLAGS)" $(INCLUDES) $^ -o $@ 
+	$(NVCC) -arch=sm_35 -c -Xcompiler "$(CPICFLAGS) $(CPPFLAGS) $(CFLAGS)" $(INCLUDES) $^ -o $@ 
 
 clean:
 	rm -rf *o

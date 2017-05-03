@@ -8,3 +8,4 @@ double cquantile(arma::vec y, double q);
 double bwNRD0(arma::vec y, double m);
 double gaussian(double y, arma::vec yhat, double h);
 
+unsigned int nextPow2(unsigned int x);

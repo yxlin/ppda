@@ -5,11 +5,22 @@
 #include <cufftXt.h>
 #include <curand_kernel.h> // Device random API
 #include <ctime> // CPU timer
-#include "../inst/include/constant.h"  // math constants
-#include "../inst/include/genRng.h"  // cuda check
+//#include "../inst/include/constant.h"  // math constants
+#include "../inst/include/random.h"
+#include "../inst/include/density.h"  
 
 extern "C" void logLik_fft2(double *y_, double *yhat_, int *ny, 
                             int *ns, int *p, int *nThreads, double *out);
+
+unsigned int nextPow2(unsigned int x) {
+    --x;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    return ++x;
+}
 
 
 /* -------------------------------------------------------------------------  

@@ -8,26 +8,27 @@
 \alias{sqsum}
 \alias{sd}
 \alias{count}
+\alias{n1min}
 \title{GPU Math Functions}
 \usage{
-sum(x, nthread = 32, debug = FALSE)
+sum(x, debug = TRUE)
 
-min(x, nthread = 32, debug = FALSE)
+min(x, debug = FALSE)
 
-max(x, nthread = 32, debug = FALSE)
+max(x, debug = FALSE)
 
-minmax(x, nthread = 32, debug = FALSE)
+minmax(x, debug = FALSE)
 
-sqsum(x, nthread = 32, debug = FALSE)
+sqsum(x, debug = FALSE)
 
-sd(x, nthread = 32, debug = FALSE)
+sd(x, debug = FALSE)
 
-count(R, nthread = 32, debug = FALSE)
+count(R, debug = FALSE)
+
+n1min(x, debug = TRUE)
 }
 \arguments{
 \item{x}{a data vector.}
-
-\item{nthread}{numbers of thread to launch the kernel}
 
 \item{debug}{whether to print debug information}
 }
@@ -42,7 +43,7 @@ in one go, and to calculate standard deviation.
 \examples{
 rm(list=ls())
 ## min 512 = 2^9 elements
-2^21
+
 dat0   <- gpda::rlba(2^21, nthread=64); str(dat0)
 result <- gpda::min(dat0$RT); result
 result <- gpda::max(dat0$RT); result

@@ -5,14 +5,13 @@
 #' in one go, and to calculate standard deviation.
 #' 
 #' @param x a data vector.
-#' @param nthread numbers of thread to launch the kernel
 #' @param debug whether to print debug information
 #' @return a scalar or a pair of scalar values. 
 #' @export
 #' @examples
 #' rm(list=ls())
 #' ## min 512 = 2^9 elements
-#' 2^21
+#' 
 #' dat0   <- gpda::rlba(2^21, nthread=64); str(dat0)
 #' result <- gpda::min(dat0$RT); result
 #' result <- gpda::max(dat0$RT); result
@@ -24,59 +23,79 @@
 #' base::min(dat0$RT); base::max(dat0$RT)
 #" base::sum(dat0$RT);
 #' @export
-sum <- function(x, nthread=32, debug=FALSE) {
+sum <- function(x, debug=TRUE) {
     .C("sum_entry", as.double(x), as.integer(length(x)),
-      as.integer(nthread), as.logical(debug), numeric(1),
-      PACKAGE='gpda')[[5]]
+      as.logical(debug), numeric(1), PACKAGE='gpda')[[4]]
+}
+
+#' @export
+sumur <- function(x, debug=TRUE) {
+    .C("sumur_entry", as.double(x), as.integer(length(x)),
+      as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+}
+
+#' @export
+sqsumur <- function(x, debug=TRUE) {
+    .C("sqsumur_entry", as.double(x), as.integer(length(x)),
+      as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+}
+
+#' @export
+sqsumurd <- function(x, debug=TRUE) {
+    .C("sqsumurd_entry", as.double(x), as.integer(length(x)),
+      as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }
 
 
 #' @rdname sum
 #' @export
-min <- function(x, nthread = 32, debug=FALSE) {
+min <- function(x, debug=FALSE) {
   .C("min_entry", as.double(x), as.integer(length(x)),
-    as.integer(nthread), as.logical(debug), numeric(1),
-    PACKAGE = "gpda")[[5]]
+    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }
+
 
 #' @rdname sum
 #' @export
-max <- function(x, nthread = 32, debug=FALSE) {
+max <- function(x, debug=FALSE) {
   .C("max_entry", as.double(x), as.integer(length(x)),
-    as.integer(nthread), as.logical(debug), numeric(1),
-    PACKAGE = "gpda")[[5]]
+    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }
-
 
 #' @rdname sum
 #' @export
-minmax <- function(x, nthread = 32, debug=FALSE) {
+minmax <- function(x, debug=FALSE) {
   .C("minmax_entry", as.double(x), as.integer(length(x)),
-    as.integer(nthread), as.logical(debug), numeric(2),
-    PACKAGE = "gpda")[[5]]
+    as.logical(debug), numeric(2), PACKAGE = "gpda")[[4]]
 }
 
 #' @rdname sum
 #' @export
-sqsum <- function(x, nthread=32, debug=FALSE) {
+sqsum <- function(x, debug=FALSE) {
   .C("sqsum_entry", as.double(x), as.integer(length(x)), 
-    as.integer(nthread), as.logical(debug), numeric(1),
-    PACKAGE="gpda")[[5]]
+    as.logical(debug), numeric(1),
+    PACKAGE="gpda")[[4]]
 }
+
 
 #' @rdname sum
 #' @export
-sd <- function(x, nthread=32, debug=FALSE) {
+sd <- function(x, debug=FALSE) {
   .C("sd_entry", as.double(x), as.integer(length(x)), 
-    as.integer(nthread), as.logical(debug), numeric(1),
-    PACKAGE="gpda")[[5]]
+    as.logical(debug), numeric(1), PACKAGE="gpda")[[4]]
 }
 
 #' @rdname sum
 #' @export
-count <- function(R, nthread=32, debug=FALSE) {
+count <- function(R, debug=FALSE) {
   .C("count_entry", as.integer(length(R)), as.integer(R),
-    as.integer(nthread), as.logical(debug), numeric(2),
-    PACKAGE="gpda")[[5]]
+    as.logical(debug), numeric(2), PACKAGE="gpda")[[4]]
 }
 
+
+#' @rdname sum
+#' @export
+n1min <- function(x, debug=TRUE) {
+  .C("n1min_entry", as.double(x), as.integer(length(x)), as.logical(debug), 
+    numeric(1), PACKAGE="gpda")[[4]]
+}

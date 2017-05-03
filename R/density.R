@@ -237,37 +237,32 @@ dlba_gpu <- function(data, nsim=1e5, b=1, A=0.5, mean_v=c(2.4, 1.6),
                 C2=cbind(RT1, out[[15]])))
 }
 
+
 #' @rdname dlba_gpu
 #' @export
-n1PDF <- function(data, nsim=1e6, b=1, A=0.5, mean_v=c(2.4, 1.6),
-  sd_v=c(1, 1), t0=0.5, nThread=1024, debug=FALSE) {
-  if (any(sd_v < 0)) {stop("Standard deviation must be positive.\n")}
-  if (any(sd_v == 0)) {stop("0 sd causes rtnorm to stall.\n")}
+n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
+  sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE) {
+  if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
+  if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
   if (length(b)  != 1) {stop("b must be a scalar.\n")}
   if (length(A)  != 1) {stop("A must be a scalar.\n")}
   if (length(t0) != 1) {stop("t0 must be a scalar.\n")}
-
-  out <- .C("n1PDF_entry", as.double(data), as.integer(length(data)), 
-    as.integer(nsim), 
-    as.double(b), as.double(A), 
+  if (nsim %% 2 != 0 || nsim < 512) {stop("nsim must be power of 2 and at least 2^9.\n")}
+  out <- .C("n1PDF", as.double(x), as.integer(length(x)), 
+    as.integer(nsim),  as.double(b),  as.double(A),
     as.double(mean_v), as.integer(length(mean_v)), 
-    as.double(sd_v), as.integer(length(sd_v)), 
-    as.double(t0), as.integer(nThread), 
-    numeric(length(data)), as.logical(debug), PACKAGE='gpda')
+    as.double(sd_v),    
+    as.double(t0),     as.integer(nthread), 
+    as.logical(debug), numeric(length(x)),
+    ##as.logical(debug), numeric(nsim), integer(nsim),
+    numeric(length(x)),
+    PACKAGE='gpda')
+  #cat("Receive call from lba_B-gpda.R\n")
+
   return(out[[12]])
+  ##result <- data.frame(RT = out[[12]], R = out[[13]])
+  ##names(result) <-  c("RT", "R")
+  ##return(result)
 }
 
-#' @rdname dlba_gpu
-#' @export
-n1PDF_test <- function(RT0, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-  sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE) {
-  out <- .C("n1PDF_test", as.double(RT0), as.integer(length(RT0)), 
-    as.integer(nsim),
-    as.double(b), as.double(A), 
-    as.double(mean_v), as.integer(length(mean_v)), 
-    as.double(sd_v), as.integer(length(sd_v)), 
-    as.double(t0), as.integer(nthread), 
-    as.logical(debug), numeric(length(RT0)), PACKAGE='gpda')
-  return(out[[13]])
-}
 

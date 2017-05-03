@@ -3,16 +3,12 @@
 \name{dlba_gpu}
 \alias{dlba_gpu}
 \alias{n1PDF}
-\alias{n1PDF_test}
 \title{Calculating Two-accumulator LBA Densities Using PDA Method}
 \usage{
 dlba_gpu(data, nsim = 1e+05, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c1, t0 = 0.5, nThread = 32)
 
-n1PDF(data, nsim = 1e+06, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-  sd_v = c(1, 1), t0 = 0.5, nThread = 1024, debug = FALSE)
-
-n1PDF_test(RT0, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
+n1PDF(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE)
 }
 \arguments{

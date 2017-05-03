@@ -2,9 +2,9 @@
 % Please edit documentation in R/random.R
 \name{runif}
 \alias{runif}
-\title{Generate Uniform Random Numbers with GPU}
+\title{Generate Uniform Random Numbers Using GPU}
 \usage{
-runif(n, min = 0, max = 1, nThread = 32)
+runif(n, min = 0, max = 1, nthread = 32, dp = FALSE)
 }
 \arguments{
 \item{n}{number of observations. This accepts only one integer.}
@@ -15,7 +15,9 @@ This accepts only one double/numeric.}
 \item{max}{upper bound of the uniform distribution. Must be finite. 
 This accepts only one double/numeric.}
 
-\item{nThread}{number of threads launched per block.}
+\item{nthread}{number of threads launched per block.}
+
+\item{dp}{whether calculate using double precision. Default is FALSE.}
 }
 \value{
 a double vector
@@ -24,11 +26,12 @@ a double vector
 This function generates uniform random numbers using GPU.
 }
 \examples{
-n <- 1e6
+n <- 2^20
 dat1 <- gpda::runif(n)
 dat2 <- stats::runif(n)
 den1 <- density(dat1)
 den2 <- density(dat2)
+
 ## Identical result
 par(mfrow=c(1,2))
 hist(dat2, breaks="fd", freq=F, ylim=c(0,1.1))
@@ -38,9 +41,15 @@ lines(den2$x, den2$y,lwd=2)
 par(mfrow=c(1,1))
 
 ## require(microbenchmark)
-## res <- microbenchmark(gpda::runif(n), stats::runif(n), times=10L)
+## res <- microbenchmark(gpda::runif(n, dp=FALSE), gpda::runif(n, dp=TRUE),
+##                       stats::runif(n), times=100L)
 ## Unit: milliseconds
-##           expr      min        lq     mean   median       uq      max neval   
-## gpda::runif(n)  1.274803 1.398778 2.051245 1.455317 1.521285 7.245396    10   
-## stats::runif(n) 2.457481 2.487725 2.758491 2.622419 2.639217 3.627238    10   
+##                        expr       min        lq      mean    median        uq
+##  gpda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  5.310155
+##  gpda::runif(n, dp = TRUE)   5.876643  6.592802  7.122335  6.731998  6.957797
+##             stats::runif(n) 23.213792 23.983485 24.776863 24.022213 24.789670
+##       max neval cld
+##  28.70379   100   a  
+##  31.85638   100   b 
+##  49.04686   100   c
 }

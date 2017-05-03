@@ -2,9 +2,9 @@
 % Please edit documentation in R/random.R
 \name{rnorm}
 \alias{rnorm}
-\title{Generate Gaussian Random Numbers with GPU}
+\title{Generate Gaussian Random Numbers using GPU}
 \usage{
-rnorm(n, mean = 0, sd = 1, nThread = 32)
+rnorm(n, mean = 0, sd = 1, dp = FALSE, nthread = 32)
 }
 \arguments{
 \item{n}{number of observations. This accepts only one integer}
@@ -13,7 +13,9 @@ rnorm(n, mean = 0, sd = 1, nThread = 32)
 
 \item{sd}{a standard deviation. This accepts only one double/numeric.}
 
-\item{nThread}{number of threads launched per block.}
+\item{dp}{whether calculate using double precision. Default is FALSE.}
+
+\item{nthread}{number of threads launched per block.}
 }
 \value{
 a double vector
@@ -22,7 +24,7 @@ a double vector
 This function generates random numbers using GPU from a normal distribution.
 }
 \examples{
-n <- 1e5
+n <- 2^20
 dat1 <- gpda::rnorm(n)
 dat2 <- stats::rnorm(n)
 den1 <- density(dat1)
@@ -37,9 +39,15 @@ lines(den2$x, den2$y,lwd=2)
 par(mfrow=c(1,1))
 
 ## require(microbenchmark)
-## res <- microbenchmark(gpda::rnorm(n), stats::rnorm(n), times=10L)
+## res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
+##                       stats::rnorm(n), times=100L)
 ## Unit: milliseconds
-##           expr      min       lq     mean   median       uq      max neval 
-## gpda::rnorm(n) 1.337829 1.352705 1.858909 1.385913 1.570951 5.861834    10  
-## stats::rnorm(n) 6.191541 6.197897 6.213164 6.213855 6.220036 6.251044   10 
+##                        expr      min        lq      mean    median        uq
+## gpda::rnorm(n, dp = TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
+## gpda::rnorm(n, dp = FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
+##            stats::rnorm(n) 58.169916 58.236266 59.341414 58.283129 58.880208
+##       max neval cld
+## 34.97274   100    b 
+## 11.70719   100    a  
+## 80.32002   100    c
 }
