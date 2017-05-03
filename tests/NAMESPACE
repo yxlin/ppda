@@ -1,5 +1,0 @@
-useDynLib(gpda)
-export(logLik_fft)
-export(runif)
-export(rnorm)
-export(rlba)
