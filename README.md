@@ -66,11 +66,11 @@ res <- microbenchmark(gpda::rlba(n, dp=F),
 
 ```
 
-gpda generate random numbers from a truncated normal distribution, too. n must
-be power of 2.
+'gpda' generates random numbers from a truncated normal distribution, too. n 
+must be power of 2.
+
 
 ```
-
 n <- 2^20
 dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
