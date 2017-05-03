@@ -7,7 +7,7 @@ modified method based on Homles (2015).
 
 This project is still under active development. If you've found any bugs or
 have any suggestions to help us to improve it.  Please email the package 
-[maintainer]<yishin.lin@utas.edu.au>. 
+[maintainer](yishin.lin@utas.edu.au). 
 
 
 ## Getting Started
