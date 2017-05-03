@@ -23,7 +23,7 @@
 #' base::min(dat0$RT); base::max(dat0$RT)
 #" base::sum(dat0$RT);
 #' @export
-sum <- function(x, debug=TRUE) {
+sum_gpu <- function(x, debug=TRUE) {
     .C("sum_entry", as.double(x), as.integer(length(x)),
       as.logical(debug), numeric(1), PACKAGE='gpda')[[4]]
 }
@@ -49,7 +49,7 @@ sqsumurd <- function(x, debug=TRUE) {
 
 #' @rdname sum
 #' @export
-min <- function(x, debug=FALSE) {
+min_gpu <- function(x, debug=FALSE) {
   .C("min_entry", as.double(x), as.integer(length(x)),
     as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }
@@ -57,7 +57,7 @@ min <- function(x, debug=FALSE) {
 
 #' @rdname sum
 #' @export
-max <- function(x, debug=FALSE) {
+max_gpu <- function(x, debug=FALSE) {
   .C("max_entry", as.double(x), as.integer(length(x)),
     as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }
@@ -80,7 +80,7 @@ sqsum <- function(x, debug=FALSE) {
 
 #' @rdname sum
 #' @export
-sd <- function(x, debug=FALSE) {
+sd_gpu <- function(x, debug=FALSE) {
   .C("sd_entry", as.double(x), as.integer(length(x)), 
     as.logical(debug), numeric(1), PACKAGE="gpda")[[4]]
 }
