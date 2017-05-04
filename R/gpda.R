@@ -1,6 +1,9 @@
-#' Probability Density Approximation using GPU 
+#' Probability Density Approximation Using Graphics Processing Unit 
 #'
-#' Use GPU to calculate probability densities via Monte Carlo simulations. 
+#' The package uses general purpose graphics processing unit (GP-GPU) 
+#' to conduct Monte Carlo simulations of basic and piece-wise linear ballistic
+#' accumulator models. The simulations are then used to approximate the model
+#' likelihood via a slihgtly modified method described in Homles (2015). 
 #'
 #' @keywords gpda
 #' @name gpda

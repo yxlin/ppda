@@ -1,4 +1,4 @@
-OBJS = util.o random.o reduce.o density.o sum.o
+OBJS = util.o random.o reduce.o density.o
 
 NVCC = /usr/local/cuda/bin/nvcc
 CUDA_HOME = /usr/local/cuda

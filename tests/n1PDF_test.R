@@ -4,19 +4,34 @@ rm(list=ls())
 ##0.07 0.09 -7.37   -4.36  0.94  0.049 
 
 data <- seq(0, 3, length.out = 1e3);
-pvec <- c(A=0.07, b=0.09, t0=.94)
-mean_v <- c(-7.37, -4.36)
-sd_v <- c(1,1)
-tmp1 <- gpda::n1PDF(data, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
-  t0=pvec[3], nsim=2^20, debug=T)
-tmp2 <- cpda::n1PDF(data, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
-  t0=pvec[3], debug=T)
-tmp3 <- clba::n1PDFfixedt0(data, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, t0=pvec[3])
-tmp4 <- rtdists::n1PDF(data, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, t0=pvec[3], silent=T)
+den1 <- gpda::n1PDF(data)
+den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
+                        t0=.5, silent=T)
 
-gpda::n1PDF
-tmp1 <- gpda::n1PDF(data,nsim=2^21, debug=T)
-tmp4 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4,1.6), sd_v=c(1,1), t0=.5, silent=T)
+plot(data, den1, type="l")
+lines(data, den2, lwd=2)
+all.equal(den1, den2)
+
+den1 <- gpda::n1PDF(data, nsim=2^20)
+
+plot(data, den1, type="l")
+lines(data, den2, lwd=2)
+all.equal(den1, den2)
+
+
+den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), sd_v=c(1, 1), 
+  t0=.94, nsim=2^20, debug=T)
+den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), sd_v=c(1, 1),
+  t0=.94, silent=T)
+
+par(mfrow=c(1,2))
+plot(data, den1, type="l")
+lines(data, den2, lwd=2)
+
+plot(data, den2, type="l")
+lines(data, den1, lwd=2)
+all.equal(den1, den2)
+
 
 
 tmp5 <- cpda::rlba_test(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
@@ -25,14 +40,7 @@ tmp6 <- rtdists::rLBA(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v,
   t0=pvec[3], silent=T)
 names(tmp6) <- c("RT","R")
 
-base::min(tmp5[tmp5$R==1,"RT"])
-base::max(tmp5[tmp5$R==1,"RT"])
-base::min(tmp6[tmp6$R==1,"RT"])
-base::max(tmp6[tmp6$R==1,"RT"])
 
-round(tmp1,2)
-round(as.vector(tmp2),2)
-round(tmp4,4)
 
 
 all.equal(as.vector(tmp1), as.vector(tmp2))

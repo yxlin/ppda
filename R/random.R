@@ -91,7 +91,7 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
     as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "gpda")[[6]]
 }
 
-#' Generate Random numbers form a Truncated Normal Distribution with GPU 
+#' Generate Random numbers from a Truncated Normal Distribution  
 #'
 #' This function generates random numbers using GPU from a truncated normal 
 #' distribution.
@@ -152,7 +152,7 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE, nthread=32
 }
 
 
-#' The Random Number Generator of Cannonical Linear Ballistic Accumulation Model
+#' The Random Number Generator of the Basic Linear Ballistic Accumulation Model
 #'
 #' This function generates two-accumulator LBA random numbers using GPU.
 #'
@@ -272,19 +272,20 @@ rlba <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
   if (any(sd_v < 0)) stop("Standard deviation must be positive.\n")
   nmean_v <- length(mean_v)
   nsd_v   <- length(sd_v)
-  if (nsd_v == 1) {
+  if (nsd_v == 1) 
+  {
     sd_v  <- rep(sd_v, nmean_v)
     nsd_v <- length(sd_v)
   }
   if (nmean_v != nsd_v) stop("sd_v length must match that of mean_v!\n")
 
   if (dp) {
-      result <- .C("rlba_entry_double", as.integer(n), as.double(b), as.double(A),
-               as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
-               as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
-               numeric(n), integer(n), PACKAGE = "gpda")
+      result <- .C("rlbad_entry", as.integer(n), as.double(b), 
+        as.double(A), as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
+        as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
+        numeric(n), integer(n), PACKAGE = "gpda")
   } else {
-      result <- .C("rlba_entry_float", as.integer(n), as.double(b), as.double(A),
+      result <- .C("rlbaf_entry", as.integer(n), as.double(b), as.double(A),
                as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
                as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
                numeric(n), integer(n), PACKAGE = "gpda")
@@ -308,12 +309,12 @@ rlba_n1 <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
   if (nmean_v != nsd_v) stop("sd_v length must match that of mean_v!\n")
 
   if (dp) {
-      result <- .C("rlba_n1_double", as.integer(n), as.double(b), as.double(A),
+      result <- .C("rlbad_n1", as.integer(n), as.double(b), as.double(A),
                as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
                as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
                numeric(n), integer(n), PACKAGE = "gpda")
   } else {
-      result <- .C("rlba_n1_float", as.integer(n), as.double(b), as.double(A),
+      result <- .C("rlbaf_n1", as.integer(n), as.double(b), as.double(A),
                as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
                as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
                numeric(n), integer(n), PACKAGE = "gpda")

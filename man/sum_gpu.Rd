@@ -2,12 +2,33 @@
 % Please edit documentation in R/stats.R
 \name{sum_gpu}
 \alias{sum_gpu}
+\alias{min_gpu}
+\alias{max_gpu}
+\alias{minmax}
+\alias{sqsum}
+\alias{sd_gpu}
+\alias{count}
+\alias{n1min}
 \title{GPU Math Functions}
 \usage{
 sum_gpu(x, debug = TRUE)
+
+min_gpu(x, debug = FALSE)
+
+max_gpu(x, debug = FALSE)
+
+minmax(x, debug = FALSE)
+
+sqsum(x, debug = FALSE)
+
+sd_gpu(x, debug = FALSE)
+
+count(R, debug = FALSE)
+
+n1min(x, debug = TRUE)
 }
 \arguments{
-\item{x}{a data vector.}
+\item{x}{a numeric vector.}
 
 \item{debug}{whether to print debug information}
 }
@@ -15,21 +36,23 @@ sum_gpu(x, debug = TRUE)
 a scalar or a pair of scalar values.
 }
 \description{
-sum, min, max, minmax and sd are 5 basic mathematical functions to sum a
-vector, to find minimal or maximal value, to find minimal and maximal
-in one go, and to calculate standard deviation.
+sum, min, max, minmax and sd conduct basic math operations on a vector, to
+find summation, minimal, maximal, minimal and maximal values in one go, and
+standard deviation. This functions are meant to operate in GPU memory. These
+R entry points are for testing.
 }
 \examples{
 rm(list=ls())
-## min 512 = 2^9 elements
+## The smallest vector has to be at least 512 (= 2^9) elements
 
 dat0   <- gpda::rlba(2^21, nthread=64); str(dat0)
-result <- gpda::min(dat0$RT); result
-result <- gpda::max(dat0$RT); result
+result <- gpda::min_gpu(dat0$RT); result
+result <- gpda::max_gpu(dat0$RT); result
 result <- gpda::minmax(dat0$RT); result
-result <- gpda::sum(dat0$RT); result
-result <- gpda::sd(dat0$RT); result
+result <- gpda::sum_gpu(dat0$RT); result
+result <- gpda::sd_gpu(dat0$RT); result
 
 stats::sd(dat0$RT);
-base::min(dat0$RT); base::max(dat0$RT)
+base::min(dat0$RT); 
+base::max(dat0$RT)
 }

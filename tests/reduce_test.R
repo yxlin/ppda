@@ -1,13 +1,13 @@
 rm(list=ls())
 ## sum test
 dat0   <- gpda::rlba(2^20, nthread=256); str(dat0)
-result <- gpda::sum(dat0$RT, debug=T); result
+result <- gpda::sum_gpu(dat0$RT, debug=T); result
 base::sum(dat0$RT)
 result <- gpda::sumur(dat0$RT, debug=T); result
 
 
 res <- microbenchmark::microbenchmark(
-                           gpda::sum(dat0$RT, debug=FALSE),
+                           gpda::sum_gpu(dat0$RT, debug=FALSE),
                            gpda::sumur(dat0$RT, debug=FALSE),
                            base::sum(dat0$RT),
   times=100L)
@@ -15,19 +15,6 @@ res <- microbenchmark::microbenchmark(
 res
 
 
-## sum test
-dat0   <- gpda::rlba(2^20, nthread=256); str(dat0)
-result <- gpda::sqsum(dat0$RT); result
-base::sum(dat0$RT^2);
-result <-  gpda::sqsumurd(dat0$RT); result
-
-res <- microbenchmark::microbenchmark(
-                           gpda::sqsum(dat0$RT, debug=FALSE),
-                           gpda::sqsumurd(dat0$RT, debug=FALSE),
-                           base::sum(dat0$RT^2),
-  times=100L)
-
-res
 
 
 

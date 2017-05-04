@@ -14,6 +14,36 @@ extern "C" void sd_entry(double *x, int *nx, bool *debug, double *out);
 extern "C" void count_entry(int *nR, int *R, bool *debug, double *out);
 extern "C" void n1min_entry(double *RT0, int *nx, bool *debug, double *out);
 
+template<class T> struct SharedMemory
+{
+  __device__ inline operator       T *()
+  {
+    extern __shared__ int __smem[];
+    return (T *)__smem;
+  }
+  
+  __device__ inline operator const T *() const
+  {
+    extern __shared__ int __smem[];
+    return (T *)__smem;
+  }
+};
+
+template<> struct SharedMemory<double>
+{
+  __device__ inline operator       double *()
+  {
+    extern __shared__ double __smem_d[];
+    return (double *)__smem_d;
+  }
+  
+  __device__ inline operator const double *() const
+  {
+    extern __shared__ double __smem_d[];
+    return (double *)__smem_d;
+  }
+};
+
 __global__ void min_kernel(double *input, double *out) {
   __shared__ double cache[256];
   unsigned int tid = threadIdx.x;
@@ -165,6 +195,7 @@ __global__ void sum_kernel(float *input, float *out) {
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
+
 
 __global__ void squareSum_kernel(unsigned int* n, double *input, double *out) {
   __shared__ double cache[256];
