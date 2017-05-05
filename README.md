@@ -8,7 +8,7 @@ parallel implementation on the basis of a method described in Homles (2015).
 
 This project is still under active development. We are glad if you find 
 software here is useful.  If you've found any bugs or have any suggestions, 
-please email the package [maintainer](yishin.lin@utas.edu.au). 
+please email the package [maintainer] at <yishin.lin@utas.edu.au>. 
 
 
 ## Getting Started
