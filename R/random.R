@@ -321,3 +321,4 @@ rlba_n1 <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
   }
   return(data.frame(RT1 = result[[10]], R = result[[11]]))
 }
+

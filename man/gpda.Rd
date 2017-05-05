@@ -4,9 +4,12 @@
 \name{gpda}
 \alias{gpda}
 \alias{gpda-package}
-\title{Probability Density Approximation using GPU}
+\title{Probability Density Approximation Using Graphics Processing Unit}
 \description{
-Use GPU to calculate probability densities via Monte Carlo simulations.
+The package uses general purpose graphics processing unit (GP-GPU) 
+to conduct Monte Carlo simulations of basic and piece-wise linear ballistic
+accumulator models. The simulations are then used to approximate the model
+likelihood via a slihgtly modified method described in Homles (2015).
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density

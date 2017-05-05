@@ -52,3 +52,18 @@ __global__ void rlba_n1_kernel(unsigned int *n, float *b, float *A,
                                float *lower, float *upper, float *a,
                                bool *c, float *RT, unsigned int *R);
 
+void rn1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
+  double *sd_v, double *t0, int *nth, unsigned int *d_R, float *d_RT0);
+
+
+void rplba_internal(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
+  double *mean_w, double *sd_v, double *t0, double *T0, int *nth, unsigned int *d_R,
+  float *d_RT);
+
+void rplba1_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
+              double *mean_w, double *sd_v, double *t0, double *T0, int *nth,
+              unsigned int *d_R, float *d_RT);
+
+void rplba2_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
+               double *mean_w, double *sd_v, double *sd_w,  double *t0,
+               double *T0, int *nth, unsigned int *d_R, float *d_RT);

@@ -3,7 +3,7 @@
 \name{rlba}
 \alias{rlba}
 \alias{rlba_n1}
-\title{The Random Number Generator of Cannonical Linear Ballistic Accumulation Model}
+\title{The Random Number Generator of the Basic Linear Ballistic Accumulation Model}
 \usage{
 rlba(n, b = 1, A = 0.5, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
   t0 = 0.5, nthread = 32, dp = FALSE)

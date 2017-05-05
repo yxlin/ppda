@@ -31,7 +31,7 @@ vector.}
 a likelihood vector.
 }
 \description{
-This is the approximated density function of the basic 2-accumualtor LBA 
+This is the approximated density function for the basic 2-accumualtor LBA 
 model, sampling drift rates from truncated normal distributions. The 
 function uses probability density approximation to estimate likelihood.
 }
@@ -77,10 +77,11 @@ lines(data, den2, lwd=2)
 plot(data, den2, type="l")
 lines(data, den1, lwd=2)
 all.equal(den1, den2)
+## [1] "Mean relative difference: 0.9991495"
 
-## Note both shapes are similar, but dlba estimates small values, relative to
-## rlba. These happen in behaviourally implausible parameter sets. It takes
-## relatively longer iterations to smooth out the noise.   
+## Note both shapes are similar, but dlba estimates smaller values, 
+## relative to rlba. These happen in behaviourally implausible parameter 
+## sets. It takes relatively longer iterations to smooth out the noise.   
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density

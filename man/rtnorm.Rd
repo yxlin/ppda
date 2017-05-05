@@ -2,7 +2,7 @@
 % Please edit documentation in R/random.R
 \name{rtnorm}
 \alias{rtnorm}
-\title{Generate Random numbers form a Truncated Normal Distribution with GPU}
+\title{Generate Random numbers from a Truncated Normal Distribution}
 \usage{
 rtnorm(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, dp = FALSE,
   nthread = 32)
