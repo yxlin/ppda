@@ -19,16 +19,16 @@ extern "C" void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A,
 
 extern "C" void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A,
                             double *mean_v, int *nmean_v, double *sd_v,double *sd_w,
-                           double *t0, double *mean_w, double *rD, double *swt,
-                            //int *nth, bool *debug, double *out);
-                           int *nth, bool *debug, double *RT, int *R, double *out);
+                            double *t0, double *mean_w, double *rD, double *swt,
+                            int *nth, bool *debug, double *out);
+                            //int *nth, bool *debug, double *RT, int *R, double *out);
 
 extern "C" void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A,
                             double *C, double *mean_v, int *nmean_v, double *sd_v,
                             double *sd_w, double *t0, double *mean_w, double *rD,
                             double *tD, double *swt,
-                            //int *nth, bool *debug, double *out);
-                            int *nth, bool *debug, double *RT, int *R, double *out);
+                            int *nth, bool *debug, double *out);
+                            //int *nth, bool *debug, double *RT, int *R, double *out);
 
 extern "C" void histc_entry(double *binedge, double *rng, int nrng, int ngrid, 
   unsigned int *out);
@@ -451,14 +451,14 @@ void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *me
 
 void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
                  int *nmean_v, double *sd_v, double *sd_w, double *t0, double *mean_w, double *rD,
-                 //double *swt, int *nth, bool *debug, double *out) {
-                double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+                 double *swt, int *nth, bool *debug, double *out) {
+                 //double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
   size_t nsimfSize = *nsim * sizeof(double);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
   float *d_RT; unsigned int *d_R;
-  float *h_RT; unsigned int *h_R;
-  h_RT  = (float *)malloc(nsimfSize);
-  h_R   = (unsigned int *)malloc(nsimuSize);
+  //float *h_RT; unsigned int *h_R;
+  //h_RT  = (float *)malloc(nsimfSize);
+  //h_R   = (unsigned int *)malloc(nsimuSize);
   CHECK(cudaMalloc((void**) &d_RT, nsimfSize));
   CHECK(cudaMalloc((void**) &d_R,  nsimuSize));
 
@@ -468,13 +468,13 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
 
   rplba2_n1(nsim, b, A, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, T0, nth, d_R, d_RT); 
 
-  CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
-  CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
-  for(int i=0; i<*nsim; i++) {
-       RT[i] = h_RT[i];
-       R[i]  = h_R[i];
-  }
-  free(h_R); free(h_RT);
+  // CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
+  // CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
+  // for(int i=0; i<*nsim; i++) {
+  //      RT[i] = h_RT[i];
+  //      R[i]  = h_R[i];
+  // }
+  // free(h_R); free(h_RT);
 
   // ------------------------------------------------------------------------80
   unsigned int maxThread = 256;
@@ -620,17 +620,17 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
 
 void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C, double *mean_v,
                  int *nmean_v, double *sd_v, double *sd_w, double *t0, double *mean_w, double *rD,
-                 //double *swt, int *nth, bool *debug, double *out) {
-                 double *tD, double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+                 double *tD, double *swt, int *nth, bool *debug, double *out) {
+                 //double *tD, double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
   size_t nsimfSize = sizeof(float) * (*nsim);
   size_t nsimuSize = sizeof(unsigned int) * (*nsim);
   size_t fSize     = sizeof(float) * 1;
   size_t vfSize    = sizeof(float) * (*nmean_v);
   float *d_RT; unsigned int *d_R;
-  float *h_RT; unsigned int *h_R;
+  //float *h_RT; unsigned int *h_R;
   float *b, *c;
-  h_RT = (float *)malloc(nsimfSize);
-  h_R  = (unsigned int *)malloc(nsimuSize);
+  //h_RT = (float *)malloc(nsimfSize);
+  //h_R  = (unsigned int *)malloc(nsimuSize);
   b    = (float *)malloc(vfSize);
   c    = (float *)malloc(vfSize);
   for(size_t i=0; i<*nmean_v; i++) {
@@ -657,7 +657,7 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
     a[1] = true;
     *swt1 = swt_b;
     *swt2 = swt_r;
-  } else { // (swt_b > swt_r); condition 2: rate change occurs early
+  } else {                    // condition 2: rate change occurs early
     a[2] = true;
     *swt1 = swt_r;
     *swt2 = swt_b;
@@ -669,13 +669,13 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
 
   rplba3_n1(nsim, b, A, c, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, swt1, swt2, swtD, a, nth, d_R, d_RT); 
 
-  CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
-  CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
-  for(int i=0; i<*nsim; i++) {
-       RT[i] = h_RT[i];
-       R[i]  = h_R[i];
-  }
-  free(h_R); free(h_RT);
+  // CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
+  // CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
+  // for(int i=0; i<*nsim; i++) {
+  //      RT[i] = h_RT[i];
+  //      R[i]  = h_R[i];
+  // }
+  // free(h_R); free(h_RT);
   free(b); free(c); free(swt1); free(swt2); free(swtD); free(a);
 
   // ------------------------------------------------------------------------80

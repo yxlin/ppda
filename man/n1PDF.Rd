@@ -8,8 +8,7 @@ n1PDF(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE)
 }
 \arguments{
-\item{nsim}{number of simulations, passed to internal rlba_gpu. The default 
-is 1e5.}
+\item{nsim}{number of simulations. This must be a power of two.}
 
 \item{b}{threshold. Default is 1.}
 
@@ -31,9 +30,10 @@ vector.}
 a likelihood vector.
 }
 \description{
-This is the approximated density function for the basic 2-accumualtor LBA 
+This is the density function for the basic 2-accumualtor LBA 
 model, sampling drift rates from truncated normal distributions. The 
-function uses probability density approximation to estimate likelihood.
+function approximates model likelihood, instead of using the analytic 
+function.
 }
 \examples{
 #################
@@ -48,7 +48,8 @@ den1 <- gpda::n1PDF(data)
 den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
                        t0=.5, silent=T)
 
-## Verify that we are not checking near 0 densities                          #' plot(data, den1, type="l")
+## Verify that we are not checking near 0 densities
+##' plot(data, den1, type="l")
 lines(data, den2, lwd=2)
 all.equal(den1, den2)
 ## "Mean relative difference: 0.2002878"
@@ -80,8 +81,9 @@ all.equal(den1, den2)
 ## [1] "Mean relative difference: 0.9991495"
 
 ## Note both shapes are similar, but dlba estimates smaller values, 
-## relative to rlba. These happen in behaviourally implausible parameter 
-## sets. It takes relatively longer iterations to smooth out the noise.   
+## relative to rlba method. These happen in behaviourally less plausible  
+## parameter sets. It takes longer iterations to smooth out the 
+## noise.   
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density

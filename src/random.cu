@@ -1682,7 +1682,7 @@ void rplba2_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
   cudaFree(d_nsim);
   cudaFree(d_T0);
 }
-//rplba3_n1(nsim, b, A, c, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, swt1, swt2, swtD, a, nth, d_R, d_RT); 
+
 void rplba3_n1(int *nsim, float *b, double *A, float* c, double *mean_v,
                int *nmean_v, double *mean_w, double *sd_v, double *sd_w,
                double *t0,
