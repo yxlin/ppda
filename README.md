@@ -122,8 +122,13 @@ install.packages("gpda_0.1.5.tar.gz", repos = NULL, type="source")
 ## References
 * Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.
-Journal of Mathematical Psychology, 68-69, 13--24,
+_Journal of Mathematical Psychology_, 68-69, 13--24,
 doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+
+* Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new framework for 
+modeling decisions about changing information: The Piecewise Linear Ballistic 
+Accumulator model _Cognitive Psychology_, 85, 1--29, 
+doi: http://dx.doi.org/10.1016/j.cogpsych.2015.11.002.
 
 ## Acknowledgments
 * gpda R packaging is based on gputools 1.1.
