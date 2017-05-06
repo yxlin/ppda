@@ -67,3 +67,8 @@ void rplba1_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
 void rplba2_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
                double *mean_w, double *sd_v, double *sd_w,  double *t0,
                double *T0, int *nth, unsigned int *d_R, float *d_RT);
+
+void rplba3_n1(int *nsim, float *b, double *A, float* c, double *mean_v,
+               int *nmean_v, double *mean_w, double *sd_v, double *sd_w,
+               double *t0, float *swt1, float *swt2, float *swtD, bool *a,
+               int *nth, unsigned int *d_R, float *d_RT);

@@ -527,8 +527,6 @@ __global__ void rplba1_n1_kernel(unsigned int* n, float* b, float* A,
   }
 }
 
-//rplba2_n1_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b,  d_A, d_mean_v, d_mean_w,
-//    d_sd_v, d_t0, d_lv, d_uv, d_av, d_cv, d_lw, d_uw, d_aw, d_cw, d_T0, d_RT, d_R);
 
 __global__ void rplba2_n1_kernel(unsigned int* n, float* b, float* A, 
   float* mean_v, float* mean_w, float* sd_v, float* sd_w, float* t0, float* lv, float* uv, 
@@ -577,7 +575,83 @@ __global__ void rplba2_n1_kernel(unsigned int* n, float* b, float* A,
   }
 }
 
+__global__ void rplba3_n1_kernel(unsigned int* n, float* b, float* A, float* c,
+  bool* a, float* mean_v, float* mean_w, float* sd_v, float* sd_w, float* t0, float* lv, float* uv,  
+  float* av, bool* cv, float* lw, float* uw, float* aw,
+  bool* cw, float *swt1, float* swt2, float *swtD,
+  float* RT, unsigned int* R)
+{
+  const int numThreads = blockDim.x * gridDim.x;
+  const int threadID   = blockIdx.x * blockDim.x + threadIdx.x;
+  float u0, u1, v0, v1, w0, w1, Y0, Y1, Z0, Z1;
+  float dt0_stage1, dt0_stage2, dt0_stage3, dt1_stage1, dt1_stage2, dt1_stage3;
+  float x0, x1, v0_tmp, v1_tmp;
+  float DT_tmp1, DT_tmp2, DT_tmp3;
+  unsigned int R_tmp1, R_tmp2,  R_tmp3;
+    
+  curandState_t state;
+  curand_init( (clock64() << 20) + threadID, 0, 0, &state);
+  for (size_t i = threadID; i <*n; i += numThreads)
+  {
+   // Stage 1
+    u0 = cv[0] ? rtnorm0_device(&state, mean_v[0], sd_v[0], lv[0], uv[0]) :
+                 rtnorm1_device(&state, av[0], mean_v[0], sd_v[0], lv[0], uv[0]);
+    u1 = cv[1] ? rtnorm0_device(&state, mean_v[1], sd_v[1], lv[1], uv[1]) :
+                 rtnorm1_device(&state, av[1], mean_v[1], sd_v[1], lv[1], uv[1]);
+    x0 = A[0] * curand_uniform(&state);
+    x1 = A[1] * curand_uniform(&state);
+    dt0_stage1 = (b[0] - x0) / u0;
+    dt1_stage1 = (b[1] - x1) / u1;
+    //DT_tmp1 = dt0_stage1 < dt1_stage1 ? dt0_stage1: dt1_stage1; 
+    DT_tmp1 = dt0_stage1 < dt1_stage1 ? dt0_stage1: 0; 
+    R_tmp1  = dt0_stage1 < dt1_stage1 ? 1 : 2;
 
+    // Stage 2
+    Y0 = a[2] ? b[0] - (x0 + *swt1*u0) : c[0] - (x0 + *swt1*u0);
+    Y1 = a[2] ? b[1] - (x1 + *swt1*u1) : c[1] - (x1 + *swt1*u1);
+    v0_tmp = cw[0] ? rtnorm0_device(&state, mean_w[0], sd_w[0], lw[0], uw[0]) :
+                     rtnorm1_device(&state, aw[0], mean_w[0], sd_w[0], lw[0], uw[0]);
+    v1_tmp = cw[1] ? rtnorm0_device(&state, mean_w[1], sd_w[1], lw[1], uw[1]) :
+                     rtnorm1_device(&state, aw[1], mean_w[1], sd_w[1], lw[1], uw[1]);
+
+    v0 = a[1] ? u0 : v0_tmp;
+    v1 = a[1] ? u1 : v1_tmp;
+    dt0_stage2 = Y0 / v0;
+    dt1_stage2 = Y1 / v1;
+    //DT_tmp2 = dt0_stage2 < dt1_stage2 ? dt0_stage2 + *swt1 : dt1_stage2 + *swt1;
+    DT_tmp2 = dt0_stage2 < dt1_stage2 ? dt0_stage2 + *swt1 : 0;
+    R_tmp2  = dt0_stage2 < dt1_stage2 ? 1 : 2;
+
+    // Stage 3
+    Z0 = a[1] ? Y0 - *swtD*v0 : (Y0 - *swtD*v0) + c[0] - b[0];
+    Z1 = a[1] ? Y1 - *swtD*v1 : (Y1 - *swtD*v1) + c[1] - b[1];
+    v0_tmp = cw[0] ? rtnorm0_device(&state, mean_w[0], sd_w[0], lw[0], uw[0]) :
+                     rtnorm1_device(&state, aw[0], mean_w[0], sd_w[0], lw[0], uw[0]);
+    v1_tmp = cw[1] ? rtnorm0_device(&state, mean_w[1], sd_w[1], lw[1], uw[1]) :
+                     rtnorm1_device(&state, aw[1], mean_w[1], sd_w[1], lw[1], uw[1]);
+    w0 = a[1] ? v0_tmp : v0;
+    w1 = a[1] ? v1_tmp : v1;
+    dt0_stage3 = Z0 / w0;
+    dt1_stage3 = Z1 / w1;
+    //DT_tmp3 = dt0_stage3 < dt1_stage3 ? dt0_stage3 + *swt2 : dt1_stage3 + *swt2;
+    DT_tmp3 = dt0_stage3 < dt1_stage3 ? dt0_stage3 + *swt2 : 0;
+    R_tmp3  = dt0_stage3 < dt1_stage3 ? 1 : 2;
+
+    if (DT_tmp1 <= *swt1) {
+      //RT[i] = DT_tmp1 + *t0;
+      RT[i] = (DT_tmp1 != 0) ? DT_tmp1 + *t0 : 0; 
+      R[i]  = R_tmp1;
+    } else if (DT_tmp2 <= *swt2 || a[0]) {
+      //RT[i] = DT_tmp2 + *t0;
+      RT[i] = (DT_tmp2 != 0) ? DT_tmp2 + *t0 : 0; 
+      R[i]  = R_tmp2;
+    } else {
+      //RT[i] = DT_tmp3 + *t0;
+      RT[i] = (DT_tmp3 != 0) ? DT_tmp3 + *t0 : 0; 
+      R[i]  = R_tmp3;
+    }
+  }
+}
 
 void runif_entry(int *n, double *min, double *max, int *nth, bool *dp, 
   double *out)
@@ -1201,7 +1275,7 @@ void rplba_internal(int *nsim, double *b, double *A, double *mean_v, int *nmean_
   bool *h_cv, *d_cv, *h_cw, *d_cw; 
   float *d_b, *d_A, *d_mean_v, *d_sd_v, *d_t0, *d_lv, *d_uv, *d_av;
   float *h_b, *h_A, *h_mean_v, *h_sd_v, *h_t0, *h_lv, *h_uv, *h_av; 
-  float *d_T0, *d_mean_w, *d_sd_w, *d_lw, *d_uw, *d_aw;
+  float *d_T0, *d_mean_w, *d_lw, *d_uw, *d_aw;
   float *h_T0, *h_mean_w, *h_sd_w, *h_lw, *h_uw, *h_aw;
   unsigned int *d_nsim, *h_nsim;
   size_t uSize  = 1 * sizeof(unsigned int);
@@ -1338,7 +1412,7 @@ void rplba1_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
   bool *h_cv, *d_cv, *h_cw, *d_cw; 
   float *d_b, *d_A, *d_mean_v, *d_sd_v, *d_t0, *d_lv, *d_uv, *d_av;
   float *h_b, *h_A, *h_mean_v, *h_sd_v, *h_t0, *h_lv, *h_uv, *h_av; 
-  float *d_T0, *d_mean_w, *d_sd_w, *d_lw, *d_uw, *d_aw;
+  float *d_T0, *d_mean_w, *d_lw, *d_uw, *d_aw;
   float *h_T0, *h_mean_w, *h_sd_w, *h_lw, *h_uw, *h_aw;
   unsigned int *d_nsim, *h_nsim;
   size_t uSize  = 1 * sizeof(unsigned int);
@@ -1607,4 +1681,154 @@ void rplba2_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
   
   cudaFree(d_nsim);
   cudaFree(d_T0);
+}
+//rplba3_n1(nsim, b, A, c, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, swt1, swt2, swtD, a, nth, d_R, d_RT); 
+void rplba3_n1(int *nsim, float *b, double *A, float* c, double *mean_v,
+               int *nmean_v, double *mean_w, double *sd_v, double *sd_w,
+               double *t0,
+               float *swt1, float *swt2, float *swtD, bool *a, int *nth,
+               unsigned int *d_R, float *d_RT)
+{
+  bool *d_a;
+  float *d_b, *d_c, *d_swt1, *d_swt2, *d_swtD;
+
+  bool *h_cv, *d_cv, *h_cw, *d_cw;
+  float *d_A, *d_mean_v, *d_sd_v, *d_t0, *d_lv, *d_uv, *d_av;
+  float *h_A, *h_mean_v, *h_sd_v, *h_t0, *h_lv, *h_uv, *h_av; 
+  float *d_mean_w, *d_sd_w, *d_lw, *d_uw, *d_aw;
+  float *h_mean_w, *h_sd_w, *h_lw, *h_uw, *h_aw;
+  unsigned int *d_nsim, *h_nsim;
+  size_t uSize  = 1 * sizeof(unsigned int);
+  size_t fSize  = 1 * sizeof(float);
+  size_t vfSize = nmean_v[0] * sizeof(float);
+  size_t vbSize = nmean_v[0] * sizeof(bool);
+  
+  h_cv = (bool  *)malloc(vbSize);
+  h_lv = (float *)malloc(vfSize);
+  h_uv = (float *)malloc(vfSize);
+  h_av = (float *)malloc(vfSize);
+
+  h_cw = (bool  *)malloc(vbSize);
+  h_lw = (float *)malloc(vfSize);
+  h_uw = (float *)malloc(vfSize);
+  h_aw = (float *)malloc(vfSize);
+
+  h_nsim   = (unsigned int *)malloc(uSize);
+  h_A      = (float *)malloc(vfSize);
+  h_t0     = (float *)malloc(fSize);
+  h_mean_v = (float *)malloc(vfSize);
+  h_mean_w = (float *)malloc(vfSize);
+  h_sd_v   = (float *)malloc(vfSize);
+  h_sd_w   = (float *)malloc(vfSize);
+  *h_nsim  = (unsigned int)*nsim;
+
+  *h_t0 = (float)*t0;
+
+  for(size_t i=0; i<nmean_v[0]; i++) {
+    h_A[i] = (float)A[i];
+    h_mean_v[i] = (float)mean_v[i];
+    h_sd_v[i]   = (float)sd_v[i];
+    h_lv[i] = (0 - h_mean_v[i]) / h_sd_v[i]; 
+    h_uv[i] = (INFINITY - h_mean_v[i]) / h_sd_v[i]; 
+    h_av[i] = 0.5 * (std::sqrt(h_lv[i]*h_lv[i] + 4.0) + h_lv[i]); 
+    h_cv[i] = (h_lv[i] < 0 && h_uv[i] == INFINITY) || (h_lv[i] == -INFINITY && h_uv[i]) ||
+      (isfinite(h_lv[i]) && isfinite(h_uv[i]) && h_lv[i] < 0 && h_uv[i] > 0 && 
+      ((h_uv[i] - h_lv[i]) > SQRT_2PI));
+
+    h_mean_w[i] = (float)mean_w[i];
+    h_sd_w[i]   = (float)sd_w[i];
+    h_lw[i] = (0 - h_mean_w[i]) / h_sd_w[i]; 
+    h_uw[i] = (INFINITY - h_mean_w[i]) / h_sd_w[i]; 
+    h_aw[i] = 0.5 * (std::sqrt(h_lw[i]*h_lw[i] + 4.0) + h_lw[i]); 
+    h_cw[i] = (h_lw[i] < 0 && h_uw[i]==INFINITY) || (h_lw[i]==-INFINITY && h_uw[i]) ||
+      (isfinite(h_lw[i]) && isfinite(h_uw[i]) && h_lw[i] < 0 && h_uw[i] > 0 && 
+      ((h_uw[i] - h_lw[i]) > SQRT_2PI));
+  }
+  
+  CHECK(cudaMalloc((void**) &d_nsim, uSize));
+  CHECK(cudaMalloc((void**) &d_t0,   fSize));
+  CHECK(cudaMalloc((void**) &d_swt1, fSize));
+  CHECK(cudaMalloc((void**) &d_swt2, fSize));
+  CHECK(cudaMalloc((void**) &d_swtD, fSize));
+  CHECK(cudaMalloc((void**) &d_b,      vfSize));
+  CHECK(cudaMalloc((void**) &d_A,      vfSize));
+  CHECK(cudaMalloc((void**) &d_c,      vfSize));
+  CHECK(cudaMalloc((void**) &d_a,      sizeof(bool) * 3));
+  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
+  CHECK(cudaMalloc((void**) &d_mean_w, vfSize));
+  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
+  CHECK(cudaMalloc((void**) &d_sd_w,   vfSize));
+  CHECK(cudaMalloc((void**) &d_lv,     vfSize));
+  CHECK(cudaMalloc((void**) &d_uv,     vfSize));
+  CHECK(cudaMalloc((void**) &d_av,     vfSize));
+  CHECK(cudaMalloc((void**) &d_cv,     vbSize));
+  CHECK(cudaMalloc((void**) &d_lw,     vfSize));
+  CHECK(cudaMalloc((void**) &d_uw,     vfSize));
+  CHECK(cudaMalloc((void**) &d_aw,     vfSize));
+  CHECK(cudaMalloc((void**) &d_cw,     vbSize));
+
+  CHECK(cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_b,      b,        vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_A,      h_A,      vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_c,      c,        vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_a,      a,        sizeof(bool)*3, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_swt1,   swt1,     fSize,  cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_swt2,   swt2,     fSize,  cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_swtD,   swtD,     fSize,  cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_sd_w,   h_sd_w,   vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_lv,     h_lv,     vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_uv,     h_uv,     vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_av,     h_av,     vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_cv,     h_cv,     vbSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_lw,     h_lw,     vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_uw,     h_uw,     vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_aw,     h_aw,     vfSize, cudaMemcpyHostToDevice));
+  CHECK(cudaMemcpy(d_cw,     h_cw,     vbSize, cudaMemcpyHostToDevice));
+
+  rplba3_n1_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b, d_A, d_c, d_a, d_mean_v, d_mean_w,
+                                             d_sd_v, d_sd_w, d_t0, d_lv, d_uv, d_av,
+                                             d_cv, d_lw, d_uw, d_aw, d_cw, d_swt1, d_swt2,
+                                             d_swtD, d_RT, d_R);
+
+  free(h_A);
+  free(h_mean_v);
+  free(h_mean_w);
+  free(h_sd_v);
+  free(h_t0);
+  free(h_cv);
+  free(h_lv);
+  free(h_uv);
+  free(h_av);
+  free(h_cw);
+  free(h_lw);
+  free(h_uw);
+  free(h_aw);
+  free(h_nsim);
+  
+  cudaFree(d_b);
+  cudaFree(d_A);
+  cudaFree(d_c);
+  cudaFree(d_a);
+  cudaFree(d_t0);
+  cudaFree(d_mean_v);
+  cudaFree(d_mean_w);
+  cudaFree(d_sd_v);
+  cudaFree(d_lv);
+  cudaFree(d_uv);
+  cudaFree(d_av);
+  cudaFree(d_cv);
+  
+  cudaFree(d_lw);
+  cudaFree(d_uw);
+  cudaFree(d_aw);
+  cudaFree(d_cw);
+  
+  cudaFree(d_nsim);
+  cudaFree(d_swt1);
+  cudaFree(d_swt2);
+  cudaFree(d_swtD);
 }
