@@ -127,7 +127,7 @@ doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 
 * Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new framework for 
 modeling decisions about changing information: The Piecewise Linear Ballistic 
-Accumulator model _Cognitive Psychology_, 85, 1--29, 
+Accumulator model. _Cognitive Psychology_, 85, 1--29, 
 doi: http://dx.doi.org/10.1016/j.cogpsych.2015.11.002.
 
 ## Acknowledgments
