@@ -26,9 +26,9 @@ Presumably, across-trial average starting evidence is A/2.}
 
 \item{t0}{non-decision times. Must be a scalar.}
 
-\item{dp}{whether calculate using double precision. Default is FALSE.}
+\item{nthread}{number of threads launched per block.}
 
-\item{nthreads}{number of threads launched per block.}
+\item{dp}{whether calculate using double precision. Default is FALSE.}
 }
 \value{
 a data frame with first column named RT and second column named R.
@@ -43,11 +43,12 @@ rlba_n1 draws only node 1 random numbers.
 rm(list=ls())
 n <- 2^20
 dat1 <- gpda::rlba(n, nthread=64); 
-dat2 <- cpda::rlba_test(n)
-dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
-                      silent=TRUE)
-names(dat3) <- c("RT","R")
+## dat2 <- cpda::rlba_test(n)
+## dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
+##                       silent=TRUE)
+## names(dat3) <- c("RT","R")
 
+\dontrun{
 ## Trim ----
 sum(dat1$RT>5); sum(dat2$RT>5); sum(dat3$RT>5)
 
@@ -112,12 +113,14 @@ sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 ## gpda::rlba(n, dp=T)    11.86    11.96    12.31    12.06    12.17    14.86    10   a
 ## cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   225.72    10   b
 ## rtdists::rLBA(n, .) 13521.67 13614.74 13799.59 13770.78 13919.77 14177.51    10   c
+}
 
 rm(list=ls())
 n <- 2^20; n
 dat1 <- gpda::rlba_n1(n, nthread=64, dp=T); str(dat1)
 dat2 <- gpda::rlba_n1(n, nthread=64, dp=F); str(dat2)
 
+\dontrun{
 res <- microbenchmark(
 gpda::rlba_n1(n, dp=F),
 gpda::rlba_n1(n, dp=T), times=10L)
@@ -130,5 +133,6 @@ res
 ##      max neval cld
 ## 44.93433    10   a
 ## 49.63786    10   a
+}
 
 }

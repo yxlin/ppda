@@ -14,6 +14,7 @@
 #' vector.
 #' @param t0 non-decision time.  
 #' @param nthread number of threads launched per block. Default is 32. 
+#' @param debug a debugging switch.
 #' Maximum is 1024 in K80 or 512 in other GPU cards.  
 #' @return a likelihood vector. 
 #' @references Holmes, W. (2015). A practical guide to the Probability Density
@@ -31,21 +32,21 @@
 #' ## sd_v = c(1, 1), t0 = 0.5 with nthread = 64 and conduct only 1024 
 #' ## simulations
 #' den1 <- gpda::n1PDF(data)
-#' den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
-#'                        t0=.5, silent=T)
+#' ## den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
+#' ##                        t0=.5, silent=T)
 #' 
 #' ## Verify that we are not checking near 0 densities
 #' plot(data, den1, type="l")
-#' lines(data, den2, lwd=2)
-#' all.equal(den1, den2)
+#' ## lines(data, den2, lwd=2)
+#' ## all.equal(den1, den2)
 #' ## [1] "Mean relative difference: 0.1675376"
 #' 
 #' ## The approximation is not good enough, so we raise the simulation from
 #' ## 2^10 to 2^20 
 #' den1 <- gpda::n1PDF(data, nsim=2^20)
 #' plot(data, den1, type="l")
-#' lines(data, den2, lwd=2)
-#' all.equal(den1, den2)
+#' ## lines(data, den2, lwd=2)
+#' ## all.equal(den1, den2)
 #' ## "Mean relative difference: 0.007108101"
 #' ## Now the difference goes down to 2 decimal places below 0.
 #'
@@ -57,15 +58,15 @@
 #' ## is the following:   
 #' den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
 #' sd_v=c(1, 1), t0=.94, nsim=2^20)
-#' den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
-#' sd_v=c(1, 1), t0=.94, silent=T)
+#' ## den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
+#' ## sd_v=c(1, 1), t0=.94, silent=T)
 #' par(mfrow=c(1,2))
 #' plot(data, den1, type="l")
-#' lines(data, den2, lwd=2)
+#' ## lines(data, den2, lwd=2)
 #' 
-#' plot(data, den2, type="l")
-#' lines(data, den1, lwd=2)
-#' all.equal(den1, den2)
+#' ## plot(data, den2, type="l")
+#' ## lines(data, den1, lwd=2)
+#' ## all.equal(den1, den2)
 #' ## [1] "Mean relative difference: 0.9991495"
 #' 
 #' ## Note both shapes are similar, but dlba method estimates smaller values, 

@@ -10,8 +10,8 @@ Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
   role = "aut"))
 Maintainer: Yi-Shin Lin <yishin.lin@utas.edu.au>
 Depends: R (>= 3.0.2)
-Description: The package uses general purpose graphics processing uit (GP-GPU) 
-    to conduct Monte Carlo simulations of basic and piece-wise linear ballistic 
+Description: Use general purpose graphics processing uit (GP-GPU) to conduct  
+    massive Monte Carlo simulations of basic and piece-wise linear ballistic 
     accumulator models. The simulations are then used to approximate the model 
     likelihood via a slihgtly modified method described in Homles (2015). 
 License: GPL-2

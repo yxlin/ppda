@@ -18,6 +18,8 @@ rtnorm(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, dp = FALSE,
 
 \item{upper}{upper bound. Only accept a scalar}
 
+\item{dp}{whether calculate using double precision. Default is FALSE.}
+
 \item{nThread}{number of threads launched per block.}
 }
 \value{
@@ -29,16 +31,19 @@ distribution.
 }
 \examples{
 dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+
+## https://github.com/TasCL/tnorm
+## dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+## dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 den1 <- density(dat1)
-den2 <- density(dat2)
-den3 <- density(dat3)
+## den2 <- density(dat2)
+## den3 <- density(dat3)
 
 summary(dat1)
-summary(dat2)
-summary(dat3)
+## summary(dat2)
+## summary(dat3)
 
+\dontrun{
 par(mfrow=c(1,3))
 hist(dat2, breaks="fd", freq=F)
 lines(den1$x, den1$y,lwd=2) ## gpu
@@ -61,4 +66,5 @@ par(mfrow=c(1,1))
 ## gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   1.580943   6.976541
 ## tnorm::rtnorm(n)  7.475374   8.317984   8.544317   8.345958   9.120224  10.220493
 ## msm::rtnorm(n)   54.597366 109.426265 103.025877 110.050924 119.054471 125.192521
+}
 }

@@ -18,12 +18,12 @@
 #' rm(list=ls())
 #' ## The smallest vector has to be at least 512 (= 2^9) elements
 #' 
-#' dat0   <- gpda::rlba(2^21, nthread=64); str(dat0)
-#' result <- gpda::min_gpu(dat0$RT); result
-#' result <- gpda::max_gpu(dat0$RT); result
-#' result <- gpda::minmax(dat0$RT); result
-#' result <- gpda::sum_gpu(dat0$RT); result
-#' result <- gpda::sd_gpu(dat0$RT); result
+#' dat0   <- rlba(2^21, nthread=64); str(dat0)
+#' result <- min_gpu(dat0$RT); result
+#' result <- max_gpu(dat0$RT); result
+#' result <- minmax(dat0$RT); result
+#' result <- sum_gpu(dat0$RT); result
+#' result <- sd_gpu(dat0$RT); result
 #' 
 #' stats::sd(dat0$RT);
 #' base::min(dat0$RT); 
@@ -35,23 +35,6 @@ sum_gpu <- function(x, debug=FALSE) {
       as.logical(debug), numeric(1), PACKAGE='gpda')[[4]]
 }
 
-#' @export
-sumur <- function(x, debug=TRUE) {
-    .C("sumur_entry", as.double(x), as.integer(length(x)),
-      as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
-}
-
-#' @export
-sqsumur <- function(x, debug=TRUE) {
-    .C("sqsumur_entry", as.double(x), as.integer(length(x)),
-      as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
-}
-
-#' @export
-sqsumurd <- function(x, debug=TRUE) {
-    .C("sqsumurd_entry", as.double(x), as.integer(length(x)),
-      as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
-}
 
 
 #' @rdname sum_gpu
@@ -105,4 +88,20 @@ count <- function(R, debug=FALSE) {
 n1min <- function(x, debug=FALSE) {
   .C("n1min_entry", as.double(x), as.integer(length(x)), as.logical(debug), 
     numeric(1), PACKAGE="gpda")[[4]]
+}
+
+
+sumur <- function(x, debug=TRUE) {
+  .C("sumur_entry", as.double(x), as.integer(length(x)),
+    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+}
+
+sqsumur <- function(x, debug=TRUE) {
+  .C("sqsumur_entry", as.double(x), as.integer(length(x)),
+    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+}
+
+sqsumurd <- function(x, debug=TRUE) {
+  .C("sqsumurd_entry", as.double(x), as.integer(length(x)),
+    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }

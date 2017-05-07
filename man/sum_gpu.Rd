@@ -51,12 +51,12 @@ n1min designs to find minimal value for node 1.
 rm(list=ls())
 ## The smallest vector has to be at least 512 (= 2^9) elements
 
-dat0   <- gpda::rlba(2^21, nthread=64); str(dat0)
-result <- gpda::min_gpu(dat0$RT); result
-result <- gpda::max_gpu(dat0$RT); result
-result <- gpda::minmax(dat0$RT); result
-result <- gpda::sum_gpu(dat0$RT); result
-result <- gpda::sd_gpu(dat0$RT); result
+dat0   <- rlba(2^21, nthread=64); str(dat0)
+result <- min_gpu(dat0$RT); result
+result <- max_gpu(dat0$RT); result
+result <- minmax(dat0$RT); result
+result <- sum_gpu(dat0$RT); result
+result <- sd_gpu(dat0$RT); result
 
 stats::sd(dat0$RT);
 base::min(dat0$RT); 

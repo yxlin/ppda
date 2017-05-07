@@ -102,20 +102,24 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
 #' @param lower lower bound. Only accept a scalar
 #' @param upper upper bound. Only accept a scalar
 #' @param nThread number of threads launched per block.
+#' @param dp whether calculate using double precision. Default is FALSE.
 #' @return a double vector
 #' @export
 #' @examples
 #' dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-#' dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-#' dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+#' 
+#' ## https://github.com/TasCL/tnorm
+#' ## dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+#' ## dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 #' den1 <- density(dat1)
-#' den2 <- density(dat2)
-#' den3 <- density(dat3)
+#' ## den2 <- density(dat2)
+#' ## den3 <- density(dat3)
 #' 
 #' summary(dat1)
-#' summary(dat2)
-#' summary(dat3)
+#' ## summary(dat2)
+#' ## summary(dat3)
 #' 
+#' \dontrun{
 #' par(mfrow=c(1,3))
 #' hist(dat2, breaks="fd", freq=F)
 #' lines(den1$x, den1$y,lwd=2) ## gpu
@@ -138,6 +142,7 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
 #' ## gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   1.580943   6.976541
 #' ## tnorm::rtnorm(n)  7.475374   8.317984   8.544317   8.345958   9.120224  10.220493
 #' ## msm::rtnorm(n)   54.597366 109.426265 103.025877 110.050924 119.054471 125.192521
+#' }
 rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE, 
   nthread=32) 
 {
@@ -168,7 +173,7 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' @param mean_v means of drift rate. This must be a vector of 2 values.
 #' @param sd_v drift rate standard deviations. This must be a vector of 2 values.
 #' @param t0 non-decision times. Must be a scalar.
-#' @param nthreads number of threads launched per block.
+#' @param nthread number of threads launched per block.
 #' @param dp whether calculate using double precision. Default is FALSE.
 #' @return a data frame with first column named RT and second column named R.
 #' @export
@@ -176,11 +181,12 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' rm(list=ls())
 #' n <- 2^20
 #' dat1 <- gpda::rlba(n, nthread=64); 
-#' dat2 <- cpda::rlba_test(n)
-#' dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
-#'                       silent=TRUE)
-#' names(dat3) <- c("RT","R")
+#' ## dat2 <- cpda::rlba_test(n)
+#' ## dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
+#' ##                       silent=TRUE)
+#' ## names(dat3) <- c("RT","R")
 #'
+#' \dontrun{
 #' ## Trim ----
 #' sum(dat1$RT>5); sum(dat2$RT>5); sum(dat3$RT>5)
 #' 
@@ -245,12 +251,14 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' ## gpda::rlba(n, dp=T)    11.86    11.96    12.31    12.06    12.17    14.86    10   a
 #' ## cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   225.72    10   b
 #' ## rtdists::rLBA(n, .) 13521.67 13614.74 13799.59 13770.78 13919.77 14177.51    10   c
+#' }
 #'
 #' rm(list=ls())
 #' n <- 2^20; n
 #' dat1 <- gpda::rlba_n1(n, nthread=64, dp=T); str(dat1)
 #' dat2 <- gpda::rlba_n1(n, nthread=64, dp=F); str(dat2)
 #'
+#' \dontrun{
 #' res <- microbenchmark(
 #' gpda::rlba_n1(n, dp=F),
 #' gpda::rlba_n1(n, dp=T), times=10L)
@@ -263,6 +271,7 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' ##      max neval cld
 #' ## 44.93433    10   a
 #' ## 49.63786    10   a
+#' }
 #' 
 rlba <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
   nthread=32, dp=FALSE) {
