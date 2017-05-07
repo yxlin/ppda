@@ -1,10 +1,10 @@
 # Probability Density Approximation using Graphics Processing Unit 
 
-Use general purpose graphics processing uit (GP-GPU)  
-to conduct Monte Carlo simulations. Two cognitive models we conduct Monte
-Carlo are the basic and the piece-wise linear ballistic accumulation models. 
-The simulations are then used to approximate the model likelihood via a 
-parallel implementation on the basis of a method described in Homles (2015). 
+Use general purpose graphics processing uit (GP-GPU) to conduct Monte Carlo 
+simulations. Two cognitive models we conduct Monte Carlo are the basic and the 
+piece-wise linear ballistic accumulation models. The simulations are then used 
+to approximate the model likelihood via a parallel implementation on the basis 
+of a method described in Homles (2015). 
 
 This project is still under active development. We are glad if you find 
 software here is useful.  If you've found any bugs or have any suggestions, 
