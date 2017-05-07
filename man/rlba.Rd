@@ -101,8 +101,8 @@ lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
 ## Because R script takes a while to run, so I repeated 10 times only
 ## microbenchmark can still give reliable and precise estimation.
 library(microbenchmark)
-res <- microbenchmark(gpda::rlba(n, dp=F),
-                      gpda::rlba(n, dp=T),
+res <- microbenchmark(gpda::rlba(n, dp=FALSE),
+                      gpda::rlba(n, dp=TRUE),
                       cpda::rlba_test(n),
                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
@@ -117,8 +117,8 @@ sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 
 rm(list=ls())
 n <- 2^20; n
-dat1 <- gpda::rlba_n1(n, nthread=64, dp=T); str(dat1)
-dat2 <- gpda::rlba_n1(n, nthread=64, dp=F); str(dat2)
+dat1 <- gpda::rlba_n1(n, nthread=64, dp=TRUE);  str(dat1)
+dat2 <- gpda::rlba_n1(n, nthread=64, dp=FALSE); str(dat2)
 
 \dontrun{
 res <- microbenchmark(

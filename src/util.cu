@@ -1,8 +1,8 @@
 #include <iostream>        // includes, standard template & armadillo library
 #include <armadillo>
 //#include <ctime> // CPU timer
+//#include "../inst/include/common.h"
 #include "../inst/include/density.h"  
-#include "../inst/include/common.h"
 #include "../inst/include/reduce.h"
 
 unsigned int nextPow2(unsigned int x) {
@@ -44,15 +44,15 @@ void summary(int *nsim, unsigned int *d_R, float *d_RT, float *out) {
     for(int i=0; i<2*nBlk; i++) { h_count_out[i] = 0; } 
     *h_nsim = (unsigned int)*nsim;
 
-    CHECK(cudaMalloc((void**) &d_nsim,      uSize));
-    CHECK(cudaMalloc((void**) &d_n1min_out, blkfSize));
-    CHECK(cudaMalloc((void**) &d_n1max_out, blkfSize));
-    CHECK(cudaMalloc((void**) &d_sum_out,   blkfSize));
-    CHECK(cudaMalloc((void**) &d_sqsum_out, dBlkfSize));
-    CHECK(cudaMalloc((void**) &d_count_out, dBlkuSize));
+    cudaMalloc((void**) &d_nsim,      uSize);
+    cudaMalloc((void**) &d_n1min_out, blkfSize);
+    cudaMalloc((void**) &d_n1max_out, blkfSize);
+    cudaMalloc((void**) &d_sum_out,   blkfSize);
+    cudaMalloc((void**) &d_sqsum_out, dBlkfSize);
+    cudaMalloc((void**) &d_count_out, dBlkuSize);
   
-    CHECK(cudaMemcpy(d_nsim,      h_nsim,  uSize,  cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_count_out, h_count_out, dBlkuSize, cudaMemcpyHostToDevice));
+    cudaMemcpy(d_nsim,      h_nsim,  uSize,  cudaMemcpyHostToDevice);
+    cudaMemcpy(d_count_out, h_count_out, dBlkuSize, cudaMemcpyHostToDevice);
 
     // must be first min and then max
     count_kernel<<<2*nBlk, nThread>>>(d_nsim, d_R, d_count_out); cudaFree(d_R);
@@ -61,11 +61,11 @@ void summary(int *nsim, unsigned int *d_R, float *d_RT, float *out) {
     sum_kernel<<<nBlk, nThread>>>(d_RT,   d_sum_out);
     squareSum_kernel<<<2*nBlk, nThread>>>(d_nsim, d_RT, d_sqsum_out);
   
-    CHECK(cudaMemcpy(h_n1min_out, d_n1min_out, blkfSize,  cudaMemcpyDeviceToHost)); cudaFree(d_n1min_out);
-    CHECK(cudaMemcpy(h_n1max_out, d_n1max_out, blkfSize,  cudaMemcpyDeviceToHost)); cudaFree(d_n1max_out);
-    CHECK(cudaMemcpy(h_sum_out,   d_sum_out,   blkfSize,  cudaMemcpyDeviceToHost)); cudaFree(d_sum_out);
-    CHECK(cudaMemcpy(h_sqsum_out, d_sqsum_out, dBlkfSize, cudaMemcpyDeviceToHost)); cudaFree(d_sqsum_out);
-    CHECK(cudaMemcpy(h_count_out, d_count_out, dBlkuSize, cudaMemcpyDeviceToHost)); cudaFree(d_count_out);
+    cudaMemcpy(h_n1min_out, d_n1min_out, blkfSize,  cudaMemcpyDeviceToHost); cudaFree(d_n1min_out);
+    cudaMemcpy(h_n1max_out, d_n1max_out, blkfSize,  cudaMemcpyDeviceToHost); cudaFree(d_n1max_out);
+    cudaMemcpy(h_sum_out,   d_sum_out,   blkfSize,  cudaMemcpyDeviceToHost); cudaFree(d_sum_out);
+    cudaMemcpy(h_sqsum_out, d_sqsum_out, dBlkfSize, cudaMemcpyDeviceToHost); cudaFree(d_sqsum_out);
+    cudaMemcpy(h_count_out, d_count_out, dBlkuSize, cudaMemcpyDeviceToHost); cudaFree(d_count_out);
 
     arma::vec min_tmp(nBlk); arma::vec max_tmp(nBlk);
     float sum = 0, sqsum = 0;
@@ -84,9 +84,9 @@ void summary(int *nsim, unsigned int *d_R, float *d_RT, float *out) {
     out[2] = std::sqrt( (sqsum - (sum*sum) / h_count_out[0]) / (h_count_out[0] - 1) );
     out[3] = h_count_out[0]; free(h_count_out);
 
-    // printf("RT0 [minimum maximum]: %.2f %.2f\n", min_tmp.min(), max_tmp.max());
-    // printf("RT0 [sum sqsum]: %.2f %.2f\n", sum, sqsum);
-    // printf("RT0 [nsRT0 sd]: %f %f\n", out[3], out[2]);
+    // Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", min_tmp.min(), max_tmp.max());
+    // Rprintf("RT0 [sum sqsum]: %.2f %.2f\n", sum, sqsum);
+    // Rprintf("RT0 [nsRT0 sd]: %f %f\n", out[3], out[2]);
     free(h_nsim); cudaFree(d_nsim);
 }
 
@@ -100,15 +100,15 @@ void histc(int *nsim, int ngrid, float *h_binedge, float *d_RT, unsigned int *h_
     unsigned int *h_nsim, *d_nsim;
     h_nsim  = (unsigned int *)malloc(sizeof(unsigned int) * 1);
     *h_nsim = (unsigned int)*nsim;
-    CHECK(cudaMalloc((void**) &d_nsim, sizeof(unsigned int) * 1));
-    CHECK(cudaMemcpy(d_nsim,   h_nsim, sizeof(unsigned int) * 1,  cudaMemcpyHostToDevice));
-    CHECK(cudaMalloc((void**) &d_binedge, ngrid_plus1fSize)); // 1025
-    CHECK(cudaMalloc((void**) &d_hist,    ngriduSize));       // 1024
-    CHECK(cudaMemcpy(d_binedge, h_binedge, ngrid_plus1fSize, cudaMemcpyHostToDevice)); free(h_binedge);
-    CHECK(cudaMemcpy(d_hist,    h_hist,    ngriduSize,       cudaMemcpyHostToDevice));
+    cudaMalloc((void**) &d_nsim, sizeof(unsigned int) * 1);
+    cudaMemcpy(d_nsim,   h_nsim, sizeof(unsigned int) * 1,  cudaMemcpyHostToDevice);
+    cudaMalloc((void**) &d_binedge, ngrid_plus1fSize); // 1025
+    cudaMalloc((void**) &d_hist,    ngriduSize);       // 1024
+    cudaMemcpy(d_binedge, h_binedge, ngrid_plus1fSize, cudaMemcpyHostToDevice); free(h_binedge);
+    cudaMemcpy(d_hist,    h_hist,    ngriduSize,       cudaMemcpyHostToDevice);
     histc_kernel<<<*nsim/ngrid, ngrid>>>(d_binedge, d_RT, d_nsim, d_hist);
     cudaFree(d_RT); cudaFree(d_binedge); cudaFree(d_nsim);
 
-    CHECK(cudaMemcpy(h_hist, d_hist, ngriduSize, cudaMemcpyDeviceToHost)); 
+    cudaMemcpy(h_hist, d_hist, ngriduSize, cudaMemcpyDeviceToHost); 
     cudaFree(d_hist); free(h_nsim); 
 }

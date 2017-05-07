@@ -45,17 +45,17 @@ summary(dat1)
 
 \dontrun{
 par(mfrow=c(1,3))
-hist(dat2, breaks="fd", freq=F)
+hist(dat2, breaks="fd", freq=FALSE)
 lines(den1$x, den1$y,lwd=2) ## gpu
 lines(den2$x, den2$y,lwd=2) ## tnorm
 lines(den3$x, den3$y,lwd=2) ## msn
 
-hist(dat1, breaks="fd", freq=F)
+hist(dat1, breaks="fd", freq=FALSE)
 lines(den1$x, den1$y,lwd=2) ## gpu
 lines(den2$x, den2$y,lwd=2) ## tnorm
 lines(den3$x, den3$y,lwd=2) ## msn
 
-hist(dat3, breaks="fd", freq=F)
+hist(dat3, breaks="fd", freq=FALSE)
 lines(den1$x, den1$y,lwd=2) ## gpu
 lines(den2$x, den2$y,lwd=2) ## tnorm
 lines(den3$x, den3$y,lwd=2) ## msn

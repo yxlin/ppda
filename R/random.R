@@ -20,9 +20,9 @@
 #' 
 #' ## Identical result
 #' par(mfrow=c(1,2))
-#' hist(dat2, breaks="fd", freq=F, ylim=c(0,1.1))
+#' hist(dat2, breaks="fd", freq=FALSE, ylim=c(0,1.1))
 #' lines(den1$x, den1$y,lwd=2)
-#' hist(dat1, breaks="fd", freq=F, ylim=c(0,1.1))
+#' hist(dat1, breaks="fd", freq=FALSE, ylim=c(0,1.1))
 #' lines(den2$x, den2$y,lwd=2)
 #' par(mfrow=c(1,1))
 #'
@@ -65,9 +65,9 @@ runif <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #' 
 #' ## Identical 
 #' par(mfrow=c(1,2))
-#' hist(dat2, breaks="fd", freq=F)
+#' hist(dat2, breaks="fd", freq=FALSE)
 #' lines(den1$x, den1$y,lwd=2)
-#' hist(dat1, breaks="fd", freq=F)
+#' hist(dat1, breaks="fd", freq=FALSE)
 #' lines(den2$x, den2$y,lwd=2)
 #' par(mfrow=c(1,1))
 #'
@@ -121,17 +121,17 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
 #' 
 #' \dontrun{
 #' par(mfrow=c(1,3))
-#' hist(dat2, breaks="fd", freq=F)
+#' hist(dat2, breaks="fd", freq=FALSE)
 #' lines(den1$x, den1$y,lwd=2) ## gpu
 #' lines(den2$x, den2$y,lwd=2) ## tnorm
 #' lines(den3$x, den3$y,lwd=2) ## msn
 #' 
-#' hist(dat1, breaks="fd", freq=F)
+#' hist(dat1, breaks="fd", freq=FALSE)
 #' lines(den1$x, den1$y,lwd=2) ## gpu
 #' lines(den2$x, den2$y,lwd=2) ## tnorm
 #' lines(den3$x, den3$y,lwd=2) ## msn
 #' 
-#' hist(dat3, breaks="fd", freq=F)
+#' hist(dat3, breaks="fd", freq=FALSE)
 #' lines(den1$x, den1$y,lwd=2) ## gpu
 #' lines(den2$x, den2$y,lwd=2) ## tnorm
 #' lines(den3$x, den3$y,lwd=2) ## msn
@@ -239,8 +239,8 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' ## Because R script takes a while to run, so I repeated 10 times only
 #' ## microbenchmark can still give reliable and precise estimation.
 #' library(microbenchmark)
-#' res <- microbenchmark(gpda::rlba(n, dp=F),
-#'                       gpda::rlba(n, dp=T),
+#' res <- microbenchmark(gpda::rlba(n, dp=FALSE),
+#'                       gpda::rlba(n, dp=TRUE),
 #'                       cpda::rlba_test(n),
 #'                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 #' sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)

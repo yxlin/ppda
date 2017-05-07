@@ -1,7 +1,7 @@
 #include <unistd.h>
 //#include <stdio.h>  // C printing
 #include <R.h>  // R Rprintf
-#include "../inst/include/common.h"
+//#include "../inst/include/common.h"
 #include "../inst/include/constant.h"
 #include "../inst/include/util.h"
 #include <armadillo> // Armadillo vector operations
@@ -316,18 +316,16 @@ void sum_entry(double *x, int *nx, bool *debug, double *out) {
     h_out = (double *)malloc(blockSize);
     *h_nx = (unsigned int)*nx;
   
-    CHECK(cudaMalloc((void**) &d_out,  blockSize));
-    CHECK(cudaMalloc((void**) &d_x,  nxSize));
-    CHECK(cudaMalloc((void**) &d_nx, unsignedintSize));
-    CHECK(cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice));
+    cudaMalloc((void**) &d_out,  blockSize);
+    cudaMalloc((void**) &d_x,  nxSize);
+    cudaMalloc((void**) &d_nx, unsignedintSize);
+    cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice);
+    cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice);
     sum_kernel<<<nBlk, nThread>>>(d_x, d_out);
-    CHECK(cudaMemcpy(h_out, d_out, blockSize,   cudaMemcpyDeviceToHost));
+    cudaMemcpy(h_out, d_out, blockSize,   cudaMemcpyDeviceToHost);
 
     for (unsigned int i=0; i<nBlk; i++) { out[0] += h_out[i]; }
-
-    cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
-    free(h_nx);     free(h_out); 
+    cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out); free(h_nx); free(h_out); 
 }
 
 
@@ -348,18 +346,16 @@ void sqsum_entry(double *x, int *nx, bool *debug, double *out) {
   h_nx    = (unsigned int *)malloc(unsignedintSize);
   *h_nx   = (unsigned int)*nx;
   
-  CHECK(cudaMalloc((void**) &d_x,     nxSize));
-  CHECK(cudaMalloc((void**) &d_nx,    unsignedintSize));
-  CHECK(cudaMalloc((void**) &d_pssum, blockSize));
-  CHECK(cudaMemcpy(d_x,  x, nxSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx, unsignedintSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_x,     nxSize);
+  cudaMalloc((void**) &d_nx,    unsignedintSize);
+  cudaMalloc((void**) &d_pssum, blockSize);
+  cudaMemcpy(d_x,  x, nxSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx, unsignedintSize, cudaMemcpyHostToDevice);
   
   squareSum_kernel<<<nBlk, nThread>>>(d_nx, d_x, d_pssum);
-  CHECK(cudaMemcpy(h_pssum, d_pssum, blockSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_pssum, d_pssum, blockSize, cudaMemcpyDeviceToHost);
   for (int i=0; i<nBlk; i++) { out[0] += h_pssum[i]; }
-  
-  free(h_nx); free(h_pssum); 
-  cudaFree(d_x);  cudaFree(d_nx); cudaFree(d_pssum); 
+  free(h_nx); free(h_pssum); cudaFree(d_x);  cudaFree(d_nx); cudaFree(d_pssum); 
 }
 
 void sd_entry(double *x, int *nx, bool *debug, double *out) {
@@ -381,27 +377,24 @@ void sd_entry(double *x, int *nx, bool *debug, double *out) {
   *h_nx   = (unsigned int)*nx;
   h_pssum = (double *)malloc(blockSize);
   
-  CHECK(cudaMalloc((void**) &d_psum, halfBlockSize));
-  CHECK(cudaMalloc((void**) &d_x,  nxSize));
-  CHECK(cudaMalloc((void**) &d_nx, unsignedintSize));
-  CHECK(cudaMalloc((void**) &d_pssum, blockSize));
-
-  CHECK(cudaMemcpy(d_x,  x,    nxSize,          cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx, unsignedintSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_psum, halfBlockSize);
+  cudaMalloc((void**) &d_x,  nxSize);
+  cudaMalloc((void**) &d_nx, unsignedintSize);
+  cudaMalloc((void**) &d_pssum, blockSize);
+  cudaMemcpy(d_x,  x,    nxSize,          cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx, unsignedintSize, cudaMemcpyHostToDevice);
 
   sum_kernel<<<nBlk/2, nThread>>>(d_x, d_psum);
   squareSum_kernel<<<nBlk, nThread>>>(d_nx, d_x, d_pssum);
 
-  CHECK(cudaMemcpy(h_psum,  d_psum,  halfBlockSize, cudaMemcpyDeviceToHost));
-  CHECK(cudaMemcpy(h_pssum, d_pssum, blockSize,     cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_psum,  d_psum,  halfBlockSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_pssum, d_pssum, blockSize,     cudaMemcpyDeviceToHost);
   
   for (int i=0; i<(nBlk/2); i++) { sum1 += h_psum[i]; }
   for (int i=0; i<nBlk; i++) { sum2 += h_pssum[i]; }
   *out = std::sqrt( (sum2 - (sum1*sum1) / *h_nx) / (*h_nx - 1) );
-  
   free(h_psum); free(h_nx); free(h_pssum); 
-  cudaFree(d_psum);  cudaFree(d_x);  cudaFree(d_nx);
-  cudaFree(d_pssum);
+  cudaFree(d_psum);  cudaFree(d_x);  cudaFree(d_nx); cudaFree(d_pssum);
 }
 
 void min_entry(double *x, int *nx, bool *debug, double *out) {
@@ -420,20 +413,19 @@ void min_entry(double *x, int *nx, bool *debug, double *out) {
   h_out = (double *)malloc(blockSize);
   *h_nx = (unsigned int)*nx;
   
-  CHECK(cudaMalloc((void**) &d_out, blockSize));
-  CHECK(cudaMalloc((void**) &d_x,  nxSize));
-  CHECK(cudaMalloc((void**) &d_nx, unsignedintSize));
-  CHECK(cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_out, blockSize);
+  cudaMalloc((void**) &d_x,  nxSize);
+  cudaMalloc((void**) &d_nx, unsignedintSize);
+  cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice);
   min_kernel<<<nBlk, nThread>>>(d_x, d_out);
-  CHECK(cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost);
   if (*debug) {for(int i=0; i<nBlk; i++) { Rprintf("h_out[%d]: %f\n", i, h_out[i]); }}
 
   arma::vec min_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { min_tmp[i] = h_out[i]; }
   out[0] = min_tmp.min();
-  free(h_nx); free(h_out); 
-  cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
+  free(h_nx); free(h_out); cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
 }
 
 void max_entry(double *x, int *nx, bool *debug, double *out) {
@@ -452,19 +444,18 @@ void max_entry(double *x, int *nx, bool *debug, double *out) {
   h_out = (double *)malloc(blockSize);
   *h_nx = (unsigned int)*nx;
   
-  CHECK(cudaMalloc((void**) &d_out, blockSize));
-  CHECK(cudaMalloc((void**) &d_x,  nxSize));
-  CHECK(cudaMalloc((void**) &d_nx, unsignedintSize));
-  CHECK(cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_out, blockSize);
+  cudaMalloc((void**) &d_x,  nxSize);
+  cudaMalloc((void**) &d_nx, unsignedintSize);
+  cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice);
   max_kernel<<<nBlk, nThread>>>(d_x, d_out);
-  CHECK(cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost);
 
   arma::vec max_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { max_tmp[i] = h_out[i]; }
   out[0] = max_tmp.max();
-  free(h_nx); free(h_out); 
-  cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
+  free(h_nx); free(h_out); cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
 }
 
 void minmax_entry(double *x, int *nx, bool *debug, double *out) {
@@ -483,26 +474,23 @@ void minmax_entry(double *x, int *nx, bool *debug, double *out) {
   h_out = (double *)malloc(2*blockSize);
   *h_nx = (unsigned int)*nx;
 
-  CHECK(cudaMalloc((void**) &d_out, 2*blockSize));
-  CHECK(cudaMalloc((void**) &d_x,   nxSize));
-  CHECK(cudaMalloc((void**) &d_nx,  unsignedintSize));
-  CHECK(cudaMemcpy(d_x,  x,  nxSize,          cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, nx, unsignedintSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_out, 2*blockSize);
+  cudaMalloc((void**) &d_x,   nxSize);
+  cudaMalloc((void**) &d_nx,  unsignedintSize);
+  cudaMemcpy(d_x,  x,  nxSize,          cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, nx, unsignedintSize, cudaMemcpyHostToDevice);
   minmax_kernel<<<nBlk, nThread>>>(d_x, d_out);
-  CHECK(cudaMemcpy(h_out, d_out, 2*blockSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_out, d_out, 2*blockSize, cudaMemcpyDeviceToHost);
   
   arma::vec min_tmp(nBlk);
   arma::vec max_tmp(nBlk);
-  
   for (int i=0; i<nBlk; i++) {
       min_tmp[i] = h_out[i];
       max_tmp[i] = h_out[i + nBlk];
   }
   out[0] = min_tmp.min();
   out[1] = max_tmp.max();
-  
-  free(h_out);
-  cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
+  free(h_out); cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
 }
 
 void count_entry(int *nR, int *R, bool *debug, double *out) {
@@ -520,21 +508,18 @@ void count_entry(int *nR, int *R, bool *debug, double *out) {
   h_out = (unsigned int *)malloc(unsignedintSize * nBlk);
   for(int i=0; i<nBlk; i++) { h_out[i] = 0; }
   
-  CHECK(cudaMalloc((void**) &d_out, nBlk * unsignedintSize));
-  CHECK(cudaMalloc((void**) &d_R,   *h_n * unsignedintSize));
-  CHECK(cudaMalloc((void**) &d_n,    unsignedintSize));
-  CHECK(cudaMemcpy(d_R,  h_R,       *h_n * unsignedintSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_n,  h_n,          unsignedintSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_out,h_out,     nBlk * unsignedintSize, cudaMemcpyHostToDevice));
-  
+  cudaMalloc((void**) &d_out, nBlk * unsignedintSize);
+  cudaMalloc((void**) &d_R,   *h_n * unsignedintSize);
+  cudaMalloc((void**) &d_n,    unsignedintSize);
+  cudaMemcpy(d_R,  h_R,       *h_n * unsignedintSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_n,  h_n,       unsignedintSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_out,h_out,     nBlk * unsignedintSize, cudaMemcpyHostToDevice);
   count_kernel<<<nBlk, nThread>>>(d_n, d_R, d_out);
-  CHECK(cudaMemcpy(h_out, d_out, nBlk * unsignedintSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_out, d_out, nBlk * unsignedintSize, cudaMemcpyDeviceToHost);
   
   out[0] = h_out[0];
   out[1] = h_out[1];
-  
-  free(h_out); free(h_R); free(h_n);
-  cudaFree(d_R); cudaFree(d_n); cudaFree(d_out);
+  free(h_out); free(h_R); free(h_n); cudaFree(d_R); cudaFree(d_n); cudaFree(d_out);
 }
 
 void n1min_entry(double *RT0, int *nx, bool *debug, double *out) {
@@ -553,22 +538,21 @@ void n1min_entry(double *RT0, int *nx, bool *debug, double *out) {
   h_out = (float *)malloc(blockSize);
   *h_nx = (unsigned int)*nx;
   
-  CHECK(cudaHostAlloc((void**)&h_RT0, nfSize, cudaHostAllocDefault));
+  cudaHostAlloc((void**)&h_RT0, nfSize, cudaHostAllocDefault);
   for(int i=0; i<*nx; i++) { h_RT0[i] = (float)RT0[i]; }
 
-  CHECK(cudaMalloc((void**) &d_RT0,  nfSize));
-  CHECK(cudaMalloc((void**) &d_nx,   uSize));
-  CHECK(cudaMalloc((void**) &d_out,  blockSize));
-  CHECK(cudaMemcpy(d_RT0, h_RT0, nfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx,  h_nx,  uSize,  cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_RT0,  nfSize);
+  cudaMalloc((void**) &d_nx,   uSize);
+  cudaMalloc((void**) &d_out,  blockSize);
+  cudaMemcpy(d_RT0, h_RT0, nfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx,  h_nx,  uSize,  cudaMemcpyHostToDevice);
 
   n1min_kernel<<<nBlk, nThread>>>(d_RT0, d_out);
-  CHECK(cudaMemcpy(h_out, d_out, blockSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_out, d_out, blockSize, cudaMemcpyDeviceToHost);
 
   arma::vec min_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { min_tmp[i] = (double)h_out[i]; }
   out[0] = min_tmp.min();
-  
   cudaFreeHost(h_RT0); free(h_nx); free(h_out); 
   cudaFree(d_RT0); cudaFree(d_nx); cudaFree(d_out);
 }

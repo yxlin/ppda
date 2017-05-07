@@ -1,4 +1,4 @@
-#include "../inst/include/common.h"
+//#include "../inst/include/common.h"
 #include "../inst/include/util.h"
 
 extern "C" void sumur_entry(double *x, int *nx, bool *debug, double *out);

@@ -1,7 +1,7 @@
 #include <unistd.h>
 //#include <stdio.h>  // C printing
 #include <curand_kernel.h> // Device random API
-#include "../inst/include/common.h"  
+//#include "../inst/include/common.h"  
 #include "../inst/include/constant.h"  
 #include "../inst/include/util.h"
 #include "../inst/include/reduce.h"  
@@ -660,14 +660,14 @@ void runif_entry(int *n, double *min, double *max, int *nth, bool *dp,
     size_t ndSize = *n * sizeof(double);
     size_t dSize  = 1 * sizeof(double);
     double *d_min, *d_max, *d_out, *h_out;
-    CHECK(cudaMalloc((void**) &d_out,   ndSize));
-    CHECK(cudaMalloc((void**) &d_min,   dSize));
-    CHECK(cudaMalloc((void**) &d_max,   dSize));
-    CHECK(cudaHostAlloc((void**)&h_out, ndSize, cudaHostAllocDefault));
-    CHECK(cudaMemcpy(d_min, min, dSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_max, max, dSize, cudaMemcpyHostToDevice));
+    cudaMalloc((void**) &d_out,   ndSize);
+    cudaMalloc((void**) &d_min,   dSize);
+    cudaMalloc((void**) &d_max,   dSize);
+    cudaHostAlloc((void**)&h_out, ndSize, cudaHostAllocDefault);
+    cudaMemcpy(d_min, min, dSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_max, max, dSize, cudaMemcpyHostToDevice);
     runif_kernel<<<((*n)/(*nth) + 1), *nth>>>((*n), d_min, d_max, d_out);
-    CHECK(cudaMemcpy(h_out, d_out, ndSize, cudaMemcpyDeviceToHost));
+    cudaMemcpy(h_out, d_out, ndSize, cudaMemcpyDeviceToHost);
     for(size_t i=0; i<*n; i++) { out[i] = h_out[i]; }
     cudaFreeHost(h_out);   cudaFree(d_out);
     cudaFree(d_min);       cudaFree(d_max);
@@ -681,18 +681,17 @@ void runif_entry(int *n, double *min, double *max, int *nth, bool *dp,
     *h_min = (float)*min;
     *h_max = (float)*max;
     
-    CHECK(cudaMalloc((void**) &d_out,   nfSize));
-    CHECK(cudaMalloc((void**) &d_min,   fSize));
-    CHECK(cudaMalloc((void**) &d_max,   fSize));
-    CHECK(cudaHostAlloc((void**)&h_out, nfSize, cudaHostAllocDefault));
-    CHECK(cudaMemcpy(d_min, h_min, fSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_max, h_max, fSize, cudaMemcpyHostToDevice));
+    cudaMalloc((void**) &d_out,   nfSize);
+    cudaMalloc((void**) &d_min,   fSize);
+    cudaMalloc((void**) &d_max,   fSize);
+    cudaHostAlloc((void**)&h_out, nfSize, cudaHostAllocDefault);
+    cudaMemcpy(d_min, h_min, fSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_max, h_max, fSize, cudaMemcpyHostToDevice);
     runif_kernel<<<((*n)/(*nth) + 1), *nth>>>((*n), d_min, d_max, d_out);
-    CHECK(cudaMemcpy(h_out, d_out, nfSize, cudaMemcpyDeviceToHost));
+    cudaMemcpy(h_out, d_out, nfSize, cudaMemcpyDeviceToHost);
     for(size_t i=0; i<*n; i++) { out[i] = (double)h_out[i]; }
     free(h_min); free(h_max);
-    cudaFreeHost(h_out);   cudaFree(d_out);
-    cudaFree(d_min);       cudaFree(d_max);
+    cudaFreeHost(h_out); cudaFree(d_out); cudaFree(d_min); cudaFree(d_max);
   }
 }
 
@@ -701,14 +700,14 @@ void rnorm_entry(int *n, double *mean, double *sd, int *nth, bool *dp,
 {
   if (*dp) {
     double *d_out, *d_mean, *d_sd, *h_out;
-    CHECK(cudaHostAlloc((void**)&h_out, *n * sizeof(double), cudaHostAllocDefault));
-    CHECK(cudaMalloc((void**)&d_out,    *n * sizeof(double)));
-    CHECK(cudaMalloc((void**)&d_mean,    1 * sizeof(double)));
-    CHECK(cudaMalloc((void**)&d_sd,      1 * sizeof(double)));
-    CHECK(cudaMemcpy(d_mean, mean,       1 * sizeof(double), cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_sd, sd,           1 * sizeof(double), cudaMemcpyHostToDevice));
+    cudaHostAlloc((void**)&h_out, *n * sizeof(double), cudaHostAllocDefault);
+    cudaMalloc((void**)&d_out,    *n * sizeof(double));
+    cudaMalloc((void**)&d_mean,    1 * sizeof(double));
+    cudaMalloc((void**)&d_sd,      1 * sizeof(double));
+    cudaMemcpy(d_mean, mean,       1 * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_sd, sd,           1 * sizeof(double), cudaMemcpyHostToDevice);
     rnorm_kernel<<<((*n)/(*nth) + 1), *nth>>>(*n, d_mean, d_sd, d_out);
-    CHECK(cudaMemcpy(h_out, d_out, *n * sizeof(double), cudaMemcpyDeviceToHost));
+    cudaMemcpy(h_out, d_out, *n * sizeof(double), cudaMemcpyDeviceToHost);
     for(int i=0; i<*n; i++) { out[i] = h_out[i]; }
     cudaFreeHost(h_out); cudaFree(d_out);
     cudaFree(d_mean);    cudaFree(d_sd);
@@ -722,14 +721,14 @@ void rnorm_entry(int *n, double *mean, double *sd, int *nth, bool *dp,
     *h_mean = (float)*mean;
     *h_sd   = (float)*sd;
     
-    CHECK(cudaHostAlloc((void**)&h_out, nfSize, cudaHostAllocDefault));
-    CHECK(cudaMalloc((void**)&d_out,  nfSize));
-    CHECK(cudaMalloc((void**)&d_mean, fSize));
-    CHECK(cudaMalloc((void**)&d_sd,   fSize));
-    CHECK(cudaMemcpy(d_mean, h_mean,  fSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_sd,   h_sd,    fSize, cudaMemcpyHostToDevice));
+    cudaHostAlloc((void**)&h_out, nfSize, cudaHostAllocDefault);
+    cudaMalloc((void**)&d_out,  nfSize);
+    cudaMalloc((void**)&d_mean, fSize);
+    cudaMalloc((void**)&d_sd,   fSize);
+    cudaMemcpy(d_mean, h_mean,  fSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_sd,   h_sd,    fSize, cudaMemcpyHostToDevice);
     rnorm_kernel<<<((*n)/(*nth) + 1), *nth>>>(*n, d_mean, d_sd, d_out);
-    CHECK(cudaMemcpy(h_out, d_out, nfSize, cudaMemcpyDeviceToHost));
+    cudaMemcpy(h_out, d_out, nfSize, cudaMemcpyDeviceToHost);
     for(int i=0; i<*n; i++) { out[i] = (double)h_out[i]; }
     free(h_mean); free(h_sd);
     cudaFreeHost(h_out); cudaFree(d_out);
@@ -772,16 +771,16 @@ void rtnorm_entry(int *n, double *mean, double *sd, double *l, double *u,
     size_t ndSize = *n * sizeof(double);
     double *h_out;
     double *d_out, *d_mean, *d_sd, *d_l, *d_u;
-    CHECK(cudaHostAlloc((void**)&h_out, ndSize, cudaHostAllocDefault));
-    CHECK(cudaMalloc((void**) &d_out,   ndSize));
-    CHECK(cudaMalloc((void**) &d_mean,  dSize));
-    CHECK(cudaMalloc((void**) &d_sd,    dSize));
-    CHECK(cudaMalloc((void**) &d_l,     dSize));
-    CHECK(cudaMalloc((void**) &d_u,     dSize));
-    CHECK(cudaMemcpy(d_mean, mean, dSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_sd,     sd, dSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_l,  h_stdl, dSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_u,  h_stdu, dSize, cudaMemcpyHostToDevice));
+    cudaHostAlloc((void**)&h_out, ndSize, cudaHostAllocDefault);
+    cudaMalloc((void**) &d_out,   ndSize);
+    cudaMalloc((void**) &d_mean,  dSize);
+    cudaMalloc((void**) &d_sd,    dSize);
+    cudaMalloc((void**) &d_l,     dSize);
+    cudaMalloc((void**) &d_u,     dSize);
+    cudaMemcpy(d_mean, mean, dSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_sd,     sd, dSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_l,  h_stdl, dSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_u,  h_stdu, dSize, cudaMemcpyHostToDevice);
     
     if (a0) {
       rtnorm0_kernel<<<((*n)/(*nth) + 1), *nth>>>(*n, d_mean, d_sd, d_l, d_u, d_out);
@@ -812,16 +811,16 @@ void rtnorm_entry(int *n, double *mean, double *sd, double *l, double *u,
     *h_l    = (float)*h_stdl;
     *h_u    = (float)*h_stdu;
     
-    CHECK(cudaHostAlloc((void**)&h_out, nfSize, cudaHostAllocDefault));
-    CHECK(cudaMalloc((void**) &d_out,   nfSize));
-    CHECK(cudaMalloc((void**) &d_mean,  fSize));
-    CHECK(cudaMalloc((void**) &d_sd,    fSize));
-    CHECK(cudaMalloc((void**) &d_l,     fSize));
-    CHECK(cudaMalloc((void**) &d_u,     fSize));
-    CHECK(cudaMemcpy(d_mean, h_mean, fSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_sd,   h_sd,   fSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_l,  h_l,      fSize, cudaMemcpyHostToDevice));
-    CHECK(cudaMemcpy(d_u,  h_u,      fSize, cudaMemcpyHostToDevice));
+    cudaHostAlloc((void**)&h_out, nfSize, cudaHostAllocDefault);
+    cudaMalloc((void**) &d_out,   nfSize);
+    cudaMalloc((void**) &d_mean,  fSize);
+    cudaMalloc((void**) &d_sd,    fSize);
+    cudaMalloc((void**) &d_l,     fSize);
+    cudaMalloc((void**) &d_u,     fSize);
+    cudaMemcpy(d_mean, h_mean, fSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_sd,   h_sd,   fSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_l,  h_l,      fSize, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_u,  h_u,      fSize, cudaMemcpyHostToDevice);
     
     if (a0) {
       rtnorm0_kernel<<<((*n)/(*nth) + 1), *nth>>>(*n, d_mean, d_sd, d_l, d_u, d_out);
@@ -837,8 +836,7 @@ void rtnorm_entry(int *n, double *mean, double *sd, double *l, double *u,
     for(size_t i=0; i<*n; i++) { out[i] = (double)h_out[i]; }
     free(h_stdl);  free(h_stdu); free(h_l); free(h_u); free(h_mean); free(h_sd);
     cudaFreeHost(h_out); cudaFree(d_out);
-    cudaFree(d_mean);    cudaFree(d_sd);
-    cudaFree(d_l);       cudaFree(d_u);
+    cudaFree(d_mean); cudaFree(d_sd); cudaFree(d_l); cudaFree(d_u);
   }
 }
 
@@ -877,37 +875,37 @@ void rlbad_entry(int *n, double *b,double *A, double *mean_v,
   h_n = (unsigned int *)malloc(uSize);
   *h_n = (unsigned int)*n;
   
-  CHECK(cudaHostAlloc((void**)&h_RT,   ndSize, cudaHostAllocDefault));
-  CHECK(cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault));
-  CHECK(cudaMalloc((void**) &d_R,      nuSize));
-  CHECK(cudaMalloc((void**) &d_RT,     ndSize));
-  CHECK(cudaMalloc((void**) &d_n,      uSize));
-  CHECK(cudaMalloc((void**) &d_b,      dSize));
-  CHECK(cudaMalloc((void**) &d_A,      dSize));
-  CHECK(cudaMalloc((void**) &d_t0,     dSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vdSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vdSize));
-  CHECK(cudaMalloc((void**) &d_l,      vdSize));
-  CHECK(cudaMalloc((void**) &d_u,      vdSize));
-  CHECK(cudaMalloc((void**) &d_a,      vdSize));
-  CHECK(cudaMalloc((void**) &d_c,      vbSize));
+  cudaHostAlloc((void**)&h_RT,   ndSize, cudaHostAllocDefault);
+  cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault);
+  cudaMalloc((void**) &d_R,      nuSize);
+  cudaMalloc((void**) &d_RT,     ndSize);
+  cudaMalloc((void**) &d_n,      uSize);
+  cudaMalloc((void**) &d_b,      dSize);
+  cudaMalloc((void**) &d_A,      dSize);
+  cudaMalloc((void**) &d_t0,     dSize);
+  cudaMalloc((void**) &d_sd_v,   vdSize);
+  cudaMalloc((void**) &d_mean_v, vdSize);
+  cudaMalloc((void**) &d_l,      vdSize);
+  cudaMalloc((void**) &d_u,      vdSize);
+  cudaMalloc((void**) &d_a,      vdSize);
+  cudaMalloc((void**) &d_c,      vbSize);
   
-  CHECK(cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,   b,  dSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,   A,  dSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0, t0,  dSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, mean_v, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,     sd_v, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_l,         h_l, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_u,         h_u, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_a,         h_a, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_c,         h_c, vbSize, cudaMemcpyHostToDevice));
+  cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,   b,  dSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,   A,  dSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0, t0,  dSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, mean_v, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,     sd_v, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_l,         h_l, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_u,         h_u, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a,         h_a, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_c,         h_c, vbSize, cudaMemcpyHostToDevice);
   
   rlba_kernel<<<((*n)/(*nth) + 1), *nth>>>(d_n, d_b, d_A, d_mean_v, d_sd_v,
     d_t0, d_l, d_u, d_a, d_c, d_RT,
     d_R);
-  CHECK(cudaMemcpy(h_RT, d_RT, ndSize, cudaMemcpyDeviceToHost));
-  CHECK(cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_RT, d_RT, ndSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost);
   for(size_t i=0; i<*n; i++) {
     RT[i] = h_RT[i];
     R[i]  = h_R[i];
@@ -967,37 +965,36 @@ void rlbaf_entry(int *n, double *b,double *A, double *mean_v, int *nmean_v,
   *h_A  = (float)*A;
   *h_t0 = (float)*t0;
   
-  CHECK(cudaHostAlloc((void**)&h_RT,   nfSize, cudaHostAllocDefault));
-  CHECK(cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault));
-  CHECK(cudaMalloc((void**) &d_R,      nuSize));
-  CHECK(cudaMalloc((void**) &d_RT,     nfSize));
-  CHECK(cudaMalloc((void**) &d_n,      uSize));
-  CHECK(cudaMalloc((void**) &d_b,      fSize));
-  CHECK(cudaMalloc((void**) &d_A,      fSize));
-  CHECK(cudaMalloc((void**) &d_t0,     fSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_l,      vfSize));
-  CHECK(cudaMalloc((void**) &d_u,      vfSize));
-  CHECK(cudaMalloc((void**) &d_a,      vfSize));
-  CHECK(cudaMalloc((void**) &d_c,      vbSize));
-  
-  CHECK(cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b, h_b,  fSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A, h_A,  fSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,h_t0, fSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_l,         h_l,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_u,         h_u,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_a,         h_a,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_c,         h_c,   vbSize, cudaMemcpyHostToDevice));
+  cudaHostAlloc((void**)&h_RT,   nfSize, cudaHostAllocDefault);
+  cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault);
+  cudaMalloc((void**) &d_R,      nuSize);
+  cudaMalloc((void**) &d_RT,     nfSize);
+  cudaMalloc((void**) &d_n,      uSize);
+  cudaMalloc((void**) &d_b,      fSize);
+  cudaMalloc((void**) &d_A,      fSize);
+  cudaMalloc((void**) &d_t0,     fSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_l,      vfSize);
+  cudaMalloc((void**) &d_u,      vfSize);
+  cudaMalloc((void**) &d_a,      vfSize);
+  cudaMalloc((void**) &d_c,      vbSize);
+  cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b, h_b,  fSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A, h_A,  fSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,h_t0, fSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_l,         h_l,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_u,         h_u,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a,         h_a,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_c,         h_c,   vbSize, cudaMemcpyHostToDevice);
   
   rlba_kernel<<<((*n)/(*nth) + 1), *nth>>>(d_n, d_b, d_A, d_mean_v, d_sd_v,
     d_t0, d_l, d_u, d_a, d_c, d_RT,
     d_R);
-  CHECK(cudaMemcpy(h_RT, d_RT, nfSize, cudaMemcpyDeviceToHost));
-  CHECK(cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_RT, d_RT, nfSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost);
   for(size_t i=0; i<*n; i++) {
     RT[i] = h_RT[i];
     R[i]  = h_R[i];
@@ -1009,8 +1006,7 @@ void rlbaf_entry(int *n, double *b,double *A, double *mean_v, int *nmean_v,
   cudaFree(d_mean_v); cudaFree(d_sd_v);
   cudaFree(d_l); cudaFree(d_u); cudaFree(d_a); cudaFree(d_c); cudaFree(d_n);
   free(h_c); free(h_l); free(h_u); free(h_a); free(h_n);
-  free(h_b);      free(h_A);    free(h_t0);
-  free(h_mean_v); free(h_sd_v);
+  free(h_b);      free(h_A);    free(h_t0); free(h_mean_v); free(h_sd_v);
 }
 
 void rlbad_n1(int *n, double *b,double *A, double *mean_v, int *nmean_v,
@@ -1047,36 +1043,35 @@ void rlbad_n1(int *n, double *b,double *A, double *mean_v, int *nmean_v,
   h_n = (unsigned int *)malloc(uSize);
   *h_n = (unsigned int)*n;
   
-  CHECK(cudaHostAlloc((void**)&h_RT,   ndSize, cudaHostAllocDefault));
-  CHECK(cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault));
-  CHECK(cudaMalloc((void**) &d_RT,     ndSize));
-  CHECK(cudaMalloc((void**) &d_R,      nuSize));
-  CHECK(cudaMalloc((void**) &d_n,      uSize));
-  CHECK(cudaMalloc((void**) &d_b,      dSize));
-  CHECK(cudaMalloc((void**) &d_A,      dSize));
-  CHECK(cudaMalloc((void**) &d_t0,     dSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vdSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vdSize));
-  CHECK(cudaMalloc((void**) &d_l,      vdSize));
-  CHECK(cudaMalloc((void**) &d_u,      vdSize));
-  CHECK(cudaMalloc((void**) &d_a,      vdSize));
-  CHECK(cudaMalloc((void**) &d_c,      vbSize));
-  
-  CHECK(cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,   b,  dSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,   A,  dSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0, t0,  dSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, mean_v, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,     sd_v, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_l,         h_l, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_u,         h_u, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_a,         h_a, vdSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_c,         h_c, vbSize, cudaMemcpyHostToDevice));
+  cudaHostAlloc((void**)&h_RT,   ndSize, cudaHostAllocDefault);
+  cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault);
+  cudaMalloc((void**) &d_RT,     ndSize);
+  cudaMalloc((void**) &d_R,      nuSize);
+  cudaMalloc((void**) &d_n,      uSize);
+  cudaMalloc((void**) &d_b,      dSize);
+  cudaMalloc((void**) &d_A,      dSize);
+  cudaMalloc((void**) &d_t0,     dSize);
+  cudaMalloc((void**) &d_sd_v,   vdSize);
+  cudaMalloc((void**) &d_mean_v, vdSize);
+  cudaMalloc((void**) &d_l,      vdSize);
+  cudaMalloc((void**) &d_u,      vdSize);
+  cudaMalloc((void**) &d_a,      vdSize);
+  cudaMalloc((void**) &d_c,      vbSize);
+  cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,   b,  dSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,   A,  dSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0, t0,  dSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, mean_v, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,     sd_v, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_l,         h_l, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_u,         h_u, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a,         h_a, vdSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_c,         h_c, vbSize, cudaMemcpyHostToDevice);
   
   rlba_n1_kernel<<<((*n)/(*nth) + 1), *nth>>>(d_n, d_b, d_A, d_mean_v, d_sd_v,
     d_t0, d_l, d_u, d_a, d_c, d_RT, d_R);
-  CHECK(cudaMemcpy(h_RT, d_RT, ndSize, cudaMemcpyDeviceToHost));
-  CHECK(cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_RT, d_RT, ndSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost);
   for(size_t i=0; i<*n; i++) {
     RT[i] = h_RT[i];
     R[i]  = h_R[i];
@@ -1136,37 +1131,36 @@ void rlbaf_n1(int *n, double *b, double *A, double *mean_v, int *nmean_v,
   *h_A  = (float)*A;
   *h_t0 = (float)*t0;
   
-  CHECK(cudaHostAlloc((void**)&h_RT,   nfSize, cudaHostAllocDefault));
-  CHECK(cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault));
-  CHECK(cudaMalloc((void**) &d_RT,     nfSize));
-  CHECK(cudaMalloc((void**) &d_R,      nuSize));
-  CHECK(cudaMalloc((void**) &d_n,      uSize));
-  CHECK(cudaMalloc((void**) &d_b,      fSize));
-  CHECK(cudaMalloc((void**) &d_A,      fSize));
-  CHECK(cudaMalloc((void**) &d_t0,     fSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_l,      vfSize));
-  CHECK(cudaMalloc((void**) &d_u,      vfSize));
-  CHECK(cudaMalloc((void**) &d_a,      vfSize));
-  CHECK(cudaMalloc((void**) &d_c,      vbSize));
-  
-  CHECK(cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b, h_b,  fSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A, h_A,  fSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,h_t0, fSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v,h_mean_v,vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,    h_sd_v,vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_l,         h_l, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_u,         h_u, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_a,         h_a, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_c,         h_c, vbSize, cudaMemcpyHostToDevice));
+  cudaHostAlloc((void**)&h_RT,   nfSize, cudaHostAllocDefault);
+  cudaHostAlloc((void**)&h_R,    nuSize, cudaHostAllocDefault);
+  cudaMalloc((void**) &d_RT,     nfSize);
+  cudaMalloc((void**) &d_R,      nuSize);
+  cudaMalloc((void**) &d_n,      uSize);
+  cudaMalloc((void**) &d_b,      fSize);
+  cudaMalloc((void**) &d_A,      fSize);
+  cudaMalloc((void**) &d_t0,     fSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_l,      vfSize);
+  cudaMalloc((void**) &d_u,      vfSize);
+  cudaMalloc((void**) &d_a,      vfSize);
+  cudaMalloc((void**) &d_c,      vbSize);
+  cudaMemcpy(d_n, h_n,  uSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b, h_b,  fSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A, h_A,  fSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,h_t0, fSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v,h_mean_v,vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,    h_sd_v,vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_l,         h_l, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_u,         h_u, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a,         h_a, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_c,         h_c, vbSize, cudaMemcpyHostToDevice);
   
   rlba_n1_kernel<<<((*n)/(*nth) + 1), *nth>>>(d_n, d_b, d_A, d_mean_v, d_sd_v,
     d_t0, d_l, d_u, d_a, d_c, d_RT,
     d_R);
-  CHECK(cudaMemcpy(h_RT, d_RT, nfSize, cudaMemcpyDeviceToHost));
-  CHECK(cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_RT, d_RT, nfSize, cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_R,  d_R,  nuSize, cudaMemcpyDeviceToHost);
   for(size_t i=0; i<*n; i++) {
     RT[i] = h_RT[i];
     R[i]  = h_R[i];
@@ -1178,8 +1172,7 @@ void rlbaf_n1(int *n, double *b, double *A, double *mean_v, int *nmean_v,
   cudaFree(d_mean_v); cudaFree(d_sd_v);
   cudaFree(d_l); cudaFree(d_u); cudaFree(d_a); cudaFree(d_c); cudaFree(d_n);
   free(h_c); free(h_l); free(h_u); free(h_a); free(h_n);
-  free(h_b);      free(h_A);    free(h_t0);
-  free(h_mean_v); free(h_sd_v);
+  free(h_b);      free(h_A);    free(h_t0); free(h_mean_v); free(h_sd_v);
 }
 
 void rn1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v, 
@@ -1221,27 +1214,26 @@ void rn1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
       (isfinite(h_l[i]) && isfinite(h_u[i]) && h_l[i] < 0 && h_u[i] > 0 && ((h_u[i] - h_l[i]) > SQRT_2PI));
   }
   
-  CHECK(cudaMalloc((void**) &d_nsim, uSize));
-  CHECK(cudaMalloc((void**) &d_b,  fSize));
-  CHECK(cudaMalloc((void**) &d_A,  fSize));
-  CHECK(cudaMalloc((void**) &d_t0, fSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_l,      vfSize));
-  CHECK(cudaMalloc((void**) &d_u,      vfSize));
-  CHECK(cudaMalloc((void**) &d_a,      vfSize));
-  CHECK(cudaMalloc((void**) &d_c,      vbSize));
-  
-  CHECK(cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,      h_b,      fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,      h_A,      fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_l,      h_l,      vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_u,      h_u,      vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_a,      h_a,      vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_c,      h_c,      vbSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_nsim, uSize);
+  cudaMalloc((void**) &d_b,  fSize);
+  cudaMalloc((void**) &d_A,  fSize);
+  cudaMalloc((void**) &d_t0, fSize);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_l,      vfSize);
+  cudaMalloc((void**) &d_u,      vfSize);
+  cudaMalloc((void**) &d_a,      vfSize);
+  cudaMalloc((void**) &d_c,      vbSize);
+  cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,      h_b,      fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,      h_A,      fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_l,      h_l,      vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_u,      h_u,      vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a,      h_a,      vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_c,      h_c,      vbSize, cudaMemcpyHostToDevice);
   
   rlba_n1_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b,  d_A, d_mean_v,
     d_sd_v, d_t0, d_l, d_u, d_a, d_c, d_RT0, d_R);
@@ -1329,40 +1321,38 @@ void rplba_internal(int *nsim, double *b, double *A, double *mean_v, int *nmean_
       ((h_uw[i] - h_lw[i]) > SQRT_2PI));
   }
   
-  CHECK(cudaMalloc((void**) &d_nsim, uSize));
-  CHECK(cudaMalloc((void**) &d_b,  fSize));
-  CHECK(cudaMalloc((void**) &d_A,  fSize));
-  CHECK(cudaMalloc((void**) &d_t0, fSize));
-  CHECK(cudaMalloc((void**) &d_T0, fSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_w, vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_lv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_av,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cv,     vbSize));
-  CHECK(cudaMalloc((void**) &d_lw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_aw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cw,     vbSize));
-
-  
-  CHECK(cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,      h_b,      fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,      h_A,      fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_T0,     h_T0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lv,     h_lv,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uv,     h_uv,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_av,     h_av,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cv,     h_cv,    vbSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lw,     h_lw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uw,     h_uw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_aw,     h_aw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cw,     h_cw,    vbSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_nsim, uSize);
+  cudaMalloc((void**) &d_b,  fSize);
+  cudaMalloc((void**) &d_A,  fSize);
+  cudaMalloc((void**) &d_t0, fSize);
+  cudaMalloc((void**) &d_T0, fSize);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_mean_w, vfSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_lv,     vfSize);
+  cudaMalloc((void**) &d_uv,     vfSize);
+  cudaMalloc((void**) &d_av,     vfSize);
+  cudaMalloc((void**) &d_cv,     vbSize);
+  cudaMalloc((void**) &d_lw,     vfSize);
+  cudaMalloc((void**) &d_uw,     vfSize);
+  cudaMalloc((void**) &d_aw,     vfSize);
+  cudaMalloc((void**) &d_cw,     vbSize);
+  cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,      h_b,      fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,      h_A,      fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_T0,     h_T0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lv,     h_lv,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uv,     h_uv,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_av,     h_av,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cv,     h_cv,    vbSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lw,     h_lw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uw,     h_uw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_aw,     h_aw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cw,     h_cw,    vbSize, cudaMemcpyHostToDevice);
   
   rplba_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b,  d_A, d_mean_v, d_mean_w,
     d_sd_v, d_t0, d_lv, d_uv, d_av, d_cv, d_lw, d_uw, d_aw, d_cw, d_T0, d_RT, d_R);
@@ -1466,40 +1456,38 @@ void rplba1_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
       ((h_uw[i] - h_lw[i]) > SQRT_2PI));
   }
   
-  CHECK(cudaMalloc((void**) &d_nsim, uSize));
-  CHECK(cudaMalloc((void**) &d_b,  fSize));
-  CHECK(cudaMalloc((void**) &d_A,  fSize));
-  CHECK(cudaMalloc((void**) &d_t0, fSize));
-  CHECK(cudaMalloc((void**) &d_T0, fSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_w, vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_lv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_av,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cv,     vbSize));
-  CHECK(cudaMalloc((void**) &d_lw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_aw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cw,     vbSize));
-
-  
-  CHECK(cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,      h_b,      fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,      h_A,      fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_T0,     h_T0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lv,     h_lv,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uv,     h_uv,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_av,     h_av,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cv,     h_cv,    vbSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lw,     h_lw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uw,     h_uw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_aw,     h_aw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cw,     h_cw,    vbSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_nsim, uSize);
+  cudaMalloc((void**) &d_b,  fSize);
+  cudaMalloc((void**) &d_A,  fSize);
+  cudaMalloc((void**) &d_t0, fSize);
+  cudaMalloc((void**) &d_T0, fSize);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_mean_w, vfSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_lv,     vfSize);
+  cudaMalloc((void**) &d_uv,     vfSize);
+  cudaMalloc((void**) &d_av,     vfSize);
+  cudaMalloc((void**) &d_cv,     vbSize);
+  cudaMalloc((void**) &d_lw,     vfSize);
+  cudaMalloc((void**) &d_uw,     vfSize);
+  cudaMalloc((void**) &d_aw,     vfSize);
+  cudaMalloc((void**) &d_cw,     vbSize);
+  cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,      h_b,      fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,      h_A,      fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_T0,     h_T0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lv,     h_lv,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uv,     h_uv,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_av,     h_av,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cv,     h_cv,    vbSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lw,     h_lw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uw,     h_uw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_aw,     h_aw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cw,     h_cw,    vbSize, cudaMemcpyHostToDevice);
   
   rplba1_n1_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b,  d_A, d_mean_v, d_mean_w,
     d_sd_v, d_t0, d_lv, d_uv, d_av, d_cv, d_lw, d_uw, d_aw, d_cw, d_T0, d_RT, d_R);
@@ -1605,42 +1593,40 @@ void rplba2_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
       ((h_uw[i] - h_lw[i]) > SQRT_2PI));
   }
   
-  CHECK(cudaMalloc((void**) &d_nsim, uSize));
-  CHECK(cudaMalloc((void**) &d_t0, fSize));
-  CHECK(cudaMalloc((void**) &d_T0, fSize));
-  CHECK(cudaMalloc((void**) &d_b,      vfSize));
-  CHECK(cudaMalloc((void**) &d_A,      vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_w, vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_w,   vfSize));
-  CHECK(cudaMalloc((void**) &d_lv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_av,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cv,     vbSize));
-  CHECK(cudaMalloc((void**) &d_lw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_aw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cw,     vbSize));
-
-  
-  CHECK(cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,      h_b,      vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,      h_A,      vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_T0,     h_T0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,  vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_w,   h_sd_w,  vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lv,     h_lv,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uv,     h_uv,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_av,     h_av,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cv,     h_cv,    vbSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lw,     h_lw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uw,     h_uw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_aw,     h_aw,    vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cw,     h_cw,    vbSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_nsim, uSize);
+  cudaMalloc((void**) &d_t0, fSize);
+  cudaMalloc((void**) &d_T0, fSize);
+  cudaMalloc((void**) &d_b,      vfSize);
+  cudaMalloc((void**) &d_A,      vfSize);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_mean_w, vfSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_sd_w,   vfSize);
+  cudaMalloc((void**) &d_lv,     vfSize);
+  cudaMalloc((void**) &d_uv,     vfSize);
+  cudaMalloc((void**) &d_av,     vfSize);
+  cudaMalloc((void**) &d_cv,     vbSize);
+  cudaMalloc((void**) &d_lw,     vfSize);
+  cudaMalloc((void**) &d_uw,     vfSize);
+  cudaMalloc((void**) &d_aw,     vfSize);
+  cudaMalloc((void**) &d_cw,     vbSize);
+  cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,      h_b,      vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,      h_A,      vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_T0,     h_T0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,   h_sd_v,  vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_w,   h_sd_w,  vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lv,     h_lv,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uv,     h_uv,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_av,     h_av,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cv,     h_cv,    vbSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lw,     h_lw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uw,     h_uw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_aw,     h_aw,    vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cw,     h_cw,    vbSize, cudaMemcpyHostToDevice);
   
   rplba2_n1_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b,  d_A, d_mean_v, d_mean_w,
                                              d_sd_v, d_sd_w, d_t0, d_lv, d_uv, d_av,
@@ -1745,49 +1731,48 @@ void rplba3_n1(int *nsim, float *b, double *A, float* c, double *mean_v,
       ((h_uw[i] - h_lw[i]) > SQRT_2PI));
   }
   
-  CHECK(cudaMalloc((void**) &d_nsim, uSize));
-  CHECK(cudaMalloc((void**) &d_t0,   fSize));
-  CHECK(cudaMalloc((void**) &d_swt1, fSize));
-  CHECK(cudaMalloc((void**) &d_swt2, fSize));
-  CHECK(cudaMalloc((void**) &d_swtD, fSize));
-  CHECK(cudaMalloc((void**) &d_b,      vfSize));
-  CHECK(cudaMalloc((void**) &d_A,      vfSize));
-  CHECK(cudaMalloc((void**) &d_c,      vfSize));
-  CHECK(cudaMalloc((void**) &d_a,      sizeof(bool) * 3));
-  CHECK(cudaMalloc((void**) &d_mean_v, vfSize));
-  CHECK(cudaMalloc((void**) &d_mean_w, vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_v,   vfSize));
-  CHECK(cudaMalloc((void**) &d_sd_w,   vfSize));
-  CHECK(cudaMalloc((void**) &d_lv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uv,     vfSize));
-  CHECK(cudaMalloc((void**) &d_av,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cv,     vbSize));
-  CHECK(cudaMalloc((void**) &d_lw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_uw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_aw,     vfSize));
-  CHECK(cudaMalloc((void**) &d_cw,     vbSize));
-
-  CHECK(cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_b,      b,        vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_A,      h_A,      vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_c,      c,        vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_a,      a,        sizeof(bool)*3, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_swt1,   swt1,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_swt2,   swt2,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_swtD,   swtD,     fSize,  cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_sd_w,   h_sd_w,   vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lv,     h_lv,     vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uv,     h_uv,     vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_av,     h_av,     vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cv,     h_cv,     vbSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_lw,     h_lw,     vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_uw,     h_uw,     vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_aw,     h_aw,     vfSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_cw,     h_cw,     vbSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_nsim, uSize);
+  cudaMalloc((void**) &d_t0,   fSize);
+  cudaMalloc((void**) &d_swt1, fSize);
+  cudaMalloc((void**) &d_swt2, fSize);
+  cudaMalloc((void**) &d_swtD, fSize);
+  cudaMalloc((void**) &d_b,      vfSize);
+  cudaMalloc((void**) &d_A,      vfSize);
+  cudaMalloc((void**) &d_c,      vfSize);
+  cudaMalloc((void**) &d_a,      sizeof(bool) * 3);
+  cudaMalloc((void**) &d_mean_v, vfSize);
+  cudaMalloc((void**) &d_mean_w, vfSize);
+  cudaMalloc((void**) &d_sd_v,   vfSize);
+  cudaMalloc((void**) &d_sd_w,   vfSize);
+  cudaMalloc((void**) &d_lv,     vfSize);
+  cudaMalloc((void**) &d_uv,     vfSize);
+  cudaMalloc((void**) &d_av,     vfSize);
+  cudaMalloc((void**) &d_cv,     vbSize);
+  cudaMalloc((void**) &d_lw,     vfSize);
+  cudaMalloc((void**) &d_uw,     vfSize);
+  cudaMalloc((void**) &d_aw,     vfSize);
+  cudaMalloc((void**) &d_cw,     vbSize);
+  cudaMemcpy(d_nsim,   h_nsim,   uSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_b,      b,        vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_A,      h_A,      vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_c,      c,        vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_a,      a,        sizeof(bool)*3, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t0,     h_t0,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_swt1,   swt1,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_swt2,   swt2,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_swtD,   swtD,     fSize,  cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_v, h_mean_v, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_mean_w, h_mean_w, vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_v,   h_sd_v,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_sd_w,   h_sd_w,   vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lv,     h_lv,     vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uv,     h_uv,     vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_av,     h_av,     vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cv,     h_cv,     vbSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_lw,     h_lw,     vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_uw,     h_uw,     vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_aw,     h_aw,     vfSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_cw,     h_cw,     vbSize, cudaMemcpyHostToDevice);
 
   rplba3_n1_kernel<<<(*nsim)/(*nth), *nth>>>(d_nsim, d_b, d_A, d_c, d_a, d_mean_v, d_mean_w,
                                              d_sd_v, d_sd_w, d_t0, d_lv, d_uv, d_av,

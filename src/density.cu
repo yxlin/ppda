@@ -2,7 +2,7 @@
 //#include <stdio.h>  // C printing
 #include <R.h>  // R Rprintf
 #include <curand_kernel.h> // Device random API
-#include "../inst/include/common.h"  
+//#include "../inst/include/common.h"  
 #include "../inst/include/constant.h"  
 #include "../inst/include/reduce.h"
 #include "../inst/include/random.h"
@@ -100,32 +100,31 @@ void histc_entry(double *binedge, double *rng, int nrng, int ngrid,
   h_nrng = (unsigned int *)malloc(1 * sizeof(unsigned int));
   h_nrng[0] = (unsigned int)nrng;
   
-  CHECK(cudaHostAlloc((void**)&h_hist, ngrid * sizeof(unsigned int), cudaHostAllocDefault));
-  CHECK(cudaHostAlloc((void**)&h_rng,  nrng * sizeof(double), cudaHostAllocDefault));
-  CHECK(cudaHostAlloc((void**)&h_binedge,  (ngrid+1) * sizeof(double), cudaHostAllocDefault));
+  cudaHostAlloc((void**)&h_hist, ngrid * sizeof(unsigned int), cudaHostAllocDefault);
+  cudaHostAlloc((void**)&h_rng,  nrng * sizeof(double), cudaHostAllocDefault);
+  cudaHostAlloc((void**)&h_binedge,  (ngrid+1) * sizeof(double), cudaHostAllocDefault);
   for(int i=0; i<nrng; i++) { h_rng[i] = rng[i]; }
   for(int i=0; i<(ngrid+1); i++) { h_binedge[i] = binedge[i]; }
   
-  CHECK(cudaMalloc((void**) &d_nrng,    1 * sizeof(unsigned int)));
-  CHECK(cudaMalloc((void**) &d_binedge, (ngrid+1) * sizeof(double)));
-  CHECK(cudaMalloc((void**) &d_rng,     nrng * sizeof(double)));
-  CHECK(cudaMalloc((void**) &d_hist,    ngrid * sizeof(unsigned int)));
-  
-  CHECK(cudaMemcpy(d_nrng, h_nrng,       1*sizeof(unsigned int), cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_binedge, h_binedge, (ngrid+1)*sizeof(double), cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_rng, h_rng,         nrng*sizeof(double), cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_hist, h_hist,       ngrid*sizeof(unsigned int), cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_nrng,    1 * sizeof(unsigned int));
+  cudaMalloc((void**) &d_binedge, (ngrid+1) * sizeof(double));
+  cudaMalloc((void**) &d_rng,     nrng * sizeof(double));
+  cudaMalloc((void**) &d_hist,    ngrid * sizeof(unsigned int));
+  cudaMemcpy(d_nrng, h_nrng,       1*sizeof(unsigned int), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_binedge, h_binedge, (ngrid+1)*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_rng, h_rng,         nrng*sizeof(double), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_hist, h_hist,       ngrid*sizeof(unsigned int), cudaMemcpyHostToDevice);
   
   histc_kernel<<<(nrng/1024), 1024>>>(d_binedge, d_rng, d_nrng, d_hist);
-  CHECK(cudaMemcpy(h_hist, d_hist, ngrid * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_hist, d_hist, ngrid * sizeof(unsigned int), cudaMemcpyDeviceToHost);
   for(int i=0; i<ngrid; i++) { out[i] = h_hist[i]; }
   
   cudaFreeHost(h_hist); cudaFreeHost(h_rng); cudaFreeHost(h_binedge);
   free(h_nrng); 
-  CHECK(cudaFree(d_binedge));
-  CHECK(cudaFree(d_rng));
-  CHECK(cudaFree(d_nrng));
-  CHECK(cudaFree(d_hist));
+  cudaFree(d_binedge);
+  cudaFree(d_rng);
+  cudaFree(d_nrng);
+  cudaFree(d_hist);
 }
 
 void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
@@ -134,8 +133,8 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
   size_t nsimfSize = *nsim * sizeof(float);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
   float *d_RT; unsigned int *d_R;
-  CHECK(cudaMalloc((void**) &d_RT, nsimfSize));
-  CHECK(cudaMalloc((void**) &d_R,   nsimuSize));
+  cudaMalloc((void**) &d_RT, nsimfSize);
+  cudaMalloc((void**) &d_R,   nsimuSize);
   rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT); // run kernel
   
   // ------------------------------------------------------------------------80
@@ -225,8 +224,8 @@ void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *me
   //float *h_RT; unsigned int *h_R;
   //h_RT  = (float *)malloc(nsimfSize);
   //h_R   = (unsigned int *)malloc(nsimuSize);
-  CHECK(cudaMalloc((void**) &d_RT, nsimfSize));
-  CHECK(cudaMalloc((void**) &d_R,  nsimuSize));
+  cudaMalloc((void**) &d_RT, nsimfSize);
+  cudaMalloc((void**) &d_R,  nsimuSize);
 
   double *T0;
   T0       = (double *)malloc(sizeof(double) * 1);
@@ -330,8 +329,8 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
   //float *h_RT; unsigned int *h_R;
   //h_RT  = (float *)malloc(nsimfSize);
   //h_R   = (unsigned int *)malloc(nsimuSize);
-  CHECK(cudaMalloc((void**) &d_RT, nsimfSize));
-  CHECK(cudaMalloc((void**) &d_R,  nsimuSize));
+  cudaMalloc((void**) &d_RT, nsimfSize);
+  cudaMalloc((void**) &d_R,  nsimuSize);
 
   double *T0;
   T0       = (double *)malloc(sizeof(double) * 1);
@@ -469,8 +468,8 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
   }
   *swtD = *swt2 - *swt1;
 
-  CHECK(cudaMalloc((void**) &d_RT, nsimfSize));
-  CHECK(cudaMalloc((void**) &d_R,  nsimuSize));
+  cudaMalloc((void**) &d_RT, nsimfSize);
+  cudaMalloc((void**) &d_R,  nsimuSize);
 
   rplba3_n1(nsim, b, A, c, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, swt1, swt2, swtD, a, nth, d_R, d_RT); 
 

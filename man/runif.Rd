@@ -34,9 +34,9 @@ den2 <- density(dat2)
 
 ## Identical result
 par(mfrow=c(1,2))
-hist(dat2, breaks="fd", freq=F, ylim=c(0,1.1))
+hist(dat2, breaks="fd", freq=FALSE, ylim=c(0,1.1))
 lines(den1$x, den1$y,lwd=2)
-hist(dat1, breaks="fd", freq=F, ylim=c(0,1.1))
+hist(dat1, breaks="fd", freq=FALSE, ylim=c(0,1.1))
 lines(den2$x, den2$y,lwd=2)
 par(mfrow=c(1,1))
 
