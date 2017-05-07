@@ -1,14 +1,7 @@
 #include <iostream>        // includes, standard template & armadillo library
 #include <armadillo>
-//#include <cuda_runtime.h>  // includes, cuda's runtime & fft
-//#include <cufft.h>
-//#include <cufftXt.h>
-//#include <curand_kernel.h> // Device random API
 //#include <ctime> // CPU timer
-//#include "../inst/include/constant.h"  // math constants
-//#include "../inst/include/random.h"
 #include "../inst/include/density.h"  
-
 #include "../inst/include/common.h"
 #include "../inst/include/reduce.h"
 
@@ -119,84 +112,3 @@ void histc(int *nsim, int ngrid, float *h_binedge, float *d_RT, unsigned int *h_
     CHECK(cudaMemcpy(h_hist, d_hist, ngriduSize, cudaMemcpyDeviceToHost)); 
     cudaFree(d_hist); free(h_nsim); 
 }
-/*
-arma::vec getEdges(arma::vec z, double dt)
-{
-  arma::vec term1 = z - 0.5*dt;
-  arma::vec term2(1) ;
-  term2.fill(z[z.size()-1] + 0.5*dt) ;
-  return arma::join_cols(term1, term2);
-}
-
-arma::vec getFilter(double m, double M, double h, double p) {
-  // cannoical Gaussian kernel
-  double tmp0    = 2 * arma::datum::pi * (std::pow(2, p) / (M-m)) * 0.5;
-  arma::vec tmp1 = arma::linspace<arma::vec>(0, 1, 1 + (std::pow(2, p)/2));
-  arma::vec freq = tmp0 * tmp1 ;
-  arma::vec s2   = arma::pow(freq, 2) ; // s^2 on p17
-  double h2      = h * h;
-  arma::vec fil0 = arma::exp(-0.5 * h2 * s2) ;
-  arma::vec fil1 = arma::flipud(fil0.rows(1, (fil0.size() - 2)));
-  arma::vec out  = arma::join_cols(fil0, fil1) ;
-  return out ;
-}
-*/
-
-arma::vec pmax(arma::vec v, double min)
-{
-  for (arma::vec::iterator it=v.begin(); it!=v.end(); it++)
-  {
-    if (*it < min) *it = min ;
-  }
-  return v ;
-}
-
-arma::vec getVec(double *x, int *nx)
-{
-  arma::vec out(*nx);
-  for(int i=0; i<*nx; i++) { out[i]=*(x+i); }
-  return out;
-}
-
-arma::vec density(arma::vec y, arma::vec be, double dt)
-{
-  // y is yhat; be is binEdges; ns is nSamples
-  arma::uvec hc       = arma::histc(y, be) ;
-  arma::vec bincount  = arma::conv_to<arma::vec>::from(hc);
-  int ns              = arma::accu(bincount);
-  arma::vec PDF_hist  = bincount / (dt * ns);
-  arma::vec out       = PDF_hist.rows(0, (PDF_hist.size() - 2)) ;
-  return out ;
-}
-
-double cquantile(arma::vec y, double q)
-{
-  arma::vec sy = sort(y);
-  int nth = sy.n_elem*(q - (1e-9));
-  return sy(nth);
-}
-
-double bwNRD0(arma::vec y, double m)
-{ // y must be a simulation vector
-  // double h   = (q75-q25)/1.34 ; // R divides 1.34
-  int n = y.n_elem ;
-  return m*0.9*std::min((cquantile(y, 0.75) - cquantile(y, 0.25)),
-                      arma::stddev(y))*std::pow((double)n, -0.2);
-}
-
-double gaussian(double y, arma::vec yhat, double h) {
-  // standard gaussian kernel mean=0; sigma==1
-  double x;
-  int ns = yhat.n_elem;
-  arma::vec result(ns);
-  for(arma::vec::iterator it=yhat.begin(); it!=yhat.end(); ++it)
-  {
-    int i = std::distance(yhat.begin(), it);
-    x = (y - *it)/h;  // z / h
-    // (1/h) * K(z/h); K_h(z)
-    result[i] = ( (1/(sqrt(2*arma::datum::pi))) * exp( -pow(x,2) / 2 ) ) / h;
-  }
-  // (1/N_s) * sigma K_h (x-x.tidle_j)
-  return ( arma::sum(result) / ns);
-}
-
