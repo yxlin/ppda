@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include <stdio.h>  // C printing
+//#include <stdio.h>  // C printing
 #include <curand_kernel.h> // Device random API
 #include "../inst/include/common.h"  
 #include "../inst/include/constant.h"  

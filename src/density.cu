@@ -1,5 +1,6 @@
 #include <unistd.h>
-#include <stdio.h>  // C printing
+//#include <stdio.h>  // C printing
+#include <R.h>  // R Rprintf
 #include <curand_kernel.h> // Device random API
 #include "../inst/include/common.h"  
 #include "../inst/include/constant.h"  
@@ -80,8 +81,8 @@ __global__ void histc_kernel(float *binedge, float *rng, unsigned int *nrng,
       tmp = ((rng[i] >= binedge[j]) && (rng[i] < binedge[j+1])); // 0 or 1;
       j++;
       // if (j > 1024) {  // internal check for memory leakage
-      //     printf("RT0[%d] is %f\n", i, rng[i]);
-      //     printf("%d j reaches 1024\n", j);
+      //     Rprintf("RT0[%d] is %f\n", i, rng[i]);
+      //     Rprintf("%d j reaches 1024\n", j);
       //     break;
       // }
     }
@@ -147,8 +148,8 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
   int nsRT0    = (int)KDEStats[3];
 
   if (*debug) {
-      printf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      printf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
   // ------------------------------------------------------------------------80
   arma::vec data(*nx);
@@ -193,9 +194,9 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
     h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
     
-    if (*debug) printf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
-    if (*debug) printf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-    if (*debug) printf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
+    if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
+    if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
+    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
 
     arma::vec signal0(ngrid);
     for(size_t i=0; i<ngrid; i++) { 
@@ -251,8 +252,8 @@ void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *me
   int nsRT0    = (int)KDEStats[3];
 
   if (*debug) {
-      printf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      printf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
 
   // ------------------------------------------------------------------------80
@@ -298,9 +299,9 @@ void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *me
     h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
     
-    if (*debug) printf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
-    if (*debug) printf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-    if (*debug) printf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
+    if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
+    if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
+    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
 
     arma::vec signal0(ngrid);
     for(size_t i=0; i<ngrid; i++) { 
@@ -356,8 +357,8 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
   int nsRT0    = (int)KDEStats[3];
 
   if (*debug) {
-      printf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      printf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
 
   // ------------------------------------------------------------------------80
@@ -402,9 +403,9 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
     
     h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
-    if (*debug) printf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
-    if (*debug) printf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-    if (*debug) printf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
+    if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
+    if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
+    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
     
     arma::vec signal0(ngrid);
     for(size_t i=0; i<ngrid; i++) { 
@@ -492,8 +493,8 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
   int nsRT0    = (int)KDEStats[3];
 
   if (*debug) {
-      printf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      printf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
 
   // ------------------------------------------------------------------------80

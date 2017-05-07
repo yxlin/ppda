@@ -10,15 +10,15 @@
 #' 
 #' n1min designs to find minimal value for node 1. 
 #' 
-#' @param x a numeric vector.
+#' @param x a numeric vector. count function takes a vector with either 1 or 2,
+#' standing for choice 1 or choice 2.
 #' @param debug whether to print debugging information
 #' @return a scalar or a pair of scalar values. 
 #' @export
 #' @examples
-#' rm(list=ls())
-#' ## The smallest vector has to be at least 512 (= 2^9) elements
 #' 
-#' dat0   <- rlba(2^21, nthread=64); str(dat0)
+#' ## The smallest vector must be no less than 512 (= 2^9) elements
+#' dat0   <- rlba(2^20, nthread=64); str(dat0)
 #' result <- min_gpu(dat0$RT); result
 #' result <- max_gpu(dat0$RT); result
 #' result <- minmax(dat0$RT); result
@@ -77,8 +77,8 @@ sd_gpu <- function(x, debug=FALSE) {
 
 #' @rdname sum_gpu
 #' @export
-count <- function(R, debug=FALSE) {
-  .C("count_entry", as.integer(length(R)), as.integer(R),
+count <- function(x, debug=FALSE) {
+  .C("count_entry", as.integer(length(x)), as.integer(x),
     as.logical(debug), numeric(2), PACKAGE="gpda")[[4]]
 }
 

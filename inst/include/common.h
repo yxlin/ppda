@@ -1,4 +1,5 @@
 #include <sys/time.h>
+#include <R.h>  // R Rprintf
 
 #ifndef _COMMON_H
 #define _COMMON_H

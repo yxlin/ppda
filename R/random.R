@@ -101,7 +101,7 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
 #' @param sd standard deviations. Only accept a scalar
 #' @param lower lower bound. Only accept a scalar
 #' @param upper upper bound. Only accept a scalar
-#' @param nThread number of threads launched per block.
+#' @param nthread number of threads launched per block.
 #' @param dp whether calculate using double precision. Default is FALSE.
 #' @return a double vector
 #' @export
@@ -255,8 +255,8 @@ rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #'
 #' rm(list=ls())
 #' n <- 2^20; n
-#' dat1 <- gpda::rlba_n1(n, nthread=64, dp=T); str(dat1)
-#' dat2 <- gpda::rlba_n1(n, nthread=64, dp=F); str(dat2)
+#' dat1 <- gpda::rlba_n1(n, nthread=64, dp=TRUE);  str(dat1)
+#' dat2 <- gpda::rlba_n1(n, nthread=64, dp=FALSE); str(dat2)
 #'
 #' \dontrun{
 #' res <- microbenchmark(

@@ -1,5 +1,6 @@
 #include <unistd.h>
-#include <stdio.h>  // C printing
+//#include <stdio.h>  // C printing
+#include <R.h>  // R Rprintf
 #include "../inst/include/common.h"
 #include "../inst/include/constant.h"
 #include "../inst/include/util.h"
@@ -306,7 +307,7 @@ void sum_entry(double *x, int *nx, bool *debug, double *out) {
     size_t blockSize       = nBlk * sizeof(double);
     size_t nxSize          = *nx * sizeof(double);
     size_t unsignedintSize = 1*sizeof(unsigned int);
-    if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+    if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
     unsigned int *h_nx, *d_nx;
     double *d_x, *h_out, *d_out;
@@ -338,7 +339,7 @@ void sqsum_entry(double *x, int *nx, bool *debug, double *out) {
   size_t blockSize       = nBlk * sizeof(double);
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
   unsigned int *h_nx, *d_nx;
   double *d_x, *h_pssum, *d_pssum;
@@ -369,7 +370,7 @@ void sd_entry(double *x, int *nx, bool *debug, double *out) {
   size_t halfBlockSize   = 0.5 * nBlk * sizeof(double);
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
   unsigned int *d_nx, *h_nx;
   double *d_x, *h_psum, *d_psum, *d_pssum, *h_pssum;
@@ -410,7 +411,7 @@ void min_entry(double *x, int *nx, bool *debug, double *out) {
   size_t blockSize       = nBlk * sizeof(double);
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
   unsigned int *h_nx, *d_nx;
   double *d_x, *d_out, *h_out;
@@ -426,7 +427,7 @@ void min_entry(double *x, int *nx, bool *debug, double *out) {
   CHECK(cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice));
   min_kernel<<<nBlk, nThread>>>(d_x, d_out);
   CHECK(cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost));
-  if (*debug) {for(int i=0; i<nBlk; i++) { printf("h_out[%d]: %f\n", i, h_out[i]); }}
+  if (*debug) {for(int i=0; i<nBlk; i++) { Rprintf("h_out[%d]: %f\n", i, h_out[i]); }}
 
   arma::vec min_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { min_tmp[i] = h_out[i]; }
@@ -442,7 +443,7 @@ void max_entry(double *x, int *nx, bool *debug, double *out) {
   size_t blockSize       = nBlk * sizeof(double);
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
   unsigned int *h_nx, *d_nx;
   double *d_x, *d_out, *h_out;
@@ -473,7 +474,7 @@ void minmax_entry(double *x, int *nx, bool *debug, double *out) {
   size_t blockSize       = nBlk * sizeof(double);
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
   unsigned int *h_nx, *d_nx;
   double *d_x, *d_out, *h_out;
@@ -508,7 +509,7 @@ void count_entry(int *nR, int *R, bool *debug, double *out) {
   unsigned int maxThreads = 256;
   unsigned int nThread = (*nR < maxThreads) ? nextPow2(*nR) : maxThreads;
   unsigned int nBlk    = ((*nR) + nThread - 1) / nThread;
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nR, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nR, nBlk, nThread);
   size_t unsignedintSize = 1*sizeof(unsigned int);
 
   unsigned int *h_out, *d_out, *h_n, *d_n, *h_R, *d_R;
@@ -543,7 +544,7 @@ void n1min_entry(double *RT0, int *nx, bool *debug, double *out) {
   size_t blockSize     = nBlk * sizeof(float);
   size_t nfSize        = *nx * sizeof(float);
   size_t uSize         = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
 
   unsigned int *h_nx, *d_nx;
   float *h_RT0, *d_RT0, *d_out, *h_out;

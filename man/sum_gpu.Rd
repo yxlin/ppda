@@ -23,12 +23,13 @@ sqsum(x, debug = FALSE)
 
 sd_gpu(x, debug = FALSE)
 
-count(R, debug = FALSE)
+count(x, debug = FALSE)
 
 n1min(x, debug = FALSE)
 }
 \arguments{
-\item{x}{a numeric vector.}
+\item{x}{a numeric vector. count function takes a vector with either 1 or 2,
+standing for choice 1 or choice 2.}
 
 \item{debug}{whether to print debugging information}
 }
@@ -48,10 +49,9 @@ data set. Again, it meants to operate in GPU memory.
 n1min designs to find minimal value for node 1.
 }
 \examples{
-rm(list=ls())
-## The smallest vector has to be at least 512 (= 2^9) elements
 
-dat0   <- rlba(2^21, nthread=64); str(dat0)
+## The smallest vector must be no less than 512 (= 2^9) elements
+dat0   <- rlba(2^20, nthread=64); str(dat0)
 result <- min_gpu(dat0$RT); result
 result <- max_gpu(dat0$RT); result
 result <- minmax(dat0$RT); result

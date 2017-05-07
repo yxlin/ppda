@@ -6,7 +6,7 @@
 \alias{gpda-package}
 \title{Probability Density Approximation Using Graphics Processing Unit}
 \description{
-The package uses general purpose graphics processing unit (GP-GPU) 
+Use general purpose graphics processing uit (GP-GPU)  
 to conduct Monte Carlo simulations of basic and piece-wise linear ballistic
 accumulator models. The simulations are then used to approximate the model
 likelihood via a slihgtly modified method described in Homles (2015).

@@ -20,7 +20,7 @@ rtnorm(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, dp = FALSE,
 
 \item{dp}{whether calculate using double precision. Default is FALSE.}
 
-\item{nThread}{number of threads launched per block.}
+\item{nthread}{number of threads launched per block.}
 }
 \value{
 a double vector
