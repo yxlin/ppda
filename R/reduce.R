@@ -1,12 +1,17 @@
 #' GPU Math Functions 
 #'
 #' sum, min, max, minmax and sd conduct basic math operations on a vector, to
-#' find summation, minimal, maximal, minimal and maximal values in one go, and
-#' standard deviation. This functions are meant to operate in GPU memory. These
+#' find summation, minimal, maximal, minimal and maximal at one go, and
+#' standard deviation. These functions are meant to operate in GPU memory. These
 #' R entry points are for testing. 
 #' 
+#' count is to count the numbers of responses in each response type in a 2AFC
+#' data set. Again, it meants to operate in GPU memory.
+#' 
+#' n1min designs to find minimal value for node 1. 
+#' 
 #' @param x a numeric vector.
-#' @param debug whether to print debug information
+#' @param debug whether to print debugging information
 #' @return a scalar or a pair of scalar values. 
 #' @export
 #' @examples
@@ -25,7 +30,7 @@
 #' base::max(dat0$RT)
 #" base::sum(dat0$RT);
 #' @export
-sum_gpu <- function(x, debug=TRUE) {
+sum_gpu <- function(x, debug=FALSE) {
     .C("sum_entry", as.double(x), as.integer(length(x)),
       as.logical(debug), numeric(1), PACKAGE='gpda')[[4]]
 }
@@ -97,7 +102,7 @@ count <- function(R, debug=FALSE) {
 
 #' @rdname sum_gpu
 #' @export
-n1min <- function(x, debug=TRUE) {
+n1min <- function(x, debug=FALSE) {
   .C("n1min_entry", as.double(x), as.integer(length(x)), as.logical(debug), 
     numeric(1), PACKAGE="gpda")[[4]]
 }

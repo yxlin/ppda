@@ -1,16 +1,16 @@
 #include <iostream>        // includes, standard template & armadillo library
 #include <armadillo>
-#include <cuda_runtime.h>  // includes, cuda's runtime & fft
-#include <cufft.h>
-#include <cufftXt.h>
-#include <curand_kernel.h> // Device random API
-#include <ctime> // CPU timer
+//#include <cuda_runtime.h>  // includes, cuda's runtime & fft
+//#include <cufft.h>
+//#include <cufftXt.h>
+//#include <curand_kernel.h> // Device random API
+//#include <ctime> // CPU timer
 //#include "../inst/include/constant.h"  // math constants
-#include "../inst/include/random.h"
+//#include "../inst/include/random.h"
 #include "../inst/include/density.h"  
 
-extern "C" void logLik_fft2(double *y_, double *yhat_, int *ny, 
-                            int *ns, int *p, int *nThreads, double *out);
+#include "../inst/include/common.h"
+#include "../inst/include/reduce.h"
 
 unsigned int nextPow2(unsigned int x) {
     --x;
@@ -26,6 +26,100 @@ unsigned int nextPow2(unsigned int x) {
 /* -------------------------------------------------------------------------  
  KDE operations 
 ------------------------------------------------------------------------- */
+void summary(int *nsim, unsigned int *d_R, float *d_RT, float *out) {
+    unsigned int maxThread = 256;
+    unsigned int nThread = (*nsim < maxThread) ? nextPow2(*nsim) : maxThread;
+    unsigned int nBlk    = ((*nsim) + nThread ) / nThread / 2;
+
+    float *h_n1min_out, *h_n1max_out, *h_sum_out, *h_sqsum_out;
+    float *d_n1min_out, *d_n1max_out, *d_sum_out, *d_sqsum_out;
+    unsigned int *h_count_out, *h_nsim;
+    unsigned int *d_count_out, *d_nsim;
+  
+    size_t dBlkfSize = nBlk * sizeof(float) * 2;
+    size_t blkfSize  = nBlk * sizeof(float);
+    size_t dBlkuSize = nBlk * sizeof(unsigned int) * 2;
+    size_t uSize     = 1 * sizeof(unsigned int);
+  
+    h_nsim      = (unsigned int *)malloc(uSize);
+    h_n1min_out = (float *)malloc(blkfSize);
+    h_n1max_out = (float *)malloc(blkfSize);
+    h_sum_out   = (float *)malloc(blkfSize);
+    h_sqsum_out = (float *)malloc(dBlkfSize);
+    h_count_out = (unsigned int *)malloc(dBlkuSize);
+    // must reset h_count_out back to 0
+    for(int i=0; i<2*nBlk; i++) { h_count_out[i] = 0; } 
+    *h_nsim = (unsigned int)*nsim;
+
+    CHECK(cudaMalloc((void**) &d_nsim,      uSize));
+    CHECK(cudaMalloc((void**) &d_n1min_out, blkfSize));
+    CHECK(cudaMalloc((void**) &d_n1max_out, blkfSize));
+    CHECK(cudaMalloc((void**) &d_sum_out,   blkfSize));
+    CHECK(cudaMalloc((void**) &d_sqsum_out, dBlkfSize));
+    CHECK(cudaMalloc((void**) &d_count_out, dBlkuSize));
+  
+    CHECK(cudaMemcpy(d_nsim,      h_nsim,  uSize,  cudaMemcpyHostToDevice));
+    CHECK(cudaMemcpy(d_count_out, h_count_out, dBlkuSize, cudaMemcpyHostToDevice));
+
+    // must be first min and then max
+    count_kernel<<<2*nBlk, nThread>>>(d_nsim, d_R, d_count_out); cudaFree(d_R);
+    n1min_kernel<<<nBlk, nThread>>>(d_RT, d_n1min_out); 
+    n1max_kernel<<<nBlk, nThread>>>(d_RT, d_n1max_out);
+    sum_kernel<<<nBlk, nThread>>>(d_RT,   d_sum_out);
+    squareSum_kernel<<<2*nBlk, nThread>>>(d_nsim, d_RT, d_sqsum_out);
+  
+    CHECK(cudaMemcpy(h_n1min_out, d_n1min_out, blkfSize,  cudaMemcpyDeviceToHost)); cudaFree(d_n1min_out);
+    CHECK(cudaMemcpy(h_n1max_out, d_n1max_out, blkfSize,  cudaMemcpyDeviceToHost)); cudaFree(d_n1max_out);
+    CHECK(cudaMemcpy(h_sum_out,   d_sum_out,   blkfSize,  cudaMemcpyDeviceToHost)); cudaFree(d_sum_out);
+    CHECK(cudaMemcpy(h_sqsum_out, d_sqsum_out, dBlkfSize, cudaMemcpyDeviceToHost)); cudaFree(d_sqsum_out);
+    CHECK(cudaMemcpy(h_count_out, d_count_out, dBlkuSize, cudaMemcpyDeviceToHost)); cudaFree(d_count_out);
+
+    arma::vec min_tmp(nBlk); arma::vec max_tmp(nBlk);
+    float sum = 0, sqsum = 0;
+    for (int i=0; i<2*nBlk; i++) {
+      sqsum += h_sqsum_out[i];
+      if ( i < nBlk ) {
+        min_tmp[i] = (double)h_n1min_out[i];
+        max_tmp[i] = (double)h_n1max_out[i];
+        sum += h_sum_out[i];
+      }
+    }
+
+    free(h_sqsum_out); free(h_n1min_out); free(h_n1max_out); free(h_sum_out);
+    out[0] = min_tmp.min();
+    out[1] = max_tmp.max();
+    out[2] = std::sqrt( (sqsum - (sum*sum) / h_count_out[0]) / (h_count_out[0] - 1) );
+    out[3] = h_count_out[0]; free(h_count_out);
+
+    // printf("RT0 [minimum maximum]: %.2f %.2f\n", min_tmp.min(), max_tmp.max());
+    // printf("RT0 [sum sqsum]: %.2f %.2f\n", sum, sqsum);
+    // printf("RT0 [nsRT0 sd]: %f %f\n", out[3], out[2]);
+    free(h_nsim); cudaFree(d_nsim);
+}
+
+void histc(int *nsim, int ngrid, float *h_binedge, float *d_RT, unsigned int *h_hist)
+{
+    size_t ngrid_plus1fSize = (ngrid + 1) * sizeof(float);
+    size_t ngriduSize = ngrid * sizeof(unsigned int);
+
+    float *d_binedge;
+    unsigned int *d_hist;
+    unsigned int *h_nsim, *d_nsim;
+    h_nsim  = (unsigned int *)malloc(sizeof(unsigned int) * 1);
+    *h_nsim = (unsigned int)*nsim;
+    CHECK(cudaMalloc((void**) &d_nsim, sizeof(unsigned int) * 1));
+    CHECK(cudaMemcpy(d_nsim,   h_nsim, sizeof(unsigned int) * 1,  cudaMemcpyHostToDevice));
+    CHECK(cudaMalloc((void**) &d_binedge, ngrid_plus1fSize)); // 1025
+    CHECK(cudaMalloc((void**) &d_hist,    ngriduSize));       // 1024
+    CHECK(cudaMemcpy(d_binedge, h_binedge, ngrid_plus1fSize, cudaMemcpyHostToDevice)); free(h_binedge);
+    CHECK(cudaMemcpy(d_hist,    h_hist,    ngriduSize,       cudaMemcpyHostToDevice));
+    histc_kernel<<<*nsim/ngrid, ngrid>>>(d_binedge, d_RT, d_nsim, d_hist);
+    cudaFree(d_RT); cudaFree(d_binedge); cudaFree(d_nsim);
+
+    CHECK(cudaMemcpy(h_hist, d_hist, ngriduSize, cudaMemcpyDeviceToHost)); 
+    cudaFree(d_hist); free(h_nsim); 
+}
+/*
 arma::vec getEdges(arma::vec z, double dt)
 {
   arma::vec term1 = z - 0.5*dt;
@@ -46,6 +140,7 @@ arma::vec getFilter(double m, double M, double h, double p) {
   arma::vec out  = arma::join_cols(fil0, fil1) ;
   return out ;
 }
+*/
 
 arma::vec pmax(arma::vec v, double min)
 {
@@ -105,99 +200,3 @@ double gaussian(double y, arma::vec yhat, double h) {
   return ( arma::sum(result) / ns);
 }
 
-void logLik_fft2(double *y_, double *yhat_, int *ny, int *ns,  
-                 int *p, int *nThread, double out[])
-{
-    double *d_rngnum,*h_rngnum, *d_mean, *h_mean, *d_sd, *h_sd;
-    h_mean = (double *)malloc(1 * sizeof(double));
-    h_sd   = (double *)malloc(1 * sizeof(double));
-    cudaHostAlloc((void**)&h_rngnum, *ns * sizeof(double), cudaHostAllocDefault);
-    h_mean[0] = 0;
-    h_sd[0]   = 1;
-    int nBlk  = (*ns)/(*nThread) + 1;
-
-    cudaMalloc((void**) &d_mean, 1 * sizeof(double));
-    cudaMalloc((void**) &d_sd,   1 * sizeof(double));
-    cudaMalloc((void**) &d_rngnum,  *ns * sizeof(double));
-    cudaMemcpy(d_mean, h_mean,   1 * sizeof(double), cudaMemcpyHostToDevice);
-    rnorm_kernel<<<nBlk, *nThread>>>(*ns, d_mean, d_sd, d_rngnum);
-    cudaMemcpy(h_rngnum, d_rngnum, *ns * sizeof(double), cudaMemcpyDeviceToHost);
-
-    arma::vec yhat = getVec(h_rngnum, ns);
-
-    double h  = bwNRD0(yhat, 1.0);
-    double z0 = yhat.min() - 3 * h;
-    double z1 = yhat.max() + 3 * h;
-    int ngrid = 1<<*p;
-    int ngridplus1 = ngrid + 1;
-    int ngridminus1 = ngrid - 1;
-    double dt = (z1-z0)/ngridminus1;
-    arma::vec z = arma::linspace<arma::vec>(z0, z1, ngrid);
-    arma::vec y = getVec(y_, ny); // Convert to arma vec
-
-  /*--------------------------------------------
-    Calculate the location of bin edges. (1025)
-    -------------------------------------------*/
-  double *h_binEdges;
-  cudaHostAlloc((void**)&h_binEdges, ngridplus1 * sizeof(double), cudaHostAllocDefault);
-  for(int i=0; i<ngridplus1; i++)
-  {
-    h_binEdges[i] = i < ngrid ? z0 + dt*((double)i - 0.5) : (z0 + (double)(i-1)*dt) +  0.5*dt;
-  }
-
-  /*--------------------------------------------
-  Calculate Gaussian filter at frequency domain. (1024)
-  -------------------------------------------*/
-  arma::vec filter(ngrid);
-  double z1minusz0 = z1 - z0;
-  int halfngrid = 1<<(*p-1);
-  double fil0_constant = -2*h*h*M_PI*M_PI/(z1minusz0 * z1minusz0);
-  for(int i=0; i < ngrid; i++) {
-           if (i < (1+halfngrid)) {
-               filter[i] = std::exp(fil0_constant * i*i);
-           } else { // magical flipping
-               int j = 2*(i - halfngrid);
-               filter[i] = filter[i-j];
-           }
-   }
-
-  /*--------------------------------------------
-  Calculate histogram (1024)
-  -------------------------------------------*/
-  unsigned int *d_histo;
-  unsigned int *h_histo;
-  double *d_binEdges;
-
-  cudaHostAlloc((void**)&h_histo, ngrid * sizeof(unsigned int), cudaHostAllocDefault);
-
-  for(int i=0; i<ngrid; i++) {h_histo[i] = 0;}
-
-  cudaMalloc((void**) &d_binEdges,  ngridplus1*sizeof(double));
-  cudaMalloc((void**) &d_histo,  ngrid*sizeof(unsigned int));
-  cudaMemcpy(d_binEdges, h_binEdges, ngridplus1*sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_histo, h_histo, ngrid*sizeof(unsigned int), cudaMemcpyHostToDevice);
-  
-  histc_kernel<<<nBlk, *nThread>>>(d_binEdges, d_rngnum, ns, d_histo);
-
-  cudaMemcpy(h_histo, d_histo, sizeof(unsigned int)*ngrid, cudaMemcpyDeviceToHost);
-
-  arma::vec signal(ngrid);
-  for(int i=0; i<ngrid; i++)
-  {
-      signal[i] = h_histo[i] / (dt* (*ns));
-  }
-
-  cudaFreeHost(h_histo);
-  cudaFreeHost(h_binEdges);
-
-  arma::vec PDF_cpp;
-  arma::vec PDF0_cpp = arma::real(arma::ifft(filter % arma::fft(signal))) ; // smoothed
-  arma::interp1(z, PDF0_cpp, y, PDF_cpp);
-  arma::vec PDF_tmp_cpp = pmax(PDF_cpp, std::pow(10, -10)) ;
-
-  for(arma::vec::iterator i=PDF_tmp_cpp.begin(); i!=PDF_tmp_cpp.end(); ++i)
-  {
-    int idx  = std::distance(PDF_tmp_cpp.begin(), i);
-    out[idx] = std::log(*i);
-  }
-}

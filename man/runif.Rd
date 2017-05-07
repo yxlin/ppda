@@ -7,13 +7,13 @@
 runif(n, min = 0, max = 1, nthread = 32, dp = FALSE)
 }
 \arguments{
-\item{n}{number of observations. This accepts only one integer.}
+\item{n}{numbers of observation. This must be a scalar.}
 
 \item{min}{lower bound of the uniform distribution. Must be finite. 
-This accepts only one double/numeric.}
+This must be a scalar.}
 
 \item{max}{upper bound of the uniform distribution. Must be finite. 
-This accepts only one double/numeric.}
+This must be a scalar.}
 
 \item{nthread}{number of threads launched per block.}
 

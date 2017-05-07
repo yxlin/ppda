@@ -1,6 +1,7 @@
 #include <armadillo> // Armadillo library
-arma::vec getEdges(arma::vec z, double dt);
-arma::vec getFilter(double m, double M, double h, double p); 
+
+//arma::vec getEdges(arma::vec z, double dt);
+//arma::vec getFilter(double m, double M, double h, double p); 
 arma::vec pmax(arma::vec v, double min);
 arma::vec getVec(double *x, int *nx);
 arma::vec density(arma::vec y, arma::vec be, double dt);
@@ -9,3 +10,6 @@ double bwNRD0(arma::vec y, double m);
 double gaussian(double y, arma::vec yhat, double h);
 
 unsigned int nextPow2(unsigned int x);
+
+void summary(int *nsim, unsigned int *d_R, float *d_RT, float *out);
+void histc(int *nsim, int ngrid, float *h_binedge, float *d_RT, unsigned int *h_hist);

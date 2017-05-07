@@ -13,7 +13,12 @@
 #' William Holmes <william.holmes@vanderbilts.edu>
 #' @references Holmes, W. (2015). A practical guide to the Probability Density
 #' Approximation (PDA) with improved implementation and error characterization.
-#' \emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
-#' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+#' \emph{Journal of Mathematical Psychology}, 68-69, 13--24,
+#' doi: \url{http://dx.doi.org/10.1016/j.jmp.2015.08.006}. \cr\cr
+#' 
+#' Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new framework for
+#' modeling decisions about changing information: The Piecewise Linear Ballistic
+#' Accumulator model. \emph{Cognitive Psychology}, 85, 1--29, 
+#' doi: \url{http://dx.doi.org/10.1016/j.cogpsych.2015.11.002}.
 #' @useDynLib gpda
 NULL

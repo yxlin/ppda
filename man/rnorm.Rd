@@ -7,7 +7,7 @@
 rnorm(n, mean = 0, sd = 1, dp = FALSE, nthread = 32)
 }
 \arguments{
-\item{n}{number of observations. This accepts only one integer}
+\item{n}{numbers of observation. This accepts only one integer}
 
 \item{mean}{a mean. This accepts only one double/numeric.}
 

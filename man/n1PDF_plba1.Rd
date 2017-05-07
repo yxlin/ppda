@@ -48,14 +48,16 @@ two-element vector.}
 
 \item{debug}{a debugging switch.}
 
+\item{sd_w}{standard deviation of drift rate stage 2. This must be a 
+two-element vector.}
+
 \item{B}{travelling distance stage 1. The distance between starting point (
 drawn randomly from an uniform distribution) to the threshold.  This applies
-for plba3 only. Please note B differs from b. Must be a two-element vector
-for plba2.}
+for plba3 only. Please note B differs from b. Must be a two-element vector.}
 
 \item{C}{travelling distance stage 2. The distance between updated threshold 
 and original threshold This applies for plba3 only. Must be a two-element 
-vector. Note this is a uppercase \bold{C}.}
+vector. Note this is uppercase.}
 
 \item{tD}{an internal psychological delay time for threshold. This applies
 for plba3 only.}
@@ -64,8 +66,8 @@ for plba3 only.}
 a likelihood vector.
 }
 \description{
-This is the approximated density function for 2-accumualtor piecewise LBA 
-model, sampling drift rates from truncated normal distributions. The 
+This is the approximated density function for 2-accumualtor \bold{piecewise}
+LBA model, sampling drift rates from truncated normal distributions. The 
 function uses probability density approximation to estimate likelihood.
 }
 \examples{

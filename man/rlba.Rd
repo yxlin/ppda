@@ -12,18 +12,17 @@ rlba_n1(n, b = 1, A = 0.5, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
   t0 = 0.5, nthread = 32, dp = FALSE)
 }
 \arguments{
-\item{n}{number of observations. This accepts only integer}
+\item{n}{numbers of observation. This accepts only integer scalar.}
 
-\item{b}{upper bound. (b-A/2) is response caution.}
+\item{b}{threshold.  (b-A/2) is response caution.}
 
-\item{A}{starting point interval or evidence in accumulator before
-beginning of decision process. Start point varies from trial to trial in
-the interval [0, A]. Average amount of evidence before evidence
-accumulation across trials is A/2.}
+\item{A}{starting point upper bound. This is the upper boundary for an 
+uniform distribution that draws a realisation of starting point evidence. 
+Presumably, across-trial average starting evidence is A/2.}
 
-\item{mean_v}{drift rate means. This must be a vector of 2 values.}
+\item{mean_v}{means of drift rate. This must be a vector of 2 values.}
 
-\item{sd_v}{drift rate standard deviations. Ditto.}
+\item{sd_v}{drift rate standard deviations. This must be a vector of 2 values.}
 
 \item{t0}{non-decision times. Must be a scalar.}
 
@@ -37,12 +36,16 @@ a data frame with first column named RT and second column named R.
 \description{
 This function generates two-accumulator LBA random numbers using GPU.
 }
+\details{
+rlba_n1 draws only node 1 random numbers.
+}
 \examples{
 rm(list=ls())
 n <- 2^20
 dat1 <- gpda::rlba(n, nthread=64); 
 dat2 <- cpda::rlba_test(n)
-dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5, silent=TRUE)
+dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
+                      silent=TRUE)
 names(dat3) <- c("RT","R")
 
 ## Trim ----
@@ -93,16 +96,9 @@ lines(den2e$x, den2e$y, col="red", lwd=2, lty="dotted")
 lines(den3c$x, den3c$y, col="blue", lwd=2, lty="dashed")
 lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
 
-plot(den1c$x, den1c$y, type="l")
-lines(den1e$x, den1e$y)
 
-lines(den2c$x, den2c$y, col="red", lwd=2, lty="dotted")
-lines(den2e$x, den2e$y, col="red", lwd=2, lty="dotted")
-
-lines(den3c$x, den3c$y, col="blue", lwd=2, lty="dashed")
-lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
-
-
+## Because R script takes a while to run, so I repeated 10 times only
+## microbenchmark can still give reliable and precise estimation.
 library(microbenchmark)
 res <- microbenchmark(gpda::rlba(n, dp=F),
                       gpda::rlba(n, dp=T),
@@ -111,11 +107,11 @@ res <- microbenchmark(gpda::rlba(n, dp=F),
 sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 
 ## Unit: milliseconds
-##                  expr            min           lq         mean       median           uq         max neval cld
-## gpda::rlba(n, dp = F)       8.310137     8.465464     9.171308     8.529089     9.213674    11.58632    10   a
-## gpda::rlba(n, dp = T)      11.860449    11.955713    12.313426    12.061767    12.169148    14.85524    10   a
-## cpda::rlba_test(n)        201.833239   202.047791   209.318144   202.836404   225.028719   225.71750    10   b
-## rtdists::rLBA(n,  . )   13521.669045 13614.740048 13799.592982 13770.777719 13919.770909 14177.51434    10   c
+##                  expr    min       lq     mean   median       uq      max neval cld
+## gpda::rlba(n, dp=F)     8.31     8.47     9.17     8.53     9.21    11.59    10   a
+## gpda::rlba(n, dp=T)    11.86    11.96    12.31    12.06    12.17    14.86    10   a
+## cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   225.72    10   b
+## rtdists::rLBA(n, .) 13521.67 13614.74 13799.59 13770.78 13919.77 14177.51    10   c
 
 rm(list=ls())
 n <- 2^20; n

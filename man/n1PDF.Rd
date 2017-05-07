@@ -8,6 +8,8 @@ n1PDF(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE)
 }
 \arguments{
+\item{x}{a numeric vector for estimating likelihood.}
+
 \item{nsim}{number of simulations. This must be a power of two.}
 
 \item{b}{threshold. Default is 1.}
@@ -21,10 +23,8 @@ vector.}
 
 \item{t0}{non-decision time.}
 
-\item{nthread}{number of threads launched in GPU. Default is 32. Maximum is
-1024.}
-
-\item{data}{a data vector.}
+\item{nthread}{number of threads launched per block. Default is 32. 
+Maximum is 1024 in K80 or 512 in other GPU cards.}
 }
 \value{
 a likelihood vector.
@@ -49,11 +49,13 @@ den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1),
                        t0=.5, silent=T)
 
 ## Verify that we are not checking near 0 densities
-##' plot(data, den1, type="l")
+plot(data, den1, type="l")
 lines(data, den2, lwd=2)
 all.equal(den1, den2)
-## "Mean relative difference: 0.2002878"
-## The approximation is not good enough, so we raise the simulation to 2^20 
+## [1] "Mean relative difference: 0.1675376"
+
+## The approximation is not good enough, so we raise the simulation from
+## 2^10 to 2^20 
 den1 <- gpda::n1PDF(data, nsim=2^20)
 plot(data, den1, type="l")
 lines(data, den2, lwd=2)
@@ -68,7 +70,7 @@ all.equal(den1, den2)
 ## one can still observe noise in Bayesian computation. One possible reason
 ## is the following:   
 den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
-sd_v=c(1, 1), t0=.94, nsim=2^20, debug=T)
+sd_v=c(1, 1), t0=.94, nsim=2^20)
 den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
 sd_v=c(1, 1), t0=.94, silent=T)
 par(mfrow=c(1,2))
@@ -80,14 +82,15 @@ lines(data, den1, lwd=2)
 all.equal(den1, den2)
 ## [1] "Mean relative difference: 0.9991495"
 
-## Note both shapes are similar, but dlba estimates smaller values, 
-## relative to rlba method. These happen in behaviourally less plausible  
+## Note both shapes are similar, but dlba method estimates smaller values, 
+## relative to rlba method. This happens in behaviourally less plausible  
 ## parameter sets. It takes longer iterations to smooth out the 
-## noise.   
+## noise.  That is when a sampler no longer propose these less plausible
+## parameter sets. 
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.
-\emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
+\emph{Journal of Mathematical Psychology}, 68-69, 13--24,
 doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 }

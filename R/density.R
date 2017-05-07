@@ -5,7 +5,7 @@
 #' function approximates model likelihood, instead of using the analytic 
 #' function. 
 #' 
-#' @param data a data vector. 
+#' @param x a numeric vector for estimating likelihood. 
 #' @param nsim number of simulations. This must be a power of two.
 #' @param b threshold. Default is 1.  
 #' @param A starting point upper bound  
@@ -13,12 +13,12 @@
 #' @param sd_v standard deviation of drift rate. This must be a two-element 
 #' vector.
 #' @param t0 non-decision time.  
-#' @param nthread number of threads launched in GPU. Default is 32. Maximum is
-#' 1024.
+#' @param nthread number of threads launched per block. Default is 32. 
+#' Maximum is 1024 in K80 or 512 in other GPU cards.  
 #' @return a likelihood vector. 
 #' @references Holmes, W. (2015). A practical guide to the Probability Density
 #' Approximation (PDA) with improved implementation and error characterization.
-#' \emph{Journal of Mathematical Psychology}, \bold{68-69}, 13--24,
+#' \emph{Journal of Mathematical Psychology}, 68-69, 13--24,
 #' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
 #' @export
 #' @examples
@@ -35,11 +35,13 @@
 #'                        t0=.5, silent=T)
 #' 
 #' ## Verify that we are not checking near 0 densities
-#' ##' plot(data, den1, type="l")
+#' plot(data, den1, type="l")
 #' lines(data, den2, lwd=2)
 #' all.equal(den1, den2)
-#' ## "Mean relative difference: 0.2002878"
-#' ## The approximation is not good enough, so we raise the simulation to 2^20 
+#' ## [1] "Mean relative difference: 0.1675376"
+#' 
+#' ## The approximation is not good enough, so we raise the simulation from
+#' ## 2^10 to 2^20 
 #' den1 <- gpda::n1PDF(data, nsim=2^20)
 #' plot(data, den1, type="l")
 #' lines(data, den2, lwd=2)
@@ -54,7 +56,7 @@
 #' ## one can still observe noise in Bayesian computation. One possible reason
 #' ## is the following:   
 #' den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
-#' sd_v=c(1, 1), t0=.94, nsim=2^20, debug=T)
+#' sd_v=c(1, 1), t0=.94, nsim=2^20)
 #' den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
 #' sd_v=c(1, 1), t0=.94, silent=T)
 #' par(mfrow=c(1,2))
@@ -66,19 +68,22 @@
 #' all.equal(den1, den2)
 #' ## [1] "Mean relative difference: 0.9991495"
 #' 
-#' ## Note both shapes are similar, but dlba estimates smaller values, 
-#' ## relative to rlba method. These happen in behaviourally less plausible  
+#' ## Note both shapes are similar, but dlba method estimates smaller values, 
+#' ## relative to rlba method. This happens in behaviourally less plausible  
 #' ## parameter sets. It takes longer iterations to smooth out the 
-#' ## noise.   
+#' ## noise.  That is when a sampler no longer propose these less plausible
+#' ## parameter sets. 
 #' @export
 n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE) {
-  if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
-  if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
-  if (length(b)  != 1) {stop("b must be a scalar.\n")}
-  if (length(A)  != 1) {stop("A must be a scalar.\n")}
-  if (length(t0) != 1) {stop("t0 must be a scalar.\n")}
-  if (nsim %% 2 != 0 || nsim < 512) {stop("nsim must be power of 2 and at least 2^9.\n")}
+  if (debug) {
+    if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
+    if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
+    if (length(b)  != 1) {stop("b must be a scalar.\n")}
+    if (length(A)  != 1) {stop("A must be a scalar.\n")}
+    if (length(t0) != 1) {stop("t0 must be a scalar.\n")}
+    if (nsim %% 2 != 0 || nsim < 512) {stop("nsim must be power of 2 and at least 2^9.\n")}
+  }
   out <- .C("n1PDF", as.double(x), as.integer(length(x)), 
     as.integer(nsim),  as.double(b),  as.double(A),
     as.double(mean_v), as.integer(length(mean_v)), 
@@ -92,8 +97,8 @@ n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
 
 #' Approximate Node 1 Likelihood of pLBA Model 
 #'
-#' This is the approximated density function for 2-accumualtor piecewise LBA 
-#' model, sampling drift rates from truncated normal distributions. The 
+#' This is the approximated density function for 2-accumualtor \bold{piecewise}
+#' LBA model, sampling drift rates from truncated normal distributions. The 
 #' function uses probability density approximation to estimate likelihood. 
 #' 
 #' @param x a data vector for estimating likelihood. 
@@ -102,8 +107,7 @@ n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
 #' for plba2.
 #' @param B travelling distance stage 1. The distance between starting point (
 #' drawn randomly from an uniform distribution) to the threshold.  This applies
-#' for plba3 only. Please note B differs from b. Must be a two-element vector
-#' for plba2.
+#' for plba3 only. Please note B differs from b. Must be a two-element vector.
 #' @param A starting point upper bound. Must be a scalar for plba1. Must be a 
 #' two-element vector for plba2 and plba3.
 #' @param C travelling distance stage 2. The distance between updated threshold 
@@ -112,6 +116,8 @@ n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
 #' @param mean_v mean drift rate stage 1. This must be a two-element vector. 
 #' @param mean_w mean drift rate stage 2. This must be a two-element vector. 
 #' @param sd_v standard deviation of drift rate stage 1. This must be a 
+#' two-element vector.
+#' @param sd_w standard deviation of drift rate stage 2. This must be a 
 #' two-element vector.
 #' @param rD an internal psychological delay time for drift rate.   
 #' @param tD an internal psychological delay time for threshold. This applies

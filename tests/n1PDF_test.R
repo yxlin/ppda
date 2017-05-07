@@ -4,7 +4,7 @@ rm(list=ls())
 ##0.07 0.09 -7.37   -4.36  0.94  0.049 
 
 data <- seq(0, 3, length.out = 1e3);
-den1 <- gpda::n1PDF(data)
+den1 <- gpda::n1PDF(data, nsim=2^20, debug=T)
 den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
                         t0=.5, silent=T)
 

@@ -426,7 +426,7 @@ void min_entry(double *x, int *nx, bool *debug, double *out) {
   CHECK(cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice));
   min_kernel<<<nBlk, nThread>>>(d_x, d_out);
   CHECK(cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost));
-  for(int i=0; i<nBlk; i++) { printf("h_out[%d]: %f\n", i, h_out[i]); }
+  if (*debug) {for(int i=0; i<nBlk; i++) { printf("h_out[%d]: %f\n", i, h_out[i]); }}
 
   arma::vec min_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { min_tmp[i] = h_out[i]; }
