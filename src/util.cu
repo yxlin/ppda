@@ -1,7 +1,5 @@
-#include <iostream>        // includes, standard template & armadillo library
+//#include <iostream>        // includes, standard template & armadillo library
 #include <armadillo>
-//#include <ctime> // CPU timer
-//#include "../inst/include/common.h"
 #include "../inst/include/density.h"  
 #include "../inst/include/reduce.h"
 

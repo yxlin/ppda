@@ -1,9 +1,8 @@
-#include <unistd.h>
+//#include <unistd.h>
 //#include <stdio.h>  // C printing
 #include <R.h>  // R Rprintf
 #include <curand_kernel.h> // Device random API
 //#include "../inst/include/common.h"  
-#include "../inst/include/constant.h"  
 #include "../inst/include/reduce.h"
 #include "../inst/include/random.h"
 #include "../inst/include/util.h"  

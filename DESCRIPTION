@@ -1,6 +1,6 @@
 Package: gpda
-Version: 0.1.6
-Date: 2017-05-01
+Version: 0.1.7
+Date: 2017-05-07
 Title: Probability Density Approximation Using Graphics Processing Unit
 Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
                     role = c("aut", "cre")),

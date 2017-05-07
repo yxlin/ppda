@@ -103,7 +103,7 @@ lines(den3$x, den3$y,lwd=2) ## msn
 ## From github
 devtools::install_github("TasCL/gpda")
 ## From source: 
-install.packages("gpda_0.1.6.tar.gz", repos = NULL, type="source")
+install.packages("gpda_0.1.7.tar.gz", repos = NULL, type="source")
 ```
 
 ## Prerequisites

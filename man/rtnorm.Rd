@@ -30,6 +30,7 @@ This function generates random numbers using GPU from a truncated normal
 distribution.
 }
 \examples{
+n <- 2^20
 dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 
 ## https://github.com/TasCL/tnorm

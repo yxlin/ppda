@@ -1,8 +1,7 @@
-#include <unistd.h>
+//#include <unistd.h>
 //#include <stdio.h>  // C printing
 #include <R.h>  // R Rprintf
 //#include "../inst/include/common.h"
-#include "../inst/include/constant.h"
 #include "../inst/include/util.h"
 #include <armadillo> // Armadillo vector operations
 

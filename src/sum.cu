@@ -1,5 +1,6 @@
 //#include "../inst/include/common.h"
 #include "../inst/include/util.h"
+#include <R.h>  // R Rprintf
 
 extern "C" void sumur_entry(double *x, int *nx, bool *debug, double *out);
 extern "C" void sqsumur_entry(double *x, int *nx, bool *debug, double *out);
@@ -117,16 +118,15 @@ void sumur_entry(double *x, int *nx, bool *debug, double *out) {
   *h_nx = (unsigned int)*nx;
   //for(size_t i=0; i<*nx; i++) { h_x[i] = (double)x[i]; }
   
-  CHECK(cudaMalloc((void**) &d_out,  blockSize));
-  CHECK(cudaMalloc((void**) &d_x,  nxSize));
-  CHECK(cudaMalloc((void**) &d_nx, uSize));
-  CHECK(cudaMemcpy(d_x,  x,      nxSize,cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx,     uSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_out,  blockSize);
+  cudaMalloc((void**) &d_x,  nxSize);
+  cudaMalloc((void**) &d_nx, uSize);
+  cudaMemcpy(d_x,  x,      nxSize,cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx,     uSize, cudaMemcpyHostToDevice);
   sumur_kernel<double, 256><<< 256, nThread, smemSize >>>(d_nx, d_x, d_out);
-  CHECK(cudaMemcpy(h_out, d_out, blockSize,   cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_out, d_out, blockSize,   cudaMemcpyDeviceToHost);
   
   for (unsigned int i=0; i<nBlk; i++) { out[0] += h_out[i]; }
-  
   cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out);
   free(h_nx);     free(h_out);  free(h_x);
 }
@@ -140,7 +140,7 @@ void sqsumur_entry(double *x, int *nx, bool *debug, double *out) {
   size_t blockSize = nBlk * sizeof(float);
   size_t nxSize    = *nx * sizeof(float);
   size_t uSize     = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
   
   unsigned int *h_nx, *d_nx;
   float *h_x, *d_x, *h_pssum, *d_pssum;
@@ -151,17 +151,16 @@ void sqsumur_entry(double *x, int *nx, bool *debug, double *out) {
   *h_nx   = (unsigned int)*nx;
   for(size_t i=0; i<*nx; i++) { h_x[i] = (float)x[i]; }
   
-  CHECK(cudaMalloc((void**) &d_x,     nxSize));
-  CHECK(cudaMalloc((void**) &d_nx,    uSize));
-  CHECK(cudaMalloc((void**) &d_pssum, blockSize));
-  CHECK(cudaMemcpy(d_x,  h_x, nxSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx, uSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_x,     nxSize);
+  cudaMalloc((void**) &d_nx,    uSize);
+  cudaMalloc((void**) &d_pssum, blockSize);
+  cudaMemcpy(d_x,  h_x, nxSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx, uSize, cudaMemcpyHostToDevice);
   
   sqsumur_kernel<float, 256><<< nBlk, nThread, smemSize >>>(d_nx, d_x, d_pssum);
   
-  CHECK(cudaMemcpy(h_pssum, d_pssum, blockSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_pssum, d_pssum, blockSize, cudaMemcpyDeviceToHost);
   for (int i=0; i<nBlk; i++) { out[0] += (double)h_pssum[i]; }
-  
   free(h_nx); free(h_pssum); free(h_x);
   cudaFree(d_x);  cudaFree(d_nx); cudaFree(d_pssum); 
 }
@@ -176,7 +175,7 @@ void sqsumurd_entry(double *x, int *nx, bool *debug, double *out) {
   size_t blockSize = nBlk * sizeof(double);
   size_t nxSize    = *nx * sizeof(double);
   size_t uSize     = 1*sizeof(unsigned int);
-  if (*debug) printf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
   
   unsigned int *h_nx, *d_nx;
   double *h_x, *d_x, *h_pssum, *d_pssum;
@@ -186,15 +185,15 @@ void sqsumurd_entry(double *x, int *nx, bool *debug, double *out) {
   h_x     = (double *)malloc(nxSize);
   *h_nx   = (unsigned int)*nx;
   
-  CHECK(cudaMalloc((void**) &d_x,     nxSize));
-  CHECK(cudaMalloc((void**) &d_nx,    uSize));
-  CHECK(cudaMalloc((void**) &d_pssum, blockSize));
-  CHECK(cudaMemcpy(d_x,  x, nxSize, cudaMemcpyHostToDevice));
-  CHECK(cudaMemcpy(d_nx, h_nx, uSize, cudaMemcpyHostToDevice));
+  cudaMalloc((void**) &d_x,     nxSize);
+  cudaMalloc((void**) &d_nx,    uSize);
+  cudaMalloc((void**) &d_pssum, blockSize);
+  cudaMemcpy(d_x,  x, nxSize, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx, uSize, cudaMemcpyHostToDevice);
   
   sqsumur_kernel<double, 256><<< nBlk, nThread, smemSize >>>(d_nx, d_x, d_pssum);
   
-  CHECK(cudaMemcpy(h_pssum, d_pssum, blockSize, cudaMemcpyDeviceToHost));
+  cudaMemcpy(h_pssum, d_pssum, blockSize, cudaMemcpyDeviceToHost);
   for (int i=0; i<nBlk; i++) { out[0] += h_pssum[i]; }
   
   free(h_nx); free(h_pssum); free(h_x);

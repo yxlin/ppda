@@ -106,6 +106,7 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
 #' @return a double vector
 #' @export
 #' @examples
+#' n <- 2^20
 #' dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 #' 
 #' ## https://github.com/TasCL/tnorm
@@ -328,3 +329,134 @@ rlba_n1 <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
   return(data.frame(RT1 = result[[10]], R = result[[11]]))
 }
 
+#' The Random Number Generator of the pLBA Model
+#'
+#' This function generates two-accumulator pLBA random numbers using GPU.
+#' 
+#' @param n number of simulations. This must be a power of two.
+#' @param b threshold. Must be a scalar for plba1. Must be a two-element vector
+#' for plba2.
+#' @param B travelling distance stage 1. The distance between starting point (
+#' drawn randomly from an uniform distribution) to the threshold.  This applies
+#' for plba3 only. Please note B differs from b. Must be a two-element vector.
+#' @param A starting point upper bound. Must be a scalar for plba1. Must be a 
+#' two-element vector for plba2 and plba3.
+#' @param C travelling distance stage 2. The distance between updated threshold 
+#' and original threshold This applies for plba3 only. Must be a two-element 
+#' vector. Note this is uppercase.
+#' @param mean_v mean drift rate stage 1. This must be a two-element vector. 
+#' @param mean_w mean drift rate stage 2. This must be a two-element vector. 
+#' @param sd_v standard deviation of drift rate stage 1. This must be a 
+#' two-element vector.
+#' @param sd_w standard deviation of drift rate stage 2. This must be a 
+#' two-element vector.
+#' @param rD an internal psychological delay time for drift rate.   
+#' @param tD an internal psychological delay time for threshold. This applies
+#' for plba3 only.   
+#' @param swt an external switch time when task information changes.   
+#' @param t0 non-decision time.  
+#' @param nthread numbers of launched GPU threads. Default is a wrap.
+#' @return a 2-column data frame [RT R]. 
+#' @references Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new 
+#' framework for modeling decisions about changing information: The Piecewise 
+#' Linear Ballistic Accumulator model \emph{Cognitive Psychology}, \bold{85},
+#' 1--29, \cr doi: \url{http://dx.doi.org/10.1016/j.cogpsych.2015.11.002}.
+#' @examples
+#' n <- 2^20
+#' dat1 <- gpda::rplba1(n)
+#' dat2 <- gpda::rplba2(n)
+#' dat3 <- gpda::rplba3(n)
+#' 
+#' crt1 <- dat1[dat1$R==1,"RT"]
+#' ert1 <- dat1[dat1$R==2,"RT"]
+#' crt2 <- dat2[dat2$R==1,"RT"]
+#' ert2 <- dat2[dat2$R==2,"RT"]
+#' crt3 <- dat3[dat3$R==1,"RT"]
+#' ert3 <- dat3[dat3$R==2,"RT"]
+#' 
+#' par(mfrow=c(3,2))
+#' hist(crt1, breaks="fd")
+#' hist(ert1, breaks="fd")
+#' hist(crt2, breaks="fd")
+#' hist(ert2, breaks="fd")
+#' hist(crt3, breaks="fd")
+#' hist(ert3, breaks="fd")
+#' par(mfrow=c(1,1))
+#'
+#' ## It takes about 10 ms to simulate 2^20 rplba random numbers.
+#' ## require(microbenchmark)
+#' ## res <- microbenchmark(gpda::rplba1(n),
+#' ##                       gpda::rplba2(n),
+#' ##                       gpda::rplba3(n), times=10L)
+#' 
+#' ## Unit: milliseconds
+#' ##             expr      min       lq     mean   median       uq      max neval
+#' ##  gpda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669    10
+#' ##  gpda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774    10
+#' ##  gpda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500    10
+#' 
+#' @export
+rplba1 <- function(n, b=2.7, A=1.5, mean_v=c(3.3, 2.2), mean_w=c(1.5, 1.2),
+                   sd_v=c(1, 1), rD=.3, swt=.5, t0=.5, nthread=32) {
+    T0 <- swt + rD
+    result <- .C("rplba1_entry",
+                 as.integer(n),
+                 as.double(b), as.double(A),
+                 as.double(mean_v), as.integer(length(mean_v)),
+                 as.double(mean_w), as.double(sd_v), as.double(t0),
+                 as.double(T0), as.integer(nthread),
+                 integer(n), numeric(n), PACKAGE = "gpda")
+    return(data.frame(RT = result[[12]], R = result[[11]]))
+}
+
+
+#' @rdname rplba1
+#' @export
+rplba2 <- function(n, b=c(2.7, 2.7), A=c(1.5, 1.5), mean_v=c(3.3, 2.2), mean_w=c(1.5, 3.7),
+                   sd_v=c(1, 1), sd_w=c(1, 1), rD=.3, swt=.5, t0=.08, nthread=32) {
+    T0 <- swt + rD
+    result <- .C("rplba2_entry",
+                 as.integer(n),
+                 as.double(b), as.double(A),
+                 as.double(mean_v), as.integer(length(mean_v)),
+                 as.double(mean_w), as.double(sd_v), as.double(sd_w),
+                 as.double(t0), as.double(T0), as.integer(nthread),
+                 integer(n), numeric(n), PACKAGE = "gpda")
+    return(data.frame(RT = result[[13]], R = result[[12]]))
+}
+
+#' @rdname rplba1
+#' @export
+rplba3 <- function(n, A=c(1.5, 1.5), B=c(1.2, 1.2), C=c(.3, .3), mean_v=c(3.3, 2.2),
+                   mean_w=c(1.5, 3.7), sd_v=c(1, 1), sd_w=c(1, 1), rD=.3, tD=.3,
+                   swt=.5, t0=.08, nthread=32) {
+    b <- c(A[1] + B[1], A[2] + B[2])
+    c <- c(b[1] + C[1], b[2] + C[2])
+    swt_r <- rD + swt
+    swt_b <- tD + swt
+    a0 <- FALSE; a1 <- FALSE; a2 <- FALSE
+    if (swt_r == swt_b) {
+        a0 <- TRUE
+        swt1 <- swt_r
+        swt2 <- swt_r
+    } else if ( swt_b < swt_r) {
+        a1 <- TRUE
+        swt1 <- swt_b
+        swt2 <- swt_r
+    } else {
+        a2 <- TRUE
+        swt1 <- swt_r
+        swt2 <- swt_b
+    }
+    a <- c(a0, a1, a2)
+    swtD <- swt2 - swt1
+    result <- .C("rplba3_entry",
+                 as.integer(n),
+                 as.double(b), as.double(A), as.double(c),
+                 as.double(mean_v), as.integer(length(mean_v)),
+                 as.double(mean_w), as.double(sd_v), as.double(sd_w),
+                 as.double(t0), as.double(swt1), as.double(swt2), as.double(swtD),
+                 as.logical(a), as.integer(nthread),
+                 integer(n), numeric(n), PACKAGE = "gpda")
+    return(data.frame(RT = result[[17]], R = result[[16]]))
+}
