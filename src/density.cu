@@ -176,8 +176,7 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
     h_binedge0 = (float *)malloc(ngrid_plus1fSize);
     h_hist0    = (unsigned int *)malloc(ngriduSize);
 
-    // Get binedge (1025)-----------------------------------------------------80
-    // Get histogram (1024)---------------------------------------------------80
+    // Get binedge (1025) and histogram (1024) -----------------
     for(size_t i=0; i<ngrid; i++) {
       h_binedge0[i] = z0 + dt*((float)i - 0.5); // binedge
       h_hist0[i]    = 0;  // initialize histogram
@@ -190,11 +189,10 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
     }
     
     h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
+    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
-    
     if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
     if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
 
     arma::vec signal0(ngrid);
     for(size_t i=0; i<ngrid; i++) { 

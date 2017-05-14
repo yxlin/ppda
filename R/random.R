@@ -38,7 +38,7 @@
 #' ##  28.70379   100   a  
 #' ##  31.85638   100   b 
 #' ##  49.04686   100   c
-runif <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
+runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
   if ( length(min) != 1 | length(max) != 1 )
     stop("min and max must be a scalar!")
   .C("runif_entry", as.integer(n),  as.double(min), as.double(max),
@@ -83,7 +83,7 @@ runif <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #' ## 34.97274   100    b 
 #' ## 11.70719   100    a  
 #' ## 80.32002   100    c
-rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
+rnorm_gpu <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
     if ( length(mean) != 1 | length(sd) != 1 )
         stop("mean and sd must be a scalar!")
   if (sd < 0) stop("sd must be greater than 0!")
@@ -144,7 +144,7 @@ rnorm <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
 #' ## tnorm::rtnorm(n)  7.475374   8.317984   8.544317   8.345958   9.120224  10.220493
 #' ## msm::rtnorm(n)   54.597366 109.426265 103.025877 110.050924 119.054471 125.192521
 #' }
-rtnorm <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE, 
+rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE, 
   nthread=32) 
 {
   if( length(mean) != 1 | length(sd) != 1 | length(lower) != 1 | 

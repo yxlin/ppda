@@ -3,8 +3,8 @@
 Use general purpose graphics processing uit (GP-GPU) to conduct Monte Carlo 
 simulations. Two cognitive models we conduct Monte Carlo are the basic and the 
 piece-wise linear ballistic accumulation models. The simulations are then used 
-to approximate the model likelihood via a parallel implementation on the basis 
-of a method described in Homles (2015). 
+to approximate the model likelihood via a parallel implementation of rPDA  
+(Homles, 2015). 
 
 This project is still under active development. We are glad if you find 
 software here is useful.  If you've found any bugs or have any suggestions, 
@@ -112,7 +112,11 @@ install.packages("gpda_0.1.7.tar.gz", repos = NULL, type="source")
  - Nvidia GPU card Compute Capability (>= 2.0)
  - Nvidia's CUDA toolkit (>= release 7.5)
  - [Armadillo](http://arma.sourceforge.net/download.html) (>= 5.100)
-  
+
+## Known Workable Nvidia GPU Cards
+ - GeForce GT 720M
+ - GeForce GTX 980
+ 
 ## Contributors
 
 - Yi-Shin Lin <yishin.lin@utas.edu.au> 
