@@ -1,0 +1,65 @@
+---
+title: "Recover LBA Parameters Using Parallel PDA"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+This note replicates Turner and Sederberg's (2014) simulation study on 
+page 234.  We used our parallel PDA algorithm to fit a data set we created. 
+The data set has 10,000 trials from an LBA participant. We used identical 
+parameter values as listed on page 235 left column in Turner & Sederberg (2014).  
+
+For each proposal, we simulated the model 16384 times (2^14).   
+
+```{r DMC, eval=FALSE, include=TRUE}
+rm(list=ls())
+setwd("~/DMC_10052017")
+source ("dmc/dmc.R")
+source ("dmc/dmc_myfunction.R")
+source ("dmc/models/LBA-gpda/dists.R")
+source ("dmc/models/LBA-gpda/lba_B-gpda.R")
+
+mod0 <- model.dmc(p.map = list(A  = "1", B   = "1", mean_v = "M", sd_v = "1",
+                               t0 = "1", st0 = "1"),
+                  constants = c(st0  = 0, sd_v = 1),
+                  match.map = list(M = list(s1 = 1, s2 = 2)),
+                  factors   = list(S = c("s1", "s2")),
+                  responses = c("r1", "r2"),
+                  type      = "norm")
+
+## b = A + B
+pvec <- c(A = .75, B = .25, mean_v.true = 2.5, mean_v.false = 1.5, t0 = .2)
+mdi0 <- data.model.dmc( simulate.dmc(pvec, mod0, n = 1e4), mod0 )
+p.prior <- prior.p.dmc(dists = c("tnorm", "tnorm", "tnorm", "tnorm", "beta"),
+                       p1    = c(A = .3, B = .3, mean_v.true = 1,
+                                 mean_v.false = 0, t0 = 1),
+                       p2    = c(1, 1, 3, 3, 1),
+                       lower = c(0, 0, NA, NA, .1),
+                       upper = c(NA, NA, NA, NA, 1))
+view(p.prior)
+##              mean sd lower upper log    dist  untrans
+## A             0.3  1     0   Inf   1   tnorm identity
+## B             0.3  1     0   Inf   1   tnorm identity
+## mean_v.true     1  3  -Inf   Inf   1   tnorm identity
+## mean_v.false    0  3  -Inf   Inf   1   tnorm identity
+## t0              1  1   0.1     1   1 beta_lu identity
+samples <- samples.dmc(nmc = 400, p.prior, mdi0)  
+
+## burn-in
+##    user   system  elapsed 
+##  50.836   44.488   95.398 
+## 589.460  524.140 1115.212 
+samples0 <- run.dmc(samples, report = 50, cores = 1, force = 4, p.migrate = .05)
+samples1 <- run.dmc(samples.dmc(nmc = 4600, samples = samples0),
+                                cores = 1, report = 100, force = 4)
+
+save(samples, samples0, samples1, mod0, pvec, p.prior, file="tutorial/LBA/Turner2014.rda")
+##                    A    B mean_v.true mean_v.false    t0
+## True            0.75 0.25        2.50         1.50  0.20
+## 2.5% Estimate   0.05 0.10        1.50         0.43  0.10
+## 50% Estimate    0.53 0.25        2.02         1.09  0.19
+## 97.5% Estimate  0.80 0.69        2.49         1.64  0.23
+## Median-True    -0.22 0.00       -0.48        -0.41 -0.01
+```
+
