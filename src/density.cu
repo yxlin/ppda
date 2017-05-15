@@ -47,7 +47,7 @@ __global__ void histc_kernel(double *binedge, double *rng, unsigned int *nrng,
   
   if (rng[i] < binedge[0] || rng[i] > binedge[1024]) {
     // if out-of-range add 0 to the 1st bin, otherwise add 1 to j bin
-    atomicAdd(&(cache[0]), 0);
+    //atomicAdd(&(cache[0]), 0);
   } else {
     // When 'sim' belongs to 'j' bin, the last line, 'j++' inside 
     // while loop will add one more '1' to j, before leaving the loop.
@@ -74,7 +74,7 @@ __global__ void histc_kernel(float *binedge, float *rng, unsigned int *nrng,
   float tmp = 0;
   
   if (rng[i] < binedge[0] || rng[i] >= binedge[1024]) {
-    atomicAdd(&(cache[0]), 0);
+      //atomicAdd(&(cache[0]), 0);
   } else {
     while(tmp==0) {
       tmp = ((rng[i] >= binedge[j]) && (rng[i] < binedge[j+1])); // 0 or 1;
