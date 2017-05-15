@@ -120,8 +120,7 @@ $(document).ready(function () {
 </div>
 
 
-<p>This note replicates Turner and Sederberg’s (2014) simulation study on page 234. We used our parallel PDA algorithm to fit a data set we created. The data set has 10,000 trials from an LBA participant. We used identical parameter values as listed on page 235 left column in Turner &amp; Sederberg (2014).</p>
-<p>For each proposal, we simulated the model 16384 times (2^14).</p>
+<p>The first example replicates Turner and Sederberg’s (2014) simulation study on page 234. We simulated 500 responses from the LBA model with their parameter values and then fit this data set with our parallel PDA algorithm. For each proposal, we simulated the model 16384 times (2^14). This example shows that our parallel PDA is able to replicate Turner and Sederberg’s (2014) finding.</p>
 <pre class="r"><code>rm(list=ls())
 setwd(&quot;~/DMC_10052017&quot;)
 source (&quot;dmc/dmc.R&quot;)
@@ -139,7 +138,7 @@ mod0 &lt;- model.dmc(p.map = list(A  = &quot;1&quot;, B   = &quot;1&quot;, mean_
 
 ## b = A + B
 pvec &lt;- c(A = .75, B = .25, mean_v.true = 2.5, mean_v.false = 1.5, t0 = .2)
-mdi0 &lt;- data.model.dmc( simulate.dmc(pvec, mod0, n = 1e4), mod0 )
+mdi0 &lt;- data.model.dmc( simulate.dmc(pvec, mod0, n = 5e2), mod0 )
 p.prior &lt;- prior.p.dmc(dists = c(&quot;tnorm&quot;, &quot;tnorm&quot;, &quot;tnorm&quot;, &quot;tnorm&quot;, &quot;beta&quot;),
                        p1    = c(A = .3, B = .3, mean_v.true = 1,
                                  mean_v.false = 0, t0 = 1),
@@ -155,21 +154,61 @@ view(p.prior)
 ## t0              1  1   0.1     1   1 beta_lu identity
 samples &lt;- samples.dmc(nmc = 400, p.prior, mdi0)  
 
-## burn-in
+## Each 500 steps take about 1.6 mins
 ##    user   system  elapsed 
-##  50.836   44.488   95.398 
-## 589.460  524.140 1115.212 
-samples0 &lt;- run.dmc(samples, report = 50, cores = 1, force = 4, p.migrate = .05)
-samples1 &lt;- run.dmc(samples.dmc(nmc = 4600, samples = samples0),
-                                cores = 1, report = 100, force = 4)
+##  41.092   55.000   96.282 
+system.time(samples0 &lt;- run.dmc(samples, report = 50, cores = 1, force = 4,
+                                p.migrate = .05))
+system.time(samples1 &lt;- run.dmc(samples.dmc(nmc = 500, samples = samples0),
+                                cores = 1, report = 100, force = 4))
+system.time(samples2 &lt;- run.dmc(samples.dmc(nmc = 500, samples = samples1),
+                                cores = 1, report = 100, force = 4))
+system.time(samples3 &lt;- run.dmc(samples.dmc(nmc = 500, samples = samples2),
+                                cores = 1, report = 100, force = 4))
+system.time(samples4 &lt;- run.dmc(samples.dmc(nmc = 500, samples = samples3),
+                                cores = 1, report = 100, force = 4))
+system.time(samples5 &lt;- run.dmc(samples.dmc(nmc = 500, samples = samples4),
+                                cores = 1, report = 100, force = 4))
 
-save(samples, samples0, samples1, mod0, pvec, p.prior, file=&quot;tutorial/LBA/Turner2014.rda&quot;)
+save(samples, samples0, samples1, samples2, samples3, samples4, samples5,
+     mod0, pvec, p.prior, file=&quot;tutorial/LBA/Turner2014.rda&quot;)
+
 ##                    A    B mean_v.true mean_v.false    t0
 ## True            0.75 0.25        2.50         1.50  0.20
 ## 2.5% Estimate   0.05 0.10        1.50         0.43  0.10
 ## 50% Estimate    0.53 0.25        2.02         1.09  0.19
 ## 97.5% Estimate  0.80 0.69        2.49         1.64  0.23
 ## Median-True    -0.22 0.00       -0.48        -0.41 -0.01</code></pre>
+<p>The second example shows a case that fails to recover parameters, using an identical PDA set-up (i.e., simulating 16384 samples for SPDF). This problem can be easily fixed by increasing the number of simulated models to for example 1,000,000<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>. The critical difference between the two examples is that the second example attempts to recover smaller drift rate (1 and 0.25 vs. 2.5 and 1.5 in the first example). However, we can</p>
+<pre class="r"><code>mod0 &lt;- model.dmc(p.map = list(A = &quot;1&quot;, B = &quot;1&quot;, mean_v = &quot;M&quot;, sd_v = &quot;1&quot;,
+                                   t0 = &quot;1&quot;, st0 = &quot;1&quot;),
+                  constants = c(st0 = 0, sd_v = 1),
+                  match.map = list(M = list(s1 = 1, s2 = 2)),
+                  factors   = list(S = c(&quot;s1&quot;, &quot;s2&quot;)),
+                  responses = c(&quot;r1&quot;, &quot;r2&quot;),
+                  type      = &quot;norm&quot;)
+
+pvec &lt;- c(A = .25, B = .35, mean_v.true = 1, mean_v.false = .25, t0 = .2)
+mdi0 &lt;- data.model.dmc( simulate.dmc(pvec, mod0, n = 5e2), mod0 )
+
+system.time(samples0 &lt;- run.dmc(samples, report = 50, cores = 1, force = 4,
+                                p.migrate = .05))
+system.time(samples1 &lt;- run.dmc(samples.dmc(nmc = 500, samples = samples0),
+                                cores = 1, report = 100, force = 4))
+
+check.recovery.dmc(samples1, pvec)
+##                   A     B mean_v.true mean_v.false   t0
+## True           0.25  0.35        1.00         0.25 0.20
+## 2.5% Estimate  0.01  0.13        0.53        -0.60 0.15
+## 50% Estimate   0.26  0.34        1.06         0.19 0.21
+## 97.5% Estimate 0.51  0.62        1.45         0.74 0.27
+## Median-True    0.01 -0.01        0.06        -0.06 0.01</code></pre>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>To be exact, we simulated 2^20 models.<a href="#fnref1">↩</a></p></li>
+</ol>
+</div>
 
 
 

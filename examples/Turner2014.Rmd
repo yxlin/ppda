@@ -5,14 +5,15 @@ output:
   html_notebook: default
 ---
 
-This example replicates Turner and Sederberg's (2014) simulation study on 
-page 234, using their setting.  We fit a simulated data set with our parallel 
-PDA algorithm.  The data set generated 500 trials from the LBA model (rtdists). 
-The setting is identical with Turner & Sederberg's (2014).  
+The first example replicates Turner and Sederberg's (2014) simulation study on 
+page 234. We simulated 500 responses from the LBA model with their parameter 
+values and then fit this data set with our parallel PDA algorithm.  For 
+each proposal, we simulated the model 16384 times (2^14). This example shows 
+that our parallel PDA is able to replicate Turner and Sederberg's (2014) 
+finding. 
 
-For each proposal, we simulated the model 16384 times (2^14).   
 
-```{r DMC, eval=FALSE, include=TRUE}
+```{r Example1, eval=FALSE, include=TRUE}
 rm(list=ls())
 setwd("~/DMC_10052017")
 source ("dmc/dmc.R")
@@ -62,8 +63,16 @@ system.time(samples4 <- run.dmc(samples.dmc(nmc = 500, samples = samples3),
 system.time(samples5 <- run.dmc(samples.dmc(nmc = 500, samples = samples4),
                                 cores = 1, report = 100, force = 4))
 
+check.recovery.dmc(samples5, pvec)
+##                    A     B mean_v.true mean_v.false    t0
+## True            0.75  0.25        2.50         1.50  0.20
+## 2.5% Estimate   0.03  0.04        0.88        -0.35  0.11
+## 50% Estimate    0.48  0.24        1.88         0.88  0.19
+## 97.5% Estimate  0.97  0.63        2.74         1.70  0.25
+## Median-True    -0.27 -0.01       -0.62        -0.62 -0.01
+
 save(samples, samples0, samples1, samples2, samples3, samples4, samples5,
-     mod0, pvec, p.prior, file="tutorial/LBA/Turner2014.rda")
+     mod0, pvec, p.prior, file="tutorial/LBA/Turner2014-example1.rda")
 
 ##                    A    B mean_v.true mean_v.false    t0
 ## True            0.75 0.25        2.50         1.50  0.20
@@ -72,4 +81,46 @@ save(samples, samples0, samples1, samples2, samples3, samples4, samples5,
 ## 97.5% Estimate  0.80 0.69        2.49         1.64  0.23
 ## Median-True    -0.22 0.00       -0.48        -0.41 -0.01
 ```
+
+The second example shows a case that fails to recover parameters, using 
+an identical PDA set-up (i.e., simulating 16384 samples for SPDF). This problem
+can be easily fixed by increasing the number of simulated models to, for 
+example, over 1,000,000[^1]. The critical difference between the two examples is
+that the second example attempts to recover smaller drift rate (1 and 0.25 vs. 
+2.5 and 1.5 in the first example).  However, the reason we can easily achieve 
+this is that the computational time of parallel PDA is affected only slightly 
+by an increase in the number of model simulations. 
+
+[^1]: To be exact, we simulated 2^20 models. 
+
+```{r Example2, eval=FALSE, include=TRUE}
+mod0 <- model.dmc(p.map = list(A = "1", B = "1", mean_v = "M", sd_v = "1",
+                                   t0 = "1", st0 = "1"),
+                  constants = c(st0 = 0, sd_v = 1),
+                  match.map = list(M = list(s1 = 1, s2 = 2)),
+                  factors   = list(S = c("s1", "s2")),
+                  responses = c("r1", "r2"),
+                  type      = "norm")
+
+pvec <- c(A = .25, B = .35, mean_v.true = 1, mean_v.false = .25, t0 = .2)
+mdi0 <- data.model.dmc( simulate.dmc(pvec, mod0, n = 5e2), mod0 )
+
+system.time(samples0 <- run.dmc(samples, report = 50, cores = 1, force = 4,
+                                p.migrate = .05))
+system.time(samples1 <- run.dmc(samples.dmc(nmc = 500, samples = samples0),
+                                cores = 1, report = 100, force = 4))
+
+check.recovery.dmc(samples1, pvec)
+##                   A     B mean_v.true mean_v.false   t0
+## True           0.25  0.35        1.00         0.25 0.20
+## 2.5% Estimate  0.01  0.13        0.53        -0.60 0.15
+## 50% Estimate   0.26  0.34        1.06         0.19 0.21
+## 97.5% Estimate 0.51  0.62        1.45         0.74 0.27
+## Median-True    0.01 -0.01        0.06        -0.06 0.01
+
+save(samples, samples0, samples1, 
+     mod0, pvec, p.prior, file="tutorial/LBA/Turner2014-example2.rda")
+
+```
+
 
