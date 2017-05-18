@@ -7,9 +7,9 @@ output:
 
 The first example replicates Turner and Sederberg's (2014) simulation study on 
 page 234. We simulated 500 responses from the LBA model with their parameter 
-values and then fit this data set with our parallel PDA algorithm.  For 
+values and then fit this data set with our parallel PDA.  For 
 each proposal, we simulated the model 16384 times (2^14). This example shows 
-that our parallel PDA is able to replicate Turner and Sederberg's (2014) 
+that the parallel PDA is able to replicate Turner and Sederberg's (2014) 
 finding. 
 
 
@@ -74,12 +74,6 @@ check.recovery.dmc(samples5, pvec)
 save(samples, samples0, samples1, samples2, samples3, samples4, samples5,
      mod0, pvec, p.prior, file="tutorial/LBA/Turner2014-example1.rda")
 
-##                    A    B mean_v.true mean_v.false    t0
-## True            0.75 0.25        2.50         1.50  0.20
-## 2.5% Estimate   0.05 0.10        1.50         0.43  0.10
-## 50% Estimate    0.53 0.25        2.02         1.09  0.19
-## 97.5% Estimate  0.80 0.69        2.49         1.64  0.23
-## Median-True    -0.22 0.00       -0.48        -0.41 -0.01
 ```
 
 The second example shows a case that fails to recover parameters, using 
@@ -105,12 +99,39 @@ mod0 <- model.dmc(p.map = list(A = "1", B = "1", mean_v = "M", sd_v = "1",
 pvec <- c(A = .25, B = .35, mean_v.true = 1, mean_v.false = .25, t0 = .2)
 mdi0 <- data.model.dmc( simulate.dmc(pvec, mod0, n = 5e2), mod0 )
 
+## Using 2^14 model simulations ----
+samples <- samples.dmc(nmc = 400, p.prior, mdi0)
+system.time(samples0 <- run.dmc(samples, report = 50, cores = 1, force = 4,
+                                p.migrate = .05))
+system.time(samples1 <- run.dmc(samples.dmc(nmc = 500, samples = samples0),
+                                cores = 1, report = 100, force = 4))
+system.time(samples2 <- run.dmc(samples.dmc(nmc = 500, samples = samples1),
+                                cores = 1, report = 100, force = 4))
+system.time(samples3 <- run.dmc(samples.dmc(nmc = 500, samples = samples2),
+                                cores = 1, report = 100, force = 4))
+system.time(samples4 <- run.dmc(samples.dmc(nmc = 500, samples = samples3),
+                                cores = 1, report = 100, force = 4))
+system.time(samples5 <- run.dmc(samples.dmc(nmc = 500, samples = samples4),
+                                cores = 1, report = 100, force = 4))
+check.recovery.dmc(samples5, pvec) ## with 2^14 model simulations
+##                    A     B mean_v.true mean_v.false   t0
+## True            0.25  0.35        1.00         0.25 0.20
+## 2.5% Estimate   0.01  0.03       -5.49       -11.07 0.11
+## 50% Estimate    0.14  0.09       -0.47        -1.74 0.25
+## 97.5% Estimate  0.59  0.52        1.32         0.48 0.29
+## Median-True    -0.11 -0.26       -1.47        -1.99 0.05
+
+## Using 2^20 model simulations with only 500 iterations 400 burnin's ----
+## We can quickly acheive good estimates. So the price we pay to get more 
+## precise likelihood is repaid by achieving reliable estimation with
+## less MC iterations.
+samples <- samples.dmc(nmc = 400, p.prior, mdi0)
 system.time(samples0 <- run.dmc(samples, report = 50, cores = 1, force = 4,
                                 p.migrate = .05))
 system.time(samples1 <- run.dmc(samples.dmc(nmc = 500, samples = samples0),
                                 cores = 1, report = 100, force = 4))
 
-check.recovery.dmc(samples1, pvec)
+check.recovery.dmc(samples1, pvec) 
 ##                   A     B mean_v.true mean_v.false   t0
 ## True           0.25  0.35        1.00         0.25 0.20
 ## 2.5% Estimate  0.01  0.13        0.53        -0.60 0.15

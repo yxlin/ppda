@@ -131,10 +131,11 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
 {
   size_t nsimfSize = *nsim * sizeof(float);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
-  float *d_RT; unsigned int *d_R;
+  float *d_RT;
+  unsigned int *d_R;
   cudaMalloc((void**) &d_RT, nsimfSize);
-  cudaMalloc((void**) &d_R,   nsimuSize);
-  rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT); // run kernel
+  cudaMalloc((void**) &d_R,  nsimuSize); // run LBA Monte Carlo simulation 
+  rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT); 
   
   // ------------------------------------------------------------------------80
   float *KDEStats;
