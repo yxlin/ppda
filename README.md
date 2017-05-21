@@ -112,10 +112,12 @@ install.packages("gpda_0.1.7.tar.gz", repos = NULL, type="source")
  - Nvidia GPU card Compute Capability (>= 2.0)
  - Nvidia's CUDA toolkit (>= release 7.5)
  - [Armadillo](http://arma.sourceforge.net/download.html) (>= 5.100)
+ - Ubuntu Linux >= 16.04 
 
 ## Known Workable Nvidia GPU Cards
  - GeForce GT 720M
  - GeForce GTX 980
+ - Tesla K80
  
 ## Contributors
 
