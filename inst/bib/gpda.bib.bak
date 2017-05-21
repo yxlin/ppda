@@ -2,6 +2,20 @@
 % Encoding: UTF-8
 
 
+@Article{Apgar2010,
+  Title                    = {Sloppy models, parameter uncertainty, and the role of experimental design},
+  Author                   = {Apgar, Joshua F and Witmer, David K and White, Forest M and Tidor, Bruce},
+  Journal                  = {Molecular BioSystems},
+  Year                     = {2010},
+  Number                   = {10},
+  Pages                    = {1890--1900},
+  Volume                   = {6},
+
+  __markedentry            = {[yslin:]},
+  Owner                    = {yslin},
+  Timestamp                = {2017.05.17}
+}
+
 @Article{Beaumont2010,
   Title                    = {Approximate {Bayesian} {Computation} in {Evolution} and {Ecology}},
   Author                   = {Beaumont, Mark A.},
@@ -82,13 +96,33 @@
   Language                 = {English}
 }
 
+@Article{Gutenkunst2007,
+  Title                    = {Universally {Sloppy} {Parameter} {Sensitivities} in {Systems} {Biology} {Models}},
+  Author                   = {Gutenkunst, Ryan N. and Waterfall, Joshua J. and Casey, Fergal P. and Brown, Kevin S. and Myers, Christopher R. and Sethna, James P.},
+  Journal                  = {PLOS Computational Biology},
+  Year                     = {2007},
+
+  Month                    = oct,
+  Number                   = {10},
+  Pages                    = {e189},
+  Volume                   = {3},
+  Abstract                 = {Author SummaryDynamic systems biology models typically involve many kinetic parameters, the quantitative determination of which has been a serious obstacle to using these models. Previous work showed for a particular model that useful predictions could be extracted from a fit long before the experimental data constrained the parameters, even to within orders of magnitude. This was attributed to a “sloppy” pattern in the model's parameter sensitivities; the sensitivity eigenvalues were roughly evenly spaced over many decades. Consequently, the model behavior depended effectively on only a few “stiff” parameter combinations. Here we study the converse problem, showing that direct parameter measurements are very inefficient at constraining the model's behavior. To yield effective predictions, such measurements must be very precise and complete; even a single imprecise parameter often destroys predictivity. We also show here that the characteristic sloppy eigenvalue pattern is reproduced in 16 other diverse models from the systems biology literature. The apparent universality of sloppiness suggests that predictions from most models will be very fragile to single uncertain parameters and that collective parameters fits can often yield tight predictions with loose parameters. Together these results argue that focusing on parameter values may be a very inefficient route to useful models.},
+  Doi                      = {10.1371/journal.pcbi.0030189},
+  File                     = {Full Text PDF:files/352/Gutenkunst et al. - 2007 - Universally Sloppy Parameter Sensitivities in Syst.pdf:application/pdf;Snapshot:files/353/article.html:text/html},
+  ISSN                     = {1553-7358},
+  Keywords                 = {Circadian rhythms, Confidence intervals, Eigenvalues, Eigenvectors, Ellipsoids, Experimental design, Metabolic networks, Systems biology},
+  Owner                    = {yslin},
+  Timestamp                = {2017.05.17},
+  Url                      = {http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.0030189},
+  Urldate                  = {2017-05-17}
+}
+
 @Article{Harris2007,
   Title                    = {Optimizing parallel reduction in CUDA},
   Author                   = {Harris, Mark},
   Journal                  = {http://docs.nvidia.com/cuda/samples/6\_Advanced/reduction/doc/reduction.pdf},
   Year                     = {2007},
 
-  __markedentry            = {[yslin:6]},
   Owner                    = {yslin},
   Timestamp                = {2017.05.16}
 }
@@ -241,6 +275,26 @@
   Url                      = {http://dx.doi.org/10.1214/aoms/1177704472}
 }
 
+@Article{Ratcliff1978,
+  Title                    = {A theory of memory retrieval},
+  Author                   = {Ratcliff, Roger},
+  Journal                  = {Psychological Review},
+  Year                     = {1978},
+  Number                   = {2},
+  Pages                    = {59--108},
+  Volume                   = {85},
+
+  __markedentry            = {[yslin:6]},
+  Abstract                 = {Develops a theory of memory retrieval and shows that it applies over a range of experimental paradigms. Access to memory traces is viewed in terms of a resonance metaphor. The probe item evokes the search set on the basis of probe–memory item relatedness, just as a ringing tuning fork evokes sympathetic vibrations in other tuning forks. Evidence is accumulated in parallel from each probe–memory item comparison, and each comparison is modeled by a continuous random walk process. In item recognition, the decision process is self-terminating on matching comparisons and exhaustive on nonmatching comparisons. The mathematical model produces predictions about accuracy, mean reaction time, error latency, and reaction time distributions that are in good accord with data from 2 experiments conducted with 6 undergraduates. The theory is applied to 4 item recognition paradigms (Sternberg, prememorized list, study–test, and continuous) and to speed–accuracy paradigms; results are found to provide a basis for comparison of these paradigms. It is noted that neural network models can be interfaced to the retrieval theory with little difficulty and that semantic memory models may benefit from such a retrieval scheme.},
+  Copyright                = {(c) 2016 APA, all rights reserved},
+  Doi                      = {10.1037/0033-295X.85.2.59},
+  ISSN                     = {1939-1471 0033-295X},
+  Keywords                 = {*Memory, Theories},
+  Language                 = {English},
+  Owner                    = {yslin},
+  Timestamp                = {2017.05.19}
+}
+
 @Article{Ratcliff2008,
   Title                    = {The {Diffusion} {Decision} {Model}: {Theory} and {Data} for {Two}-{Choice} {Decision} {Tasks}},
   Author                   = {Ratcliff, Roger and McKoon, Gail},
@@ -251,6 +305,7 @@
   Number                   = {4},
   Pages                    = {873--922},
   Volume                   = {20},
+
   Abstract                 = {The diffusion decision model allows detailed explanations of behavior in two-choice discrimination tasks. In this article, the model is reviewed to show how it translates behavioral data—accuracy, mean response times, and response time distributions—into components of cognitive processing. Three experiments are used to illustrate experimental manipulations of three components: stimulus difficulty affects the quality of information on which a decision is based; instructions emphasizing either speed or accuracy affect the criterial amounts of information that a subject requires before initiating a response; and the relative proportions of the two stimuli affect biases in drift rate and starting point. The experiments also illustrate the strong constraints that ensure the model is empirically testable and potentially falsifiable. The broad range of applications of the model is also reviewed, including research in the domains of aging and neurophysiology.},
   Doi                      = {10.1162/neco.2008.12-06-420},
   File                     = {IEEE Xplore Abstract Record:files/86/freeabs_all.html:text/html},
@@ -367,7 +422,6 @@ and Tuerlinckx, Francis},
   Pages                    = {13--27},
   Volume                   = {48},
 
-  __markedentry            = {[yslin:]},
   Abstract                 = {In this paper, we present software for the efficient simulation of a broad class of linear and nonlinear diffusion models for choice RT, using either CPU or graphical processing unit (GPU) technology. The software is readily accessible from the popular scripting languages MATLAB and R (both 64-bit). The speed obtained on a single high-end GPU is comparable to that of a small CPU cluster, bringing standard statistical inference of complex diffusion models to the desktop platform.},
   Doi                      = {10.3758/s13428-015-0569-0},
   ISSN                     = {1554-3528},
