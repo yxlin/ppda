@@ -12,7 +12,7 @@ provides,
   models and,
   * R functions, which approximates two choice response time cognitive 
   models: Canonical linear ballistic accumulation and piecewise LBA 
-  models [@Holmes2016].  
+  models (Holmes, Trueblood, & Heathcote, 2016).  
 
 PDA calculates likelihood even when their analytic functions are 
 unavailable (Turner & Sederberg, 2015; Holmes, 2015).  It allows 
