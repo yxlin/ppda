@@ -1,73 +1,78 @@
-#' Approximate Node 1 Likelihood in a Two-accumulator LBA Model 
+#' Approximate Node 1 Density of a Canonical LBA Model 
 #'
-#' This is the density function for the basic 2-accumualtor LBA 
+#' This is the probability density function for the canonical 2-accumualtor LBA 
 #' model, sampling drift rates from truncated normal distributions. The 
-#' function approximates model likelihood, instead of using the analytic 
-#' function. 
+#' function approximates model likelihood, instead of calculating analytically.
 #' 
 #' @param x a numeric vector for estimating likelihood. 
-#' @param nsim number of simulations. This must be a power of two.
-#' @param b threshold. Default is 1.  
-#' @param A starting point upper bound  
-#' @param mean_v mean drift rate. This must be a two-element vector. 
-#' @param sd_v standard deviation of drift rate. This must be a two-element 
-#' vector.
-#' @param t0 non-decision time.  
-#' @param nthread number of threads launched per block. Default is 32. 
-#' @param debug a debugging switch.
-#' Maximum is 1024 in K80 or 512 in other GPU cards.  
-#' @return a likelihood vector. 
-#' @references Holmes, W. (2015). A practical guide to the Probability Density
-#' Approximation (PDA) with improved implementation and error characterization.
-#' \emph{Journal of Mathematical Psychology}, 68-69, 13--24,
-#' doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+#' @param nsim number of Monte Carlo simulations for building a simulated PDF. 
+#' This must be a power of two.
+#' @param b decision threshold. Default is 1.  
+#' @param A start point variability. Because the LBA model draws  
+#' realisation of start point from an uniform distribution, \code{A} is the 
+#' upper bound of the uniform distribution. See the below reference for 
+#' more details.  
+#' @param mean_v mean drift rate. This must be a two-element numeric vector. 
+#' @param sd_v standard deviation of the drift rate. This must be a two-element 
+#' numeric vector. The LBA model draws realisation of drift rate for a trial 
+#' from a normal distribution. \code{n1PDF} draws from a truncated normal 
+#' distribution, eliminating realisation of negative drift rate.  Note in 
+#' the canonical LBA model, mean drift rate could be negative, but not 
+#' drift-rate realisation .        
+#' @param t0 nondecision time.  
+#' @param nthread number of GPU threads launched per block. Default is 32. 
+#' Maximum thread per block is 1024 for K80 and 512 for most early GPU cards.
+#' @param h kernal density bandwidth   
+#' @param debug a debugging switch. This is for advance users who wish to use 
+#' CUDA C API.
+#' @return a numeric likelihood vector. 
+#' @references
+#' Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice 
+#' response time: Linear ballistic accumulation. Cognitive psychology, 57(3), 
+#' 153-178. \url{https://doi.org/10.1016/j.cogpsych.2007.12.002}
 #' @export
 #' @examples
-#' #################
-#' ## n1PDF examples 
-#' #################
+#' ##### n1PDF examples 
 #' data <- seq(0, 3, length.out = 1e3);
 #' 
-#' ## Default parameter set is b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-#' ## sd_v = c(1, 1), t0 = 0.5 with nthread = 64 and conduct only 1024 
-#' ## simulations
+#' ## Default parameters are b = 1, A = 0.5, mean_v = c(2.4, 1.6),
+#' ## sd_v = c(1, 1), t0 = 0.5 with nthread = 32 and nsim = 1024 
 #' den1 <- gpda::n1PDF(data)
-#' ## den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
-#' ##                        t0=.5, silent=T)
 #' 
-#' ## Verify that we are not checking near 0 densities
-#' plot(data, den1, type="l")
-#' ## lines(data, den2, lwd=2)
-#' ## all.equal(den1, den2)
-#' ## [1] "Mean relative difference: 0.1675376"
+#' ## Raising nsim to 2^20 can improve approximation
+#' den2 <- gpda::n1PDF(data, nsim=2^20)
+#' plot(data,  den2, type="l")
+#' lines(data, den1, lwd=1.5)
 #' 
-#' ## The approximation is not good enough, so we raise the simulation from
-#' ## 2^10 to 2^20 
-#' den1 <- gpda::n1PDF(data, nsim=2^20)
-#' plot(data, den1, type="l")
-#' ## lines(data, den2, lwd=2)
-#' ## all.equal(den1, den2)
+#' \dontrun{
+#' den3 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
+#'                        t0=.5, silent=T)
+#' lines(data, den3, lwd=2)
+#' all.equal(den1, den3)
+#' all.equal(den2, den3)
+#' ## "Mean relative difference: 0.1675376"
 #' ## "Mean relative difference: 0.007108101"
-#' ## Now the difference goes down to 2 decimal places below 0.
+#' }
 #'
-#' ##########################################
-#' ## The cases that rlba does not match dlba 
-#' ##########################################
+#' ##### An extreme case that rlba does not match dlba 
 #' ## When approximated PDF is almost perfect with 2^20 simulations,
 #' ## one can still observe noise in Bayesian computation. One possible reason
 #' ## is the following:   
-#' den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
+#' den4 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
 #' sd_v=c(1, 1), t0=.94, nsim=2^20)
-#' ## den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
-#' ## sd_v=c(1, 1), t0=.94, silent=T)
-#' par(mfrow=c(1,2))
-#' plot(data, den1, type="l")
-#' ## lines(data, den2, lwd=2)
 #' 
-#' ## plot(data, den2, type="l")
-#' ## lines(data, den1, lwd=2)
-#' ## all.equal(den1, den2)
-#' ## [1] "Mean relative difference: 0.9991495"
+#' \dontrun{
+#' den5 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
+#' sd_v=c(1, 1), t0=.94, silent=T)
+#' par(mfrow=c(1,2))
+#' plot(data,  den4, type="l")
+#' lines(data, den5, lwd=1.5)
+#' 
+#' plot(data, den5,  type="l")
+#' lines(data, den4, lwd=1.5)
+#' all.equal(den4, den5)
+#' ## "Mean relative difference: 0.9991495"
+#' }
 #' 
 #' ## Note both shapes are similar, but dlba method estimates smaller values, 
 #' ## relative to rlba method. This happens in behaviourally less plausible  
@@ -77,22 +82,26 @@
 #' @export
 n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE) {
-  if (debug) {
+
+  if (debug) {  
     if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
     if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
     if (length(b)  != 1) {stop("b must be a scalar.\n")}
     if (length(A)  != 1) {stop("A must be a scalar.\n")}
     if (length(t0) != 1) {stop("t0 must be a scalar.\n")}
-    if (nsim %% 2 != 0 || nsim < 512) {stop("nsim must be power of 2 and at least 2^9.\n")}
+    if (nsim %% 2 != 0 || nsim < 512) { 
+      stop("nsim must be power of 2 and at least 2^9.\n")
+    }
   }
-  out <- .C("n1PDF", as.double(x), as.integer(length(x)), 
-    as.integer(nsim),  as.double(b),  as.double(A),
-    as.double(mean_v), as.integer(length(mean_v)), 
-    as.double(sd_v),    
-    as.double(t0),     as.integer(nthread),
-    as.double(h),
-    as.logical(debug), numeric(length(x)),
-    NAOK = TRUE, PACKAGE='gpda')
+  
+  out <- .C("n1PDF", 
+    as.double(x),       as.integer(length(x)), 
+    as.integer(nsim),   as.double(b),  as.double(A),
+    as.double(mean_v),  as.integer(length(mean_v)), 
+    as.double(sd_v),    as.double(t0),     
+    as.integer(nthread),as.double(h),
+    as.logical(debug),  numeric(length(x)),
+    NAOK = TRUE,        PACKAGE='gpda')
   return(out[[13]])
 }
 
@@ -250,13 +259,16 @@ n1PDF_plba3 <- function(x, nsim = 1024, B=c(1.2, 1.2), A=c(1.5, 1.5), C=c(.3, .3
 #' @export
 n1PDF_ngpu <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE) {
+  
   if (debug) {
     if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
     if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
     if (length(b)  != 1) {stop("b must be a scalar.\n")}
     if (length(A)  != 1) {stop("A must be a scalar.\n")}
     if (length(t0) != 1) {stop("t0 must be a scalar.\n")}
-    if (nsim %% 2 != 0 || nsim < 512) {stop("nsim must be power of 2 and at least 2^9.\n")}
+    if (nsim %% 2 != 0 || nsim < 512) { 
+      stop("nsim must be power of 2 and at least 2^9.\n")
+    }
   }
   
   out <- .C("n1PDF_ngpu", as.double(x), as.integer(length(x)), 
@@ -269,15 +281,5 @@ n1PDF_ngpu <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
     NAOK = TRUE, PACKAGE='gpda')
   return(out[[13]])
   
-  # out <- .C("n1PDF_ngpu", as.double(x), as.integer(length(x)), 
-  #   as.integer(nsim),  as.double(b),  as.double(A),
-  #   as.double(mean_v), as.integer(length(mean_v)), 
-  #   as.double(sd_v),    
-  #   as.double(t0),     as.integer(nthread), 
-  #   as.logical(debug),
-  #   numeric(length(x)),
-  #   PACKAGE='gpda')
-  # return(out[[12]])
-  ## return(list(RT=out[[12]], R=out[[13]], Den=out[[14]]))
 }
 
