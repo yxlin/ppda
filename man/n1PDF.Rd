@@ -5,7 +5,7 @@
 \title{Approximate Node 1 Likelihood in a Two-accumulator LBA Model}
 \usage{
 n1PDF(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-  sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE)
+  sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE)
 }
 \arguments{
 \item{x}{a numeric vector for estimating likelihood.}

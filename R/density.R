@@ -76,7 +76,7 @@
 #' ## parameter sets. 
 #' @export
 n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-  sd_v = c(1, 1), t0 = 0.5, nthread = 64, debug = FALSE) {
+  sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE) {
   if (debug) {
     if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
     if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
@@ -89,11 +89,11 @@ n1PDF <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
     as.integer(nsim),  as.double(b),  as.double(A),
     as.double(mean_v), as.integer(length(mean_v)), 
     as.double(sd_v),    
-    as.double(t0),     as.integer(nthread), 
+    as.double(t0),     as.integer(nthread),
+    as.double(h),
     as.logical(debug), numeric(length(x)),
-    numeric(length(x)),
-    PACKAGE='gpda')
-  return(out[[12]])
+    NAOK = TRUE, PACKAGE='gpda')
+  return(out[[13]])
 }
 
 #' Approximate Node 1 Likelihood of pLBA Model 
@@ -246,3 +246,38 @@ n1PDF_plba3 <- function(x, nsim = 1024, B=c(1.2, 1.2), A=c(1.5, 1.5), C=c(.3, .3
   ## return(list(RT=result[[18]], R=result[[19]], Den=result[[20]]))
   
 }
+
+#' @export
+n1PDF_ngpu <- function(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
+  sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE) {
+  if (debug) {
+    if (any(sd_v < 0))   {stop("Standard deviation must be positive.\n")}
+    if (any(sd_v == 0))  {stop("0 sd causes rtnorm to stall.\n")}
+    if (length(b)  != 1) {stop("b must be a scalar.\n")}
+    if (length(A)  != 1) {stop("A must be a scalar.\n")}
+    if (length(t0) != 1) {stop("t0 must be a scalar.\n")}
+    if (nsim %% 2 != 0 || nsim < 512) {stop("nsim must be power of 2 and at least 2^9.\n")}
+  }
+  
+  out <- .C("n1PDF_ngpu", as.double(x), as.integer(length(x)), 
+    as.integer(nsim),  as.double(b),  as.double(A),
+    as.double(mean_v), as.integer(length(mean_v)), 
+    as.double(sd_v),    
+    as.double(t0),     as.integer(nthread),
+    as.double(h),
+    as.logical(debug), numeric(length(x)),
+    NAOK = TRUE, PACKAGE='gpda')
+  return(out[[13]])
+  
+  # out <- .C("n1PDF_ngpu", as.double(x), as.integer(length(x)), 
+  #   as.integer(nsim),  as.double(b),  as.double(A),
+  #   as.double(mean_v), as.integer(length(mean_v)), 
+  #   as.double(sd_v),    
+  #   as.double(t0),     as.integer(nthread), 
+  #   as.logical(debug),
+  #   numeric(length(x)),
+  #   PACKAGE='gpda')
+  # return(out[[12]])
+  ## return(list(RT=out[[12]], R=out[[13]], Den=out[[14]]))
+}
+
