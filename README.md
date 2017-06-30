@@ -1,10 +1,50 @@
-# Probability Density Approximation using Graphics Processing Unit 
+---
+title: 'Probability Density Approximation using Graphics Processing Unit '
+tags:
+  - example
+  - tags
+  - for the paper
+authors:
+ - name: Yi-Shin Lin
+   orcid: 0000-0000-0000-0000
+   affiliation: 1
+affiliations:
+ - name: University of Tasmania, Australia
+   index: 1
+date: 30 June 2017
+bibliography: inst/bib/gpda.bib
+---
 
-Use general purpose graphics processing uit (GP-GPU) to conduct Monte Carlo 
-simulations. Two cognitive models we conduct Monte Carlo are the basic and the 
-piece-wise linear ballistic accumulation models. The simulations are then used 
-to approximate the model likelihood via a parallel implementation of rPDA  
-(Homles, 2015). 
+
+_gpda_ is an R package, providing R functions and CUDA C API to harness the 
+parallel computing power of graphics processing unit (GPU) to conduct 
+probability density approximation (PDA) [@Turner2014; @Holmes2015]. Current 
+release, version 0.18, mainly provides,
+
+  * CUDA C API, which allow C programmers to construct their own 
+  probability density approximation routines for biological or cognitive 
+  models and,
+  * R functions, which approximates two choice response time cognitive 
+  models: Canonical linear ballistic accumulation and piecewise LBA 
+  models [@Holmes2016].  
+
+PDA calculates likelihood even when their analytic functions are 
+unavailable [@Turner2014,@Holmes2015].  It allows 
+researchers to model computationally complex biological processes, which in the
+past could only be approached by overly simplified models. PDA is however 
+computationally demanding.  It requires a large number of Monte Carlo 
+simulations to attain satisfactory approximation precision. Monte Carlo 
+simulations add a heavy computational burden on every step of PDA algorithm. 
+
+We implement _gpda_, using Armadillo C++ and CUDA libraries in order to provide
+a practical and efficient solution for PDA, which is ready for applying on 
+Bayesian computation. _gpda_ enables parallel computations with millions 
+threads using graphics processing unit (GPU) and avoids moving large chunk of 
+memories back and forth system and GPU Memories. Hence, _gpda_ practically 
+removes the computational burden that involves large numbers (>1e6) of model 
+simulations without suffering the pitfall of moving memories. This solution 
+allows one to rapidly approximate probability densities with ultra-high 
+precision. 
 
 This project is still under active development. We are glad if you find 
 software here is useful.  If you've found any bugs or have any suggestions, 
@@ -13,11 +53,13 @@ please email the package maintainer at <yishin.lin@utas.edu.au>.
 
 ## Getting Started
 
-Simulate more than 1,000,000 LBA model random numbers:
+The main reason that _gpda_ compute fast is it easily simulates millions of 
+random numbers without impeded by the bandwidth bottleneck. For example, it 
+can simulates 2^20 random numbers from the LBA model quickly. 
 
 ```
 require(gpda)
-m(list=ls())
+rm(list=ls())
 n <- 2^20     ## This must be a power of two
 dat1 <- gpda::rlba(n, nthread=64);  
 dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5, 
@@ -28,6 +70,7 @@ names(dat3) <- c("RT","R")
 dat1 <- dat1[dat1$RT < 5, ]
 dat3 <- dat3[dat3$RT < 5, ]
 
+## Separate choice 1 (correct) RTs and choice 2 (error) RTs
 dat1c <- dat1[dat1[,2]==1, 1]
 dat1e <- dat1[dat1[,2]==2, 1]
 dat3c <- dat3[dat3[,2]==1, 1]
@@ -66,8 +109,8 @@ res <- microbenchmark(gpda::rlba(n, dp=F),
 
 ```
 
-'gpda' generates random numbers from a truncated normal distribution, too. n 
-must be power of 2.
+_gpda_ also provides functions to generate random numbers from truncated normal 
+distributions. Again, _n_ must be power of 2.
 
 
 ```
@@ -97,13 +140,39 @@ lines(den3$x, den3$y,lwd=2) ## msn
 
 ```
 
+The main R functions in _gpda_ are to estimate probability densities from 
+complex cognitive models, for example, LBA and PLBA models.
+
+```
+## 1,000 RTs from 0 to 3 seconds 
+RT <- seq(0, 3, length.out = 1e3);
+
+## Default parameters are b = 1, A = 0.5, mean_v = c(2.4, 1.6),
+## sd_v = c(1, 1), t0 = 0.5 with nthread = 32 and nsim = 1024 
+den1 <- gpda::n1PDF(RT)
+
+## Raising nsim to 2^20 improves approximation
+den2 <- gpda::n1PDF(RT, nsim=2^20)
+plot(RT,  den2, type="l")
+lines(RT, den1, lwd=1.5)
+
+
+## PLBA model 1
+den3 <- gpda::n1PDF_plba1(RT, nsim=2^20, b=2.7, A=1.5, mean_v=c(3.3, 2.2), 
+                          mean_w=c(1.5, 1.2), sd_v=c(1, 1), rD=.3, swt=.5,
+                          t0=.08)
+plot(x, den3, type="l")
+
+```
+
+
 ## Installation 
 
 ```
 ## From github
 devtools::install_github("TasCL/gpda")
 ## From source: 
-install.packages("gpda_0.1.7.tar.gz", repos = NULL, type="source")
+install.packages("gpda_0.1.8.tar.gz", repos = NULL, type="source")
 ```
 
 ## Prerequisites
@@ -125,16 +194,7 @@ install.packages("gpda_0.1.7.tar.gz", repos = NULL, type="source")
 - Andrew Heathcote 
 - William Holmes 
 
-## References
-* Holmes, W. (2015). A practical guide to the Probability Density
-Approximation (PDA) with improved implementation and error characterization.
-_Journal of Mathematical Psychology_, 68-69, 13--24,
-doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
-
-* Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new framework for 
-modeling decisions about changing information: The Piecewise Linear Ballistic 
-Accumulator model. _Cognitive Psychology_, 85, 1--29, 
-doi: http://dx.doi.org/10.1016/j.cogpsych.2015.11.002.
-
 ## Acknowledgments
 * gpda R packaging is based on gputools 1.1.
+
+## References
