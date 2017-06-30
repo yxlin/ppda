@@ -1,12 +1,10 @@
 ---
 title: 'Probability Density Approximation using Graphics Processing Unit '
 tags:
-  - example
-  - tags
-  - for the paper
+  - PDA
 authors:
  - name: Yi-Shin Lin
-   orcid: 0000-0000-0000-0000
+   orcid: 0000-0002-2454-6601
    affiliation: 1
 affiliations:
  - name: University of Tasmania, Australia
