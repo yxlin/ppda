@@ -1,23 +1,10 @@
----
-title: 'Probability Density Approximation using Graphics Processing Unit '
-tags:
-  - PDA
-authors:
- - name: Yi-Shin Lin
-   orcid: 0000-0002-2454-6601
-   affiliation: 1
-affiliations:
- - name: University of Tasmania, Australia
-   index: 1
-date: 30 June 2017
-bibliography: inst/bib/gpda.bib
----
+## Probability Density Approximation using Graphics Processing Unit 
 
-
-_gpda_ is an R package, providing R functions and CUDA C API to harness the 
-parallel computing power of graphics processing unit (GPU) to conduct 
-probability density approximation (PDA) [@Turner2014; @Holmes2015]. Current 
-release, version 0.18, mainly provides,
+_gpda_ is an R package, conducting probability density approximation (PDA) 
+[@Turner2014; @Holmes2015].  This package provides R functions and CUDA C API 
+to harness the parallel computing power of graphics processing unit (GPU), 
+making PDA computation efficient. Current release, version 0.18, mainly 
+provides,
 
   * CUDA C API, which allow C programmers to construct their own 
   probability density approximation routines for biological or cognitive 
@@ -196,3 +183,13 @@ install.packages("gpda_0.1.8.tar.gz", repos = NULL, type="source")
 * gpda R packaging is based on gputools 1.1.
 
 ## References
+
+* Holmes, W. (2015). A practical guide to the Probability Density
+Approximation (PDA) with improved implementation and error characterization.
+_Journal of Mathematical Psychology_, 68-69, 13--24,
+doi: http://dx.doi.org/10.1016/j.jmp.2015.08.006.
+
+* Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new framework for 
+modeling decisions about changing information: The Piecewise Linear Ballistic 
+Accumulator model. _Cognitive Psychology_, 85, 1--29, 
+doi: http://dx.doi.org/10.1016/j.cogpsych.2015.11.002.
