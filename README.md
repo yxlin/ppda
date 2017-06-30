@@ -1,7 +1,8 @@
 # Probability Density Approximation using Graphics Processing Unit 
 
 _gpda_ is an R package, conducting probability density approximation (PDA) 
-[@Turner2014; @Holmes2015].  This package provides R functions and CUDA C API 
+(Turner & Sederberg, 2015; Holmes, 2015).  This package provides R functions 
+and CUDA C API 
 to harness the parallel computing power of graphics processing unit (GPU), 
 making PDA computation efficient. Current release, version 0.18, mainly 
 provides,
@@ -14,7 +15,7 @@ provides,
   models [@Holmes2016].  
 
 PDA calculates likelihood even when their analytic functions are 
-unavailable [@Turner2014,@Holmes2015].  It allows 
+unavailable (Turner & Sederberg, 2015; Holmes, 2015).  It allows 
 researchers to model computationally complex biological processes, which in the
 past could only be approached by overly simplified models. PDA is however 
 computationally demanding.  It requires a large number of Monte Carlo 
