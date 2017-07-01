@@ -32,7 +32,6 @@ simulations without suffering the limitation of memory bandwidth. This solution
 allows one to rapidly approximate probability densities with ultra-high 
 precision.
 
-
 This project is still under active development. We are glad if you find 
 software here is useful.  If you've found any bugs or have any suggestions, 
 please email the package maintainer at <yishin.lin@utas.edu.au>. 
