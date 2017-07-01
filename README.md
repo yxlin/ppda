@@ -1,9 +1,9 @@
 # Probability Density Approximation using Graphics Processing Unit 
 
-_gpda_ is an R package, conducting probability density approximation (PDA) 
-(Turner & Sederberg, 2012; Holmes, 2015).  This package provides R functions 
-and CUDA C API 
-to harness the parallel computing power of graphics processing unit (GPU), 
+_gpda_ is an R package, conducting probability density approximation 
+(PDA; Turner & Sederberg, 2012; Holmes, 2015).  This package provides R 
+functions and CUDA C API to harness the parallel computing power of graphics 
+processing unit (GPU), 
 making PDA computation efficient. Current release, version 0.18, mainly 
 provides,
 
@@ -12,10 +12,10 @@ provides,
   models and,
   * R functions, which approximates two choice response time cognitive 
   models: Canonical linear ballistic accumulation and piecewise LBA 
-  models (Holmes, Trueblood, & Heathcote, 2016).  
+  models(Holmes, Trueblood, & Heathcote, 2016).  
 
 PDA calculates likelihood even when their analytic functions are 
-unavailable (Turner & Sederberg, 2012; Holmes, 2015).  It allows 
+unavailable.  It allows 
 researchers to model computationally complex biological processes, which in the
 past could only be approached by overly simplified models. PDA is however 
 computationally demanding.  It requires a large number of Monte Carlo 
@@ -23,14 +23,15 @@ simulations to attain satisfactory approximation precision. Monte Carlo
 simulations add a heavy computational burden on every step of PDA algorithm. 
 
 We implement _gpda_, using Armadillo C++ and CUDA libraries in order to provide
-a practical and efficient solution for PDA, which is ready for applying on 
-Bayesian computation. _gpda_ enables parallel computations with millions 
-threads using graphics processing unit (GPU) and avoids moving large chunk of 
-memories back and forth system and GPU Memories. Hence, _gpda_ practically 
+a practical and efficient solution for PDA, which is ready to apply on 
+Bayesian computation. _gpda_ enables parallel computation with millions of
+threads using GPU and avoids moving large chunk of 
+memories back and forth the system and GPU memories. Hence, _gpda_ practically 
 removes the computational burden that involves large numbers (>1e6) of model 
-simulations without suffering the pitfall of moving memories. This solution 
+simulations without suffering the limitation of memory bandwidth. This solution 
 allows one to rapidly approximate probability densities with ultra-high 
-precision. 
+precision.
+
 
 This project is still under active development. We are glad if you find 
 software here is useful.  If you've found any bugs or have any suggestions, 
@@ -130,7 +131,7 @@ The main R functions in _gpda_ are to estimate probability densities from
 complex cognitive models, for example, LBA and PLBA models.
 
 ```
-## 1,000 RTs from 0 to 3 seconds 
+## 1,000 response times (RTs) from 0 to 3 seconds 
 RT <- seq(0, 3, length.out = 1e3);
 
 ## Default parameters are b = 1, A = 0.5, mean_v = c(2.4, 1.6),
@@ -141,7 +142,6 @@ den1 <- gpda::n1PDF(RT)
 den2 <- gpda::n1PDF(RT, nsim=2^20)
 plot(RT,  den2, type="l")
 lines(RT, den1, lwd=1.5)
-
 
 ## PLBA model 1
 den3 <- gpda::n1PDF_plba1(RT, nsim=2^20, b=2.7, A=1.5, mean_v=c(3.3, 2.2), 
