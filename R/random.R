@@ -1,6 +1,7 @@
 #' Generate Uniform Random Numbers Using GPU 
 #'
-#' This function generates uniform random numbers using GPU.
+#' This function generates random numbers from an uniform distribution 
+#' using GPU.
 #'
 #' @param n numbers of observation. This must be a scalar.
 #' @param min lower bound of the uniform distribution. Must be finite. 
@@ -26,9 +27,10 @@
 #' lines(den2$x, den2$y,lwd=2)
 #' par(mfrow=c(1,1))
 #'
-#' ## require(microbenchmark)
-#' ## res <- microbenchmark(gpda::runif(n, dp=FALSE), gpda::runif(n, dp=TRUE),
-#' ##                       stats::runif(n), times=100L)
+#' \dontrun{
+#' require(microbenchmark)
+#' res <- microbenchmark(gpda::runif(n, dp=FALSE), gpda::runif(n, dp=TRUE),
+#'                        stats::runif(n), times=100L)
 #' ## Unit: milliseconds
 #' ##                        expr       min        lq      mean    median        uq
 #' ##  gpda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  5.310155
@@ -38,6 +40,7 @@
 #' ##  28.70379   100   a  
 #' ##  31.85638   100   b 
 #' ##  49.04686   100   c
+#' }
 runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
   if ( length(min) != 1 | length(max) != 1 )
     stop("min and max must be a scalar!")
@@ -47,11 +50,11 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 
 #' Generate Gaussian Random Numbers using GPU 
 #'
-#' This function generates random numbers using GPU from a normal distribution.
+#' This function generates random numbers from a normal distribution, using GPU.
 #'
-#' @param n numbers of observation. This accepts only one integer
-#' @param mean a mean. This accepts only one double/numeric.
-#' @param sd a standard deviation. This accepts only one double/numeric.
+#' @param n numbers of observation. Must be a scalar
+#' @param mean mean. Must be a scalar.
+#' @param sd standard deviation. Must be a scalar.
 #' @param nthread number of threads launched per block.
 #' @param dp whether calculate using double precision. Default is FALSE.
 #' @return a double vector
@@ -71,20 +74,22 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #' lines(den2$x, den2$y,lwd=2)
 #' par(mfrow=c(1,1))
 #'
-#' ## require(microbenchmark)
-#' ## res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
-#' ##                       stats::rnorm(n), times=100L)
+#' \dontrun{
+#' require(microbenchmark)
+#' res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
+#'                        stats::rnorm(n), times=100L)
+#' }
 #' ## Unit: milliseconds
-#' ##                        expr      min        lq      mean    median        uq
-#' ## gpda::rnorm(n, dp = TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
-#' ## gpda::rnorm(n, dp = FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
-#' ##            stats::rnorm(n) 58.169916 58.236266 59.341414 58.283129 58.880208
+#' ##                     expr       min        lq      mean    median        uq
+#' ## gpda::rnorm(n, dp=TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
+#' ## gpda::rnorm(n, dp=FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
+#' ## stats::rnorm(n)          58.169916 58.236266 59.341414 58.283129 58.880208
 #' ##       max neval cld
 #' ## 34.97274   100    b 
 #' ## 11.70719   100    a  
 #' ## 80.32002   100    c
-rnorm_gpu <- function(n, mean=0, sd=1, dp=FALSE, nthread=32) {
-    if ( length(mean) != 1 | length(sd) != 1 )
+rnorm_gpu <- function(n, mean=0, sd=1, nthread=32, dp=FALSE) {
+  if ( length(mean) != 1 | length(sd) != 1 )
         stop("mean and sd must be a scalar!")
   if (sd < 0) stop("sd must be greater than 0!")
   .C("rnorm_entry", as.integer(n), as.double(mean), as.double(sd),

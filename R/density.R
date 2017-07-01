@@ -194,11 +194,8 @@ n1PDF_plba1 <- function(x, nsim = 1024, b=2.7, A=1.5, mean_v=c(3.3, 2.2),
     as.double(swt),
     as.integer(nthread), 
     as.logical(debug), 
-    #numeric(nsim), integer(nsim),
     numeric(length(x)), PACKAGE = "gpda")
   return(result[[15]])
-  ##return(data.frame(RT=result[[15]], R=result[[16]], Den=result[[17]]))
-  ##return(list(RT=result[[15]], R=result[[16]], Den=result[[17]]))
 }
 
 #' @rdname n1PDF_plba1
@@ -220,10 +217,8 @@ n1PDF_plba2 <- function(x, nsim = 1024, b=c(2.7, 2.7), A=c(1.5, 1.5),
     as.double(swt),
     as.integer(nthread), 
     as.logical(debug), 
-    ## numeric(nsim), integer(nsim),
     numeric(length(x)), PACKAGE = "gpda")
   return(result[[16]])
-  ## return(list(RT=result[[16]], R=result[[17]], Den=result[[18]]))
 }
 
 
@@ -249,11 +244,8 @@ n1PDF_plba3 <- function(x, nsim = 1024, B=c(1.2, 1.2), A=c(1.5, 1.5), C=c(.3, .3
     as.double(swt),
     as.integer(nthread), 
     as.logical(debug), 
-    ## numeric(nsim), integer(nsim),
     numeric(length(x)), PACKAGE = "gpda")
     return(result[[18]])
-  ## return(list(RT=result[[18]], R=result[[19]], Den=result[[20]]))
-  
 }
 
 #' @export
