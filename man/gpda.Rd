@@ -6,21 +6,25 @@
 \alias{gpda-package}
 \title{Probability Density Approximation Using Graphics Processing Unit}
 \description{
-Use general purpose graphics processing uit (GP-GPU)  
-to conduct Monte Carlo simulations of basic and piece-wise linear ballistic
-accumulator models. The simulations are then used to approximate the model
-likelihood via a slihgtly modified method described in Homles (2015).
+Use graphics processing unit (GP-GPU) to conduct Monte Carlo simulations of 
+canonical and piece-wise linear ballistic accumulation models. The 
+simulations are used to approximate the model likelihood via a slihgtly 
+modified resample method described in Homles (2015).
 }
 \references{
 Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.
 \emph{Journal of Mathematical Psychology}, 68-69, 13--24,
-doi: \url{http://dx.doi.org/10.1016/j.jmp.2015.08.006}. \cr\cr
+doi: \url{http://dx.doi.org/10.1016/j.jmp.2015.08.006}. \cr
 
 Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new framework for
 modeling decisions about changing information: The Piecewise Linear Ballistic
 Accumulator model. \emph{Cognitive Psychology}, 85, 1--29, 
-doi: \url{http://dx.doi.org/10.1016/j.cogpsych.2015.11.002}.
+doi: \url{http://dx.doi.org/10.1016/j.cogpsych.2015.11.002}. \cr
+
+Robert, C. P. (1995). Simulation of truncated normal variables. 
+\emph{Statistics and computing}, 5(2), 121-125. 
+doi: \url{http://doi:10.1007/BF00143942}
 }
 \author{
 Yi-Shin Lin <yishin.lin@utas.edu.au> \cr

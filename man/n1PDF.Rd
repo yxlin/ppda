@@ -45,8 +45,7 @@ a numeric likelihood vector.
 \description{
 This is the probability density function for the canonical 2-accumualtor LBA 
 model, sampling drift rates from truncated normal distributions. The 
-function approximates model likelihood, instead of using the analytic 
-function.
+function approximates model likelihood, instead of calculating analytically.
 }
 \examples{
 ##### n1PDF examples 
@@ -87,7 +86,7 @@ lines(data, den5, lwd=1.5)
 
 plot(data, den5,  type="l")
 lines(data, den4, lwd=1.5)
-all.equal(den1, den2)
+all.equal(den4, den5)
 ## "Mean relative difference: 0.9991495"
 }
 

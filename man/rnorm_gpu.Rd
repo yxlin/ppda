@@ -4,24 +4,24 @@
 \alias{rnorm_gpu}
 \title{Generate Gaussian Random Numbers using GPU}
 \usage{
-rnorm_gpu(n, mean = 0, sd = 1, dp = FALSE, nthread = 32)
+rnorm_gpu(n, mean = 0, sd = 1, nthread = 32, dp = FALSE)
 }
 \arguments{
-\item{n}{numbers of observation. This accepts only one integer}
+\item{n}{numbers of observation. Must be a scalar}
 
-\item{mean}{a mean. This accepts only one double/numeric.}
+\item{mean}{mean. Must be a scalar.}
 
-\item{sd}{a standard deviation. This accepts only one double/numeric.}
-
-\item{dp}{whether calculate using double precision. Default is FALSE.}
+\item{sd}{standard deviation. Must be a scalar.}
 
 \item{nthread}{number of threads launched per block.}
+
+\item{dp}{whether calculate using double precision. Default is FALSE.}
 }
 \value{
 a double vector
 }
 \description{
-This function generates random numbers using GPU from a normal distribution.
+This function generates random numbers from a normal distribution, using GPU.
 }
 \examples{
 n <- 2^20
@@ -38,14 +38,16 @@ hist(dat1, breaks="fd", freq=FALSE)
 lines(den2$x, den2$y,lwd=2)
 par(mfrow=c(1,1))
 
-## require(microbenchmark)
-## res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
-##                       stats::rnorm(n), times=100L)
+\dontrun{
+require(microbenchmark)
+res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
+                       stats::rnorm(n), times=100L)
+}
 ## Unit: milliseconds
-##                        expr      min        lq      mean    median        uq
-## gpda::rnorm(n, dp = TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
-## gpda::rnorm(n, dp = FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
-##            stats::rnorm(n) 58.169916 58.236266 59.341414 58.283129 58.880208
+##                     expr       min        lq      mean    median        uq
+## gpda::rnorm(n, dp=TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
+## gpda::rnorm(n, dp=FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
+## stats::rnorm(n)          58.169916 58.236266 59.341414 58.283129 58.880208
 ##       max neval cld
 ## 34.97274   100    b 
 ## 11.70719   100    a  

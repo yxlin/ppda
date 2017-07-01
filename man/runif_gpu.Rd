@@ -23,7 +23,8 @@ This must be a scalar.}
 a double vector
 }
 \description{
-This function generates uniform random numbers using GPU.
+This function generates random numbers from an uniform distribution 
+using GPU.
 }
 \examples{
 n <- 2^20
@@ -40,9 +41,10 @@ hist(dat1, breaks="fd", freq=FALSE, ylim=c(0,1.1))
 lines(den2$x, den2$y,lwd=2)
 par(mfrow=c(1,1))
 
-## require(microbenchmark)
-## res <- microbenchmark(gpda::runif(n, dp=FALSE), gpda::runif(n, dp=TRUE),
-##                       stats::runif(n), times=100L)
+\dontrun{
+require(microbenchmark)
+res <- microbenchmark(gpda::runif(n, dp=FALSE), gpda::runif(n, dp=TRUE),
+                       stats::runif(n), times=100L)
 ## Unit: milliseconds
 ##                        expr       min        lq      mean    median        uq
 ##  gpda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  5.310155
@@ -52,4 +54,5 @@ par(mfrow=c(1,1))
 ##  28.70379   100   a  
 ##  31.85638   100   b 
 ##  49.04686   100   c
+}
 }
