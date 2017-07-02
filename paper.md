@@ -21,11 +21,11 @@ to harness the parallel computing power of graphics processing unit (GPU),
 making PDA computation efficient. Current release, version 0.18, mainly 
 provides,
 
-  * CUDA C API, which allow C programmers to construct their own 
+  * CUDA C API, which allows C programmers to construct their own 
   probability density approximation routines for any biological or cognitive 
   models and,
   * R functions, which approximates two choice-response-time cognitive 
-  models: Canonical linear ballistic accumulation and piecewise LBA 
+  models: Canonical linear ballistic accumulation (LBA) and piecewise LBA 
   models [@Brown2008; @Holmes2016].  
 
 PDA calculates likelihood even when their analytic functions are 

@@ -7,7 +7,7 @@ processing unit (GPU),
 making PDA computation efficient. Current release, version 0.18, mainly 
 provides,
 
-  * CUDA C API, which allow C programmers to construct their own 
+  * CUDA C API, which allows C programmers to construct their own 
   probability density approximation routines for biological or cognitive 
   models and,
   * R functions, which approximates two choice response time cognitive 
@@ -39,9 +39,9 @@ please email the package maintainer at <yishin.lin@utas.edu.au>.
 
 ## Getting Started
 
-The main reason that _gpda_ compute fast is it easily simulates millions of 
-random numbers without impeded by the bandwidth bottleneck. For example, it 
-can simulates 2^20 random numbers from the LBA model quickly. 
+The main reason that _gpda_ runs fast is it easily simulates millions of 
+random numbers without being impeded by GPU bandwidth bottleneck. For example, 
+it can simulates 2^20 random numbers from the LBA model quickly. 
 
 ```
 require(gpda)
@@ -174,7 +174,6 @@ install.packages("gpda_0.1.8.tar.gz", repos = NULL, type="source")
  - Tesla K80
  
 ## Contributors
-
 - Yi-Shin Lin <yishin.lin@utas.edu.au> 
 - Andrew Heathcote 
 - William Holmes 
