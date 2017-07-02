@@ -1,5 +1,5 @@
 ---
-title: 'Probability Density Approximation using Graphics Processing Unit '
+title: 'Probability Density Approximation using Graphics Processing Unit'
 tags:
   - PDA
 authors:

@@ -1,5 +1,6 @@
 unsigned int nextPow2(unsigned int x);
 
+
 __global__ void min_kernel(double *g_idata, double *g_odata);
 __global__ void min_kernel(float *g_idata, float *g_odata);
 

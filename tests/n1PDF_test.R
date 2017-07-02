@@ -1,16 +1,22 @@
 rm(list=ls())
 
 ##   A    b  mean_v sd_v,    t0
-##0.07 0.09 -7.37   -4.36  0.94  0.049 
+##0.07 0.09 -7.37   -4.36  0.94  0.049
 
 data <- seq(0, 3, length.out = 1e3);
-den1 <- gpda::n1PDF(data, nsim=2^20, debug=T)
-den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
+den1 <- gpda::n1PDF(data, nsim=2^20, h = 0.01, debug=T)
+
+den2 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1),
                         t0=.5, silent=T)
+head(den1)
+str(den1)
+all.equal(den1, den2)
+## 2^24 is an ideal case
+## 2^28 is upper bound for one gpu
+## 2^30 K80
 
 plot(data, den1, type="l")
 lines(data, den2, lwd=2)
-all.equal(den1, den2)
 
 den1 <- gpda::n1PDF(data, nsim=2^20)
 
@@ -19,7 +25,7 @@ lines(data, den2, lwd=2)
 all.equal(den1, den2)
 
 
-den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), sd_v=c(1, 1), 
+den1 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), sd_v=c(1, 1),
   t0=.94, nsim=2^20, debug=T)
 den2 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), sd_v=c(1, 1),
   t0=.94, silent=T)
@@ -34,9 +40,9 @@ all.equal(den1, den2)
 
 
 
-tmp5 <- cpda::rlba_test(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
+tmp5 <- cpda::rlba_test(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v,
   t0=pvec[3])
-tmp6 <- rtdists::rLBA(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
+tmp6 <- rtdists::rLBA(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v,
   t0=pvec[3], silent=T)
 names(tmp6) <- c("RT","R")
 
@@ -52,9 +58,9 @@ all.equal(as.vector(tmp2), as.vector(tmp4))
 round(tmp1, 2)
 round(tmp4, 3)
 
-dat1 <- gpda::rlba(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
+dat1 <- gpda::rlba(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v,
   t0=pvec[3], nthread=64); str(dat1)
-dat2 <- cpda::rlba_test(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v, 
+dat2 <- cpda::rlba_test(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v,
   t0=pvec[3]); str(dat2)
 dat3 <- rtdists::rLBA(2^20, b=pvec[2], A=pvec[1], mean_v=mean_v, sd_v=sd_v,
   t0=pvec[3], silent=T)
@@ -92,7 +98,7 @@ lines(data,tmp4, lwd=3, col="red")
 plot(data,tmp4, lwd=3, col="red", type="l")
 
 par(mfrow=c(1,3))
-hist(dat1c, breaks="fd",  col="grey", freq=FALSE, xlab="RT (s)", 
+hist(dat1c, breaks="fd",  col="grey", freq=FALSE, xlab="RT (s)",
   main="GPU-Choice 1", xlim=c(0, 3)) ## gpu float
 lines(den2c, col="red",  lty="dashed",  lwd=1.5) ## cpu
 lines(den3c, col="blue", lty="dashed",  lwd=3.0) ## rtdists

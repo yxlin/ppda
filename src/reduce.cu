@@ -1,5 +1,3 @@
-//#include <unistd.h>
-//#include <stdio.h>  // C printing
 #include <R.h>  // R Rprintf
 //#include "../inst/include/common.h"
 #include "../inst/include/util.h"
@@ -52,8 +50,8 @@ __global__ void min_kernel(double *input, double *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
-      __syncthreads();
+    if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -66,16 +64,16 @@ __global__ void minunroll_kernel(double *input, double *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>32; s>>=1) {
-      if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
-      __syncthreads();
+    if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if (tid < 32) {
-          cache[tid] = fmin(cache[tid], cache[tid + 32]);
-          cache[tid] = fmin(cache[tid], cache[tid + 16]);
-          cache[tid] = fmin(cache[tid], cache[tid + 8]);
-          cache[tid] = fmin(cache[tid], cache[tid + 4]);
-          cache[tid] = fmin(cache[tid], cache[tid + 2]);
-          cache[tid] = fmin(cache[tid], cache[tid + 1]);
+    cache[tid] = fmin(cache[tid], cache[tid + 32]);
+    cache[tid] = fmin(cache[tid], cache[tid + 16]);
+    cache[tid] = fmin(cache[tid], cache[tid + 8]);
+    cache[tid] = fmin(cache[tid], cache[tid + 4]);
+    cache[tid] = fmin(cache[tid], cache[tid + 2]);
+    cache[tid] = fmin(cache[tid], cache[tid + 1]);
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -88,8 +86,8 @@ __global__ void min_kernel(float *input, float *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
-      __syncthreads();
+    if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -102,8 +100,8 @@ __global__ void max_kernel(double *input, double *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] = fmax(cache[tid], cache[tid + s]); }
-       __syncthreads();
+    if(tid < s) { cache[tid] = fmax(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -116,8 +114,8 @@ __global__ void max_kernel(float *input, float *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] = fmax(cache[tid], cache[tid + s]); }
-       __syncthreads();
+    if(tid < s) { cache[tid] = fmax(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -174,13 +172,11 @@ __global__ void sum_kernel(double *input, double *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] += cache[tid + s]; }
-      __syncthreads();
+    if(tid < s) { cache[tid] += cache[tid + s]; }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
-
-
 
 __global__ void sum_kernel(float *input, float *out) {
   __shared__ float cache[256];
@@ -190,12 +186,11 @@ __global__ void sum_kernel(float *input, float *out) {
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] += cache[tid + s]; }
-      __syncthreads();
+    if(tid < s) { cache[tid] += cache[tid + s]; }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
-
 
 __global__ void squareSum_kernel(unsigned int* n, double *input, double *out) {
   __shared__ double cache[256];
@@ -211,8 +206,8 @@ __global__ void squareSum_kernel(unsigned int* n, double *input, double *out) {
   __syncthreads();
   
   for(unsigned int s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] += cache[tid+s]; }
-      __syncthreads();
+    if(tid < s) { cache[tid] += cache[tid+s]; }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -231,8 +226,8 @@ __global__ void squareSum_kernel(unsigned int* n, float *input, float *out) {
   __syncthreads();
   
   for(unsigned int s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] += cache[tid+s]; }
-      __syncthreads();
+    if(tid < s) { cache[tid] += cache[tid+s]; }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -241,16 +236,16 @@ __global__ void n1min_kernel(float *RT0, float *out) {
   __shared__ float cache[256];
   unsigned int tid = threadIdx.x;
   unsigned int i   = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
-
+  
   if (RT0[i] == 0) { RT0[i] = CUDART_INF_F; }
   if (RT0[i + blockDim.x] == 0) { RT0[i + blockDim.x] = CUDART_INF_F; }
-
+  
   cache[tid] = fmin(RT0[i],RT0[i + blockDim.x]);
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
-      __syncthreads();
+    if(tid < s) { cache[tid] = fmin(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
@@ -259,20 +254,19 @@ __global__ void n1max_kernel(float *RT0, float *out) {
   __shared__ float cache[256];
   unsigned int tid = threadIdx.x;
   unsigned int i   = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
-
+  
   if (!isfinite(RT0[i])) { RT0[i] = 0; }
   if (!isfinite(RT0[i + blockDim.x])) { RT0[i + blockDim.x] = 0; }
-
+  
   cache[tid] = fmax(RT0[i],RT0[i + blockDim.x]);
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
-      if(tid < s) { cache[tid] = fmax(cache[tid], cache[tid + s]); }
-      __syncthreads();
+    if(tid < s) { cache[tid] = fmax(cache[tid], cache[tid + s]); }
+    __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
 }
-
 
 __global__ void count_kernel(unsigned int *n, unsigned int *R, unsigned int *out) {
   __shared__ unsigned int cache[256];
@@ -300,47 +294,46 @@ __global__ void count_kernel(unsigned int *n, unsigned int *R, unsigned int *out
 }
 
 void sum_entry(double *x, int *nx, bool *debug, double *out) {
-    unsigned int maxThreads = 256;
-    unsigned int nThread   = (*nx < maxThreads) ? nextPow2(*nx) : maxThreads;
-    unsigned int nBlk      = ((*nx) + nThread - 1) / nThread / 2;
-    size_t blockSize       = nBlk * sizeof(double);
-    size_t nxSize          = *nx * sizeof(double);
-    size_t unsignedintSize = 1*sizeof(unsigned int);
-    if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
-    unsigned int *h_nx, *d_nx;
-    double *d_x, *h_out, *d_out;
-
-    h_nx  = (unsigned int *)malloc(unsignedintSize);
-    h_out = (double *)malloc(blockSize);
-    *h_nx = (unsigned int)*nx;
+  unsigned int maxThreads = 256;
+  unsigned int nThread   = (*nx < maxThreads) ? nextPow2(*nx) : maxThreads;
+  unsigned int nBlk      = ((*nx) + nThread - 1) / nThread / 2;
+  size_t blockSize       = nBlk * sizeof(double);
+  size_t nxSize          = *nx * sizeof(double);
+  size_t unsignedintSize = 1*sizeof(unsigned int);
+  if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
   
-    cudaMalloc((void**) &d_out,  blockSize);
-    cudaMalloc((void**) &d_x,  nxSize);
-    cudaMalloc((void**) &d_nx, unsignedintSize);
-    cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice);
-    cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice);
-    sum_kernel<<<nBlk, nThread>>>(d_x, d_out);
-    cudaMemcpy(h_out, d_out, blockSize,   cudaMemcpyDeviceToHost);
-
-    for (unsigned int i=0; i<nBlk; i++) { out[0] += h_out[i]; }
-    cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out); free(h_nx); free(h_out); 
+  unsigned int *h_nx, *d_nx;
+  double *d_x, *h_out, *d_out;
+  
+  h_nx  = (unsigned int *)malloc(unsignedintSize);
+  h_out = (double *)malloc(blockSize);
+  *h_nx = (unsigned int)*nx;
+  
+  cudaMalloc((void**) &d_out,  blockSize);
+  cudaMalloc((void**) &d_x,  nxSize);
+  cudaMalloc((void**) &d_nx, unsignedintSize);
+  cudaMemcpy(d_x,  x,      nxSize,          cudaMemcpyHostToDevice);
+  cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice);
+  sum_kernel<<<nBlk, nThread>>>(d_x, d_out);
+  cudaMemcpy(h_out, d_out, blockSize,   cudaMemcpyDeviceToHost);
+  
+  for (unsigned int i=0; i<nBlk; i++) { out[0] += h_out[i]; }
+  cudaFree(d_x); cudaFree(d_nx); cudaFree(d_out); free(h_nx); free(h_out); 
 }
-
 
 void sqsum_entry(double *x, int *nx, bool *debug, double *out) {
   unsigned int maxThreads = 256;
   unsigned int nThread = (*nx < maxThreads) ? nextPow2(*nx) : maxThreads;
   unsigned int nBlk    = ((*nx) + nThread - 1) / nThread;
-
+  
   size_t blockSize       = nBlk * sizeof(double);
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
+  
   unsigned int *h_nx, *d_nx;
   double *d_x, *h_pssum, *d_pssum;
-
+  
   h_pssum = (double *)malloc(blockSize);
   h_nx    = (unsigned int *)malloc(unsignedintSize);
   *h_nx   = (unsigned int)*nx;
@@ -366,11 +359,11 @@ void sd_entry(double *x, int *nx, bool *debug, double *out) {
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
+  
   unsigned int *d_nx, *h_nx;
   double *d_x, *h_psum, *d_psum, *d_pssum, *h_pssum;
   double sum1 = 0, sum2 = 0;
-    
+  
   h_psum  = (double *)malloc(halfBlockSize);
   h_nx    = (unsigned int *)malloc(unsignedintSize);
   *h_nx   = (unsigned int)*nx;
@@ -382,10 +375,10 @@ void sd_entry(double *x, int *nx, bool *debug, double *out) {
   cudaMalloc((void**) &d_pssum, blockSize);
   cudaMemcpy(d_x,  x,    nxSize,          cudaMemcpyHostToDevice);
   cudaMemcpy(d_nx, h_nx, unsignedintSize, cudaMemcpyHostToDevice);
-
+  
   sum_kernel<<<nBlk/2, nThread>>>(d_x, d_psum);
   squareSum_kernel<<<nBlk, nThread>>>(d_nx, d_x, d_pssum);
-
+  
   cudaMemcpy(h_psum,  d_psum,  halfBlockSize, cudaMemcpyDeviceToHost);
   cudaMemcpy(h_pssum, d_pssum, blockSize,     cudaMemcpyDeviceToHost);
   
@@ -404,10 +397,10 @@ void min_entry(double *x, int *nx, bool *debug, double *out) {
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
+  
   unsigned int *h_nx, *d_nx;
   double *d_x, *d_out, *h_out;
-
+  
   h_nx  = (unsigned int *)malloc(unsignedintSize);
   h_out = (double *)malloc(blockSize);
   *h_nx = (unsigned int)*nx;
@@ -420,7 +413,7 @@ void min_entry(double *x, int *nx, bool *debug, double *out) {
   min_kernel<<<nBlk, nThread>>>(d_x, d_out);
   cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost);
   if (*debug) {for(int i=0; i<nBlk; i++) { Rprintf("h_out[%d]: %f\n", i, h_out[i]); }}
-
+  
   arma::vec min_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { min_tmp[i] = h_out[i]; }
   out[0] = min_tmp.min();
@@ -435,10 +428,10 @@ void max_entry(double *x, int *nx, bool *debug, double *out) {
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
+  
   unsigned int *h_nx, *d_nx;
   double *d_x, *d_out, *h_out;
-
+  
   h_nx  = (unsigned int *)malloc(unsignedintSize);
   h_out = (double *)malloc(blockSize);
   *h_nx = (unsigned int)*nx;
@@ -450,7 +443,7 @@ void max_entry(double *x, int *nx, bool *debug, double *out) {
   cudaMemcpy(d_nx, h_nx,   unsignedintSize, cudaMemcpyHostToDevice);
   max_kernel<<<nBlk, nThread>>>(d_x, d_out);
   cudaMemcpy(h_out, d_out, blockSize,       cudaMemcpyDeviceToHost);
-
+  
   arma::vec max_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { max_tmp[i] = h_out[i]; }
   out[0] = max_tmp.max();
@@ -465,14 +458,14 @@ void minmax_entry(double *x, int *nx, bool *debug, double *out) {
   size_t nxSize          = *nx * sizeof(double);
   size_t unsignedintSize = 1*sizeof(unsigned int);
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
+  
   unsigned int *h_nx, *d_nx;
   double *d_x, *d_out, *h_out;
-
+  
   h_nx  = (unsigned int *)malloc(unsignedintSize);
   h_out = (double *)malloc(2*blockSize);
   *h_nx = (unsigned int)*nx;
-
+  
   cudaMalloc((void**) &d_out, 2*blockSize);
   cudaMalloc((void**) &d_x,   nxSize);
   cudaMalloc((void**) &d_nx,  unsignedintSize);
@@ -484,8 +477,8 @@ void minmax_entry(double *x, int *nx, bool *debug, double *out) {
   arma::vec min_tmp(nBlk);
   arma::vec max_tmp(nBlk);
   for (int i=0; i<nBlk; i++) {
-      min_tmp[i] = h_out[i];
-      max_tmp[i] = h_out[i + nBlk];
+    min_tmp[i] = h_out[i];
+    max_tmp[i] = h_out[i + nBlk];
   }
   out[0] = min_tmp.min();
   out[1] = max_tmp.max();
@@ -498,7 +491,7 @@ void count_entry(int *nR, int *R, bool *debug, double *out) {
   unsigned int nBlk    = ((*nR) + nThread - 1) / nThread;
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nR, nBlk, nThread);
   size_t unsignedintSize = 1*sizeof(unsigned int);
-
+  
   unsigned int *h_out, *d_out, *h_n, *d_n, *h_R, *d_R;
   h_n  = (unsigned int *)malloc(unsignedintSize);
   *h_n = (unsigned int)*nR;
@@ -529,26 +522,26 @@ void n1min_entry(double *RT0, int *nx, bool *debug, double *out) {
   size_t nfSize        = *nx * sizeof(float);
   size_t uSize         = 1*sizeof(unsigned int);
   if (*debug) Rprintf("ndata, nblock & nthread: %d %d %d\n", *nx, nBlk, nThread);
-
+  
   unsigned int *h_nx, *d_nx;
   float *h_RT0, *d_RT0, *d_out, *h_out;
-
+  
   h_nx  = (unsigned int *)malloc(uSize);
   h_out = (float *)malloc(blockSize);
   *h_nx = (unsigned int)*nx;
   
   cudaHostAlloc((void**)&h_RT0, nfSize, cudaHostAllocDefault);
   for(int i=0; i<*nx; i++) { h_RT0[i] = (float)RT0[i]; }
-
+  
   cudaMalloc((void**) &d_RT0,  nfSize);
   cudaMalloc((void**) &d_nx,   uSize);
   cudaMalloc((void**) &d_out,  blockSize);
   cudaMemcpy(d_RT0, h_RT0, nfSize, cudaMemcpyHostToDevice);
   cudaMemcpy(d_nx,  h_nx,  uSize,  cudaMemcpyHostToDevice);
-
+  
   n1min_kernel<<<nBlk, nThread>>>(d_RT0, d_out);
   cudaMemcpy(h_out, d_out, blockSize, cudaMemcpyDeviceToHost);
-
+  
   arma::vec min_tmp(nBlk);
   for (int i=0; i<nBlk; i++) { min_tmp[i] = (double)h_out[i]; }
   out[0] = min_tmp.min();

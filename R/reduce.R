@@ -2,8 +2,9 @@
 #'
 #' sum, min, max, minmax and sd conduct basic math operations on a vector, to
 #' find summation, minimal, maximal, minimal and maximal at one go, and
-#' standard deviation. These functions are meant to operate in GPU memory. These
-#' R entry points are for testing. 
+#' standard deviation. These functions are meant to operate in GPU memory. 
+#' These R entry points are for testing. The corresponding R functions 
+#' in base and stats pacakages run faster.   
 #' 
 #' count is to count the numbers of responses in each response type in a 2AFC
 #' data set. Again, it meants to operate in GPU memory.
@@ -35,15 +36,12 @@ sum_gpu <- function(x, debug=FALSE) {
       as.logical(debug), numeric(1), PACKAGE='gpda')[[4]]
 }
 
-
-
 #' @rdname sum_gpu
 #' @export
 min_gpu <- function(x, debug=FALSE) {
   .C("min_entry", as.double(x), as.integer(length(x)),
     as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
 }
-
 
 #' @rdname sum_gpu
 #' @export
@@ -67,7 +65,6 @@ sqsum <- function(x, debug=FALSE) {
     PACKAGE="gpda")[[4]]
 }
 
-
 #' @rdname sum_gpu
 #' @export
 sd_gpu <- function(x, debug=FALSE) {
@@ -82,14 +79,12 @@ count <- function(x, debug=FALSE) {
     as.logical(debug), numeric(2), PACKAGE="gpda")[[4]]
 }
 
-
 #' @rdname sum_gpu
 #' @export
 n1min <- function(x, debug=FALSE) {
   .C("n1min_entry", as.double(x), as.integer(length(x)), as.logical(debug), 
     numeric(1), PACKAGE="gpda")[[4]]
 }
-
 
 sumur <- function(x, debug=TRUE) {
   .C("sumur_entry", as.double(x), as.integer(length(x)),
