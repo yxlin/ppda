@@ -1,5 +1,7 @@
 # Probability Density Approximation using Graphics Processing Unit 
 
+[![DOI](https://zenodo.org/badge/95934306.svg)](https://zenodo.org/badge/latestdoi/95934306)
+
 _gpda_ is an R package, conducting probability density approximation 
 (PDA; Turner & Sederberg, 2012; Holmes, 2015).  This package provides R 
 functions and CUDA C API to harness the parallel computing power of graphics 

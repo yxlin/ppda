@@ -14,7 +14,7 @@ Description: Use general purpose graphics processing unit (GP-GPU) to conduct
     Monte Carlo simulations of basic and piece-wise linear ballistic 
     accumulator models. The simulations are used to approximate the model 
     likelihood via a resample method described in Homles (2015). 
-License: GPL-2
+License: GPL-2 
 URL: https://github.com/TasCL/gpda
 BugReports: https://github.com/TasCL/gpda/issues
 SystemRequirements: Nvidia's CUDA toolkit (>= release 7.5)
