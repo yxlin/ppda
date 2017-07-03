@@ -1,6 +1,6 @@
 Package: gpda
 Version: 0.1.8
-Date: 2017-05-07
+Date: 2017-07-03
 Title: Probability Density Approximation Using Graphics Processing Unit
 Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
                     role = c("aut", "cre")),
@@ -10,8 +10,8 @@ Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
   role = "aut"))
 Maintainer: Yi-Shin Lin <yishin.lin@utas.edu.au>
 Depends: R (>= 3.0.2)
-Description: Use general purpose graphics processing unit (GP-GPU) to conduct  
-    Monte Carlo simulations of basic and piece-wise linear ballistic 
+Description: Use graphics processing unit (GPU) to conduct  
+    Monte Carlo simulations of canonical and piece-wise linear ballistic 
     accumulator models. The simulations are used to approximate the model 
     likelihood via a resample method described in Homles (2015). 
 License: GPL-2 
