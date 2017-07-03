@@ -39,8 +39,9 @@ a scalar or a pair of scalar values.
 \description{
 sum, min, max, minmax and sd conduct basic math operations on a vector, to
 find summation, minimal, maximal, minimal and maximal at one go, and
-standard deviation. These functions are meant to operate in GPU memory. These
-R entry points are for testing.
+standard deviation. These functions are meant to operate in GPU memory. 
+These R entry points are for testing. The corresponding R functions 
+in base and stats pacakages run faster.
 }
 \details{
 count is to count the numbers of responses in each response type in a 2AFC

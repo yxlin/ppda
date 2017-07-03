@@ -1,4 +1,4 @@
-OBJS = util.o random.o reduce.o density.o
+OBJS = util.o random.o reduce.o density.o 
 
 NVCC = /usr/local/cuda/bin/nvcc
 CUDA_HOME = /usr/local/cuda
@@ -19,7 +19,8 @@ LDFLAGS =
 LFLAGS=-lcurand -lcufft  ## curand
 
 #compiler/preprocessor options
-INCLUDES = -I. -I"$(CUDA_INCLUDE)" -I"$(R_INCLUDE)"
+#INCLUDES = -I. -I"$(CUDA_INCLUDE)" -I"$(R_INCLUDE)"
+INCLUDES = -I"$(CUDA_INCLUDE)" -I"$(R_INCLUDE)"
 LIBS = -L"$(CUDA_LIB)" -lcublas $(R_LIB)
 
 TARGETS = gpda.so

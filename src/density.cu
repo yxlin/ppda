@@ -3,7 +3,7 @@
 #include "../inst/include/reduce.h"
 #include "../inst/include/random.h"
 #include "../inst/include/util.h"  
-#include "../inst/include/common.h"
+// #include "../inst/include/common.h"
 #include <armadillo> 
 
 extern "C" void n1PDF(double *x, int *nx, int *nsim, double *b, double *A,
@@ -162,7 +162,7 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
     float h  = isnan(*h_in) ? 0.09*sd*std::pow((float)*nsim, -0.2) : (*h_in);
-    if(*debug) printf("h is: %f\n", h);
+    if(*debug) Rprintf("h is: %f\n", h);
     float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
     float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
     int ngrid = 1024;
@@ -558,7 +558,7 @@ void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
                 double *mean_v, int *nmean_v, double *sd_v, double *t0,
                 int *nth, double *h_in, bool *debug, double *out)
 {
-  CHECK(cudaSetDevice(1));
+  cudaSetDevice(1);
 
   size_t nsimfSize = *nsim * sizeof(float);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
@@ -591,7 +591,7 @@ void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
     float h  = isnan(*h_in) ? 0.09*sd*std::pow((float)*nsim, -0.2) : (*h_in);
-    if (*debug) printf("h is: %f\n", h);
+    if (*debug) Rprintf("h is: %f\n", h);
     // float h  = 0.09*sd*std::pow((float)*nsim, -0.2);
     float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
     float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;

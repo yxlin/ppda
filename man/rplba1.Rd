@@ -85,16 +85,18 @@ hist(ert3, breaks="fd")
 par(mfrow=c(1,1))
 
 ## It takes about 10 ms to simulate 2^20 rplba random numbers.
-## require(microbenchmark)
-## res <- microbenchmark(gpda::rplba1(n),
-##                       gpda::rplba2(n),
-##                       gpda::rplba3(n), times=10L)
+\dontrun{
+require(microbenchmark)
+res <- microbenchmark(gpda::rplba1(n),
+                      gpda::rplba2(n),
+                      gpda::rplba3(n), times=10L)
+}
 
 ## Unit: milliseconds
-##             expr      min       lq     mean   median       uq      max neval
-##  gpda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669    10
-##  gpda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774    10
-##  gpda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500    10
+##             expr      min       lq     mean   median       uq      max 
+##  gpda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669 
+##  gpda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774 
+##  gpda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500 
 
 }
 \references{

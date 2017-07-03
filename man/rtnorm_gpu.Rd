@@ -31,18 +31,20 @@ distribution.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+dat1 <- gpda::rtnorm_gpu(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 
+\dontrun{
 ## https://github.com/TasCL/tnorm
-## dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-## dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-den1 <- density(dat1)
-## den2 <- density(dat2)
-## den3 <- density(dat3)
+dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+den2 <- density(dat2)
+den3 <- density(dat3)
+summary(dat2)
+summary(dat3)
+}
 
+den1 <- density(dat1)
 summary(dat1)
-## summary(dat2)
-## summary(dat3)
 
 \dontrun{
 par(mfrow=c(1,3))
@@ -61,11 +63,16 @@ lines(den1$x, den1$y,lwd=2) ## gpu
 lines(den2$x, den2$y,lwd=2) ## tnorm
 lines(den3$x, den3$y,lwd=2) ## msn
 par(mfrow=c(1,1))
+}
 
 ## Unit: milliseconds
-##            expr       min         lq       mean     median         uq        max
-## gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   1.580943   6.976541
-## tnorm::rtnorm(n)  7.475374   8.317984   8.544317   8.345958   9.120224  10.220493
-## msm::rtnorm(n)   54.597366 109.426265 103.025877 110.050924 119.054471 125.192521
-}
+##            expr         min         lq       mean     median         
+##  gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   
+## tnorm::rtnorm(n)   7.475374   8.317984   8.544317   8.345958   
+##   msm::rtnorm(n)  54.597366 109.426265 103.025877 110.050924 
+##         uq        max
+##   1.580943   6.976541
+##   9.120224  10.220493
+## 119.054471 125.192521
+
 }

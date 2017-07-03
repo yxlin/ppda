@@ -2,9 +2,13 @@
 % Please edit documentation in R/density.R
 \name{n1PDF}
 \alias{n1PDF}
+\alias{n1PDF_ngpu}
 \title{Approximate Node 1 Density of a Canonical LBA Model}
 \usage{
 n1PDF(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
+  sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE)
+
+n1PDF_ngpu(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
   sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE)
 }
 \arguments{
@@ -46,6 +50,9 @@ a numeric likelihood vector.
 This is the probability density function for the canonical 2-accumualtor LBA 
 model, sampling drift rates from truncated normal distributions. The 
 function approximates model likelihood, instead of calculating analytically.
+}
+\details{
+\code{n1PDf_ngpu} uses second GPU card, if there is any.
 }
 \examples{
 ##### n1PDF examples 

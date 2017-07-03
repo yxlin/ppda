@@ -40,15 +40,14 @@ This function generates two-accumulator LBA random numbers using GPU.
 rlba_n1 draws only node 1 random numbers.
 }
 \examples{
-rm(list=ls())
 n <- 2^20
-dat1 <- gpda::rlba(n, nthread=64); 
-## dat2 <- cpda::rlba_test(n)
-## dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
-##                       silent=TRUE)
-## names(dat3) <- c("RT","R")
-
+dat1 <- gpda::rlba(n, nthread=64) 
 \dontrun{
+dat2 <- cpda::rlba_test(n)
+dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
+                      t0=.5, silent=TRUE)
+names(dat3) <- c("RT","R")
+
 ## Trim ----
 sum(dat1$RT>5); sum(dat2$RT>5); sum(dat3$RT>5)
 
@@ -96,24 +95,31 @@ lines(den2e$x, den2e$y, col="red", lwd=2, lty="dotted")
 
 lines(den3c$x, den3c$y, col="blue", lwd=2, lty="dashed")
 lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
+}
 
 
 ## Because R script takes a while to run, so I repeated 10 times only
 ## microbenchmark can still give reliable and precise estimation.
+\dontrun{
 library(microbenchmark)
 res <- microbenchmark(gpda::rlba(n, dp=FALSE),
                       gpda::rlba(n, dp=TRUE),
                       cpda::rlba_test(n),
                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
+}
 
 ## Unit: milliseconds
-##                  expr    min       lq     mean   median       uq      max neval cld
-## gpda::rlba(n, dp=F)     8.31     8.47     9.17     8.53     9.21    11.59    10   a
-## gpda::rlba(n, dp=T)    11.86    11.96    12.31    12.06    12.17    14.86    10   a
-## cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   225.72    10   b
-## rtdists::rLBA(n, .) 13521.67 13614.74 13799.59 13770.78 13919.77 14177.51    10   c
-}
+##                  expr     min       lq     mean   median       uq      
+## gpda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
+## gpda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
+##  cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   
+## rtdists::rLBA(n, .)  13521.67 13614.74 13799.59 13770.78 13919.77 
+##      max neval cld
+##    11.59    10   a
+##    14.86    10   a
+##   225.72    10   b
+## 14177.51    10   c
 
 rm(list=ls())
 n <- 2^20; n
@@ -121,11 +127,12 @@ dat1 <- gpda::rlba_n1(n, nthread=64, dp=TRUE);  str(dat1)
 dat2 <- gpda::rlba_n1(n, nthread=64, dp=FALSE); str(dat2)
 
 \dontrun{
-res <- microbenchmark(
+res <- microbenchmark::microbenchmark(
 gpda::rlba_n1(n, dp=F),
 gpda::rlba_n1(n, dp=T), times=10L)
-
 res
+}
+
 ## Unit: milliseconds
 ##                     expr       min        lq     mean   median       uq
 ## gpda::rlba_n1(n, dp = F)  9.572601  9.949197 17.33809 10.82227 11.41039
@@ -133,6 +140,5 @@ res
 ##      max neval cld
 ## 44.93433    10   a
 ## 49.63786    10   a
-}
 
 }

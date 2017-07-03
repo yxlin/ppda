@@ -25,7 +25,7 @@ This function generates random numbers from a normal distribution, using GPU.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rnorm(n)
+dat1 <- gpda::rnorm_gpu(n)
 dat2 <- stats::rnorm(n)
 den1 <- density(dat1)
 den2 <- density(dat2)
@@ -40,8 +40,9 @@ par(mfrow=c(1,1))
 
 \dontrun{
 require(microbenchmark)
-res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
-                       stats::rnorm(n), times=100L)
+res <- microbenchmark(gpda::rnorm_gpu(n, dp=TRUE), 
+                      gpda::rnorm_gpu(n, dp=FALSE),
+                      stats::rnorm(n), times=100L)
 }
 ## Unit: milliseconds
 ##                     expr       min        lq      mean    median        uq

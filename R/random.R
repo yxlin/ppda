@@ -14,7 +14,7 @@
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::runif(n)
+#' dat1 <- gpda::runif_gpu(n)
 #' dat2 <- stats::runif(n)
 #' den1 <- density(dat1)
 #' den2 <- density(dat2)
@@ -29,8 +29,9 @@
 #'
 #' \dontrun{
 #' require(microbenchmark)
-#' res <- microbenchmark(gpda::runif(n, dp=FALSE), gpda::runif(n, dp=TRUE),
-#'                        stats::runif(n), times=100L)
+#' res <- microbenchmark(gpda::runif_gpu(n, dp=FALSE), 
+#'                       gpda::runif_gpu(n, dp=TRUE),
+#'                       stats::runif(n), times=100L)
 #' ## Unit: milliseconds
 #' ##                        expr       min        lq      mean    median  
 #' ##  gpda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  
@@ -61,7 +62,7 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rnorm(n)
+#' dat1 <- gpda::rnorm_gpu(n)
 #' dat2 <- stats::rnorm(n)
 #' den1 <- density(dat1)
 #' den2 <- density(dat2)
@@ -76,8 +77,9 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #'
 #' \dontrun{
 #' require(microbenchmark)
-#' res <- microbenchmark(gpda::rnorm(n, dp=TRUE), gpda::rnorm(n, dp=FALSE),
-#'                        stats::rnorm(n), times=100L)
+#' res <- microbenchmark(gpda::rnorm_gpu(n, dp=TRUE), 
+#'                       gpda::rnorm_gpu(n, dp=FALSE),
+#'                       stats::rnorm(n), times=100L)
 #' }
 #' ## Unit: milliseconds
 #' ##                     expr       min        lq      mean    median        uq
@@ -112,18 +114,20 @@ rnorm_gpu <- function(n, mean=0, sd=1, nthread=32, dp=FALSE) {
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+#' dat1 <- gpda::rtnorm_gpu(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 #' 
+#' \dontrun{
 #' ## https://github.com/TasCL/tnorm
-#' ## dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-#' ## dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
-#' den1 <- density(dat1)
-#' ## den2 <- density(dat2)
-#' ## den3 <- density(dat3)
+#' dat2 <- tnorm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+#' dat3 <- msm::rtnorm(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+#' den2 <- density(dat2)
+#' den3 <- density(dat3)
+#' summary(dat2)
+#' summary(dat3)
+#' }
 #' 
+#' den1 <- density(dat1)
 #' summary(dat1)
-#' ## summary(dat2)
-#' ## summary(dat3)
 #' 
 #' \dontrun{
 #' par(mfrow=c(1,3))
@@ -189,15 +193,14 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' @return a data frame with first column named RT and second column named R.
 #' @export
 #' @examples
-#' rm(list=ls())
 #' n <- 2^20
-#' dat1 <- gpda::rlba(n, nthread=64); 
-#' ## dat2 <- cpda::rlba_test(n)
-#' ## dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5,
-#' ##                       silent=TRUE)
-#' ## names(dat3) <- c("RT","R")
-#'
+#' dat1 <- gpda::rlba(n, nthread=64) 
 #' \dontrun{
+#' dat2 <- cpda::rlba_test(n)
+#' dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
+#'                       t0=.5, silent=TRUE)
+#' names(dat3) <- c("RT","R")
+#'
 #' ## Trim ----
 #' sum(dat1$RT>5); sum(dat2$RT>5); sum(dat3$RT>5)
 #' 
@@ -245,6 +248,7 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' 
 #' lines(den3c$x, den3c$y, col="blue", lwd=2, lty="dashed")
 #' lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
+#' }
 #' 
 #'
 #' ## Because R script takes a while to run, so I repeated 10 times only
@@ -279,9 +283,9 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' res <- microbenchmark::microbenchmark(
 #' gpda::rlba_n1(n, dp=F),
 #' gpda::rlba_n1(n, dp=T), times=10L)
+#' res
 #' }
 #' 
-#' res
 #' ## Unit: milliseconds
 #' ##                     expr       min        lq     mean   median       uq
 #' ## gpda::rlba_n1(n, dp = F)  9.572601  9.949197 17.33809 10.82227 11.41039
