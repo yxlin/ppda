@@ -174,6 +174,7 @@ install.packages("gpda_0.1.8.tar.gz", repos = NULL, type="source")
  - GeForce GT 720M
  - GeForce GTX 980
  - Tesla K80
+ - Tesla K20
  
 ## Contributors
 - Yi-Shin Lin <yishin.lin@utas.edu.au> 
