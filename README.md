@@ -181,6 +181,8 @@ install.packages("ppda_0.1.8.5.tar.gz", repos = NULL, type="source")
 * ppda R packaging is based on gputools 1.1.
 
 ## References
+* Lin, Y.-S., Heathcote, A., & Holmes, W. (Manuscript in prepration). Parallel
+Probability Density Approximation.
 
 * Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.
