@@ -2,31 +2,31 @@
 % Please edit documentation in R/random.R
 \name{rtnorm_gpu}
 \alias{rtnorm_gpu}
-\title{Generate Random numbers from a Truncated Normal Distribution}
+\title{Generate Random Numbers from a Truncated Normal Distribution}
 \usage{
-rtnorm_gpu(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, dp = FALSE,
-  nthread = 32)
+rtnorm_gpu(n, mean = 0, sd = 1, lower = -Inf, upper = Inf,
+  nthread = 32, dp = FALSE)
 }
 \arguments{
-\item{n}{number of observations. Only accept an integer scalar}
+\item{n}{number of observations. Must be scalar an integer}
 
-\item{mean}{mean. Only a scalar}
+\item{mean}{mean. Must be a scalar}
 
-\item{sd}{standard deviations. Only accept a scalar}
+\item{sd}{standard deviations. Must be a scalar}
 
-\item{lower}{lower bound. Only accept a scalar}
+\item{lower}{lower bound. Must be a scalar}
 
-\item{upper}{upper bound. Only accept a scalar}
-
-\item{dp}{whether calculate using double precision. Default is FALSE.}
+\item{upper}{upper bound. Must be a scalar}
 
 \item{nthread}{number of threads launched per block.}
+
+\item{dp}{whether calculate using double precision. Default is FALSE.}
 }
 \value{
 a double vector
 }
 \description{
-This function generates random numbers using GPU from a truncated normal 
+This function generates random numbers from a truncated normal 
 distribution.
 }
 \examples{

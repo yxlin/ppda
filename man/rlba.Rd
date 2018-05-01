@@ -3,7 +3,7 @@
 \name{rlba}
 \alias{rlba}
 \alias{rlba_n1}
-\title{The Random Number Generator of the Basic Linear Ballistic Accumulation Model}
+\title{Generate Random Numbers from a Canonical LBA Model}
 \usage{
 rlba(n, b = 1, A = 0.5, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
   t0 = 0.5, nthread = 32, dp = FALSE)
@@ -12,19 +12,19 @@ rlba_n1(n, b = 1, A = 0.5, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
   t0 = 0.5, nthread = 32, dp = FALSE)
 }
 \arguments{
-\item{n}{numbers of observation. This accepts only integer scalar.}
+\item{n}{numbers of observation. Must be an integer.}
 
-\item{b}{threshold.  (b-A/2) is response caution.}
+\item{b}{threshold. \eqn{b - A/2} is response caution.}
 
-\item{A}{starting point upper bound. This is the upper boundary for an 
-uniform distribution that draws a realisation of starting point evidence. 
-Presumably, across-trial average starting evidence is A/2.}
+\item{A}{the upper bound of start-point. This is the upper boundary for a 
+uniform distribution that draws a start value of the sensory evidence. 
+The average (across trials) start-evidence is \eqn{A/2}.}
 
-\item{mean_v}{means of drift rate. This must be a vector of 2 values.}
+\item{mean_v}{mean drift rates. This must be a 2-element vector.}
 
-\item{sd_v}{drift rate standard deviations. This must be a vector of 2 values.}
+\item{sd_v}{drift rate standard deviations. This must be a 2-element vector.}
 
-\item{t0}{non-decision times. Must be a scalar.}
+\item{t0}{non-decision time. Must be a scalar.}
 
 \item{nthread}{number of threads launched per block.}
 
@@ -34,21 +34,24 @@ Presumably, across-trial average starting evidence is A/2.}
 a data frame with first column named RT and second column named R.
 }
 \description{
-This function generates two-accumulator LBA random numbers using GPU.
-}
-\details{
-rlba_n1 draws only node 1 random numbers.
+This function generates two-accumulator LBA random numbers. \code{rlba_n1} 
+draws only node 1 random numbers.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rlba(n, nthread=64) 
+dat1 <- gpda::rlba(n, nthread = 64) 
 \dontrun{
-dat2 <- cpda::rlba_test(n)
-dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
-                      t0=.5, silent=TRUE)
+dat2 <- ggdmc::rlba(n , A = .5, b = 1, t0 = .5, mean_v = c(2.4, 1.6), 
+                    sd_v = c(1, 1))
+dat2 <- data.frame(RT = dat2[,1], R = dat2[,2])
+dat3 <- rtdists::rLBA(n, b = 1, A = .5, mean_v = c(2.4, 1.6), sd_v = c(1, 1), 
+                      t0 = .5, silent = TRUE)
 names(dat3) <- c("RT","R")
 
 ## Trim ----
+## Show numbers of long RTs; Should be around a few hundreds
+## These RTs are the cause to make Silverman's method not suitable for 
+## choice-RT data. 
 sum(dat1$RT>5); sum(dat2$RT>5); sum(dat3$RT>5)
 
 dat1 <- dat1[dat1$RT < 5, ]
@@ -104,7 +107,6 @@ lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
 library(microbenchmark)
 res <- microbenchmark(gpda::rlba(n, dp=FALSE),
                       gpda::rlba(n, dp=TRUE),
-                      cpda::rlba_test(n),
                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 }
@@ -113,7 +115,6 @@ sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 ##                  expr     min       lq     mean   median       uq      
 ## gpda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
 ## gpda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
-##  cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   
 ## rtdists::rLBA(n, .)  13521.67 13614.74 13799.59 13770.78 13919.77 
 ##      max neval cld
 ##    11.59    10   a
@@ -123,13 +124,13 @@ sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 
 rm(list=ls())
 n <- 2^20; n
-dat1 <- gpda::rlba_n1(n, nthread=64, dp=TRUE);  str(dat1)
-dat2 <- gpda::rlba_n1(n, nthread=64, dp=FALSE); str(dat2)
+dat1 <- gpda::rlba_n1(n, nthread = 64, dp=TRUE);  str(dat1)
+dat2 <- gpda::rlba_n1(n, nthread = 64, dp=FALSE); str(dat2)
 
 \dontrun{
 res <- microbenchmark::microbenchmark(
-gpda::rlba_n1(n, dp=F),
-gpda::rlba_n1(n, dp=T), times=10L)
+gpda::rlba_n1(n, dp = F),
+gpda::rlba_n1(n, dp = T), times = 10L)
 res
 }
 

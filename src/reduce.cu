@@ -1,5 +1,5 @@
 #include <R.h>  // R Rprintf
-//#include "../inst/include/common.h"
+// #include "../inst/include/common.h"
 #include "../inst/include/util.h"
 #include <armadillo> // Armadillo vector operations
 
@@ -236,11 +236,14 @@ __global__ void n1min_kernel(float *RT0, float *out) {
   __shared__ float cache[256];
   unsigned int tid = threadIdx.x;
   unsigned int i   = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
-  
-  if (RT0[i] == 0) { RT0[i] = CUDART_INF_F; }
+
+  // b'cz node 2 is always set to 0 in rplba3_n1, when RT0 == 0, it is node 2.
+  // I set it to Infinity, so any real number comparing to Inf will always
+  // be smaller. 
+  if (RT0[i] == 0) { RT0[i] = CUDART_INF_F; } 
   if (RT0[i + blockDim.x] == 0) { RT0[i + blockDim.x] = CUDART_INF_F; }
   
-  cache[tid] = fmin(RT0[i],RT0[i + blockDim.x]);
+  cache[tid] = fmin(RT0[i], RT0[i + blockDim.x]);
   __syncthreads();
   
   for(size_t s=blockDim.x/2; s>0; s>>=1) {
@@ -248,6 +251,31 @@ __global__ void n1min_kernel(float *RT0, float *out) {
     __syncthreads();
   }
   if(tid==0) out[blockIdx.x] = cache[0];
+}
+
+__global__ void min2nodes_kernel(float *RT, unsigned int *R, float *out1,
+    float *out2) {
+  __shared__ float cache1[256];
+  __shared__ float cache2[256];
+  unsigned int tid = threadIdx.x;
+  unsigned int i   = blockIdx.x * (blockDim.x * 2) + threadIdx.x;
+  
+  if (R[i] == 1 && R[i + blockDim.x] == 1) {cache1[tid] = fmin(RT[i], RT[i + blockDim.x]);}
+  __syncthreads();
+  if (R[i] == 2 && R[i + blockDim.x] == 2) {cache2[tid] = fmin(RT[i], RT[i + blockDim.x]);}
+  __syncthreads();
+  
+  for(size_t s = blockDim.x/2; s>0; s>>=1) {
+    if(tid < s) {
+        cache1[tid] = fmin(cache1[tid], cache1[tid + s]);
+        cache2[tid] = fmin(cache2[tid], cache2[tid + s]);
+    }
+    __syncthreads();
+  }
+  if(tid==0) {
+      out1[blockIdx.x] = cache1[0];
+      out2[blockIdx.x] = cache2[0];
+  }
 }
 
 __global__ void n1max_kernel(float *RT0, float *out) {

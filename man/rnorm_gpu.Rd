@@ -21,7 +21,7 @@ rnorm_gpu(n, mean = 0, sd = 1, nthread = 32, dp = FALSE)
 a double vector
 }
 \description{
-This function generates random numbers from a normal distribution, using GPU.
+This function generates random numbers from a normal distribution.
 }
 \examples{
 n <- 2^20
@@ -31,12 +31,12 @@ den1 <- density(dat1)
 den2 <- density(dat2)
 
 ## Identical 
-par(mfrow=c(1,2))
+par(mfrow=c(1, 2))
 hist(dat2, breaks="fd", freq=FALSE)
 lines(den1$x, den1$y,lwd=2)
 hist(dat1, breaks="fd", freq=FALSE)
 lines(den2$x, den2$y,lwd=2)
-par(mfrow=c(1,1))
+par(mfrow=c(1, 1))
 
 \dontrun{
 require(microbenchmark)

@@ -1,16 +1,12 @@
 #' Generate Uniform Random Numbers Using GPU 
 #'
-#' This function generates random numbers from an uniform distribution 
-#' using GPU.
+#' This function generates random numbers from a uniform distribution.
 #'
-#' @param n numbers of observation. This must be a scalar.
-#' @param min lower bound of the uniform distribution. Must be finite. 
-#' This must be a scalar.  
-#' @param max upper bound of the uniform distribution. Must be finite. 
-#' This must be a scalar.
+#' @param n number of observations. This must be a scalar.
+#' @param min,max lower and upper bounds of the distribution. Must be finite. 
 #' @param nthread number of threads launched per block. 
 #' @param dp whether calculate using double precision. Default is FALSE.
-#' @return a double vector
+#' @return a vector of random deviates.
 #' @export
 #' @examples
 #' n <- 2^20
@@ -20,10 +16,10 @@
 #' den2 <- density(dat2)
 #' 
 #' ## Identical result
-#' par(mfrow=c(1,2))
-#' hist(dat2, breaks="fd", freq=FALSE, ylim=c(0,1.1))
+#' par(mfrow=c(1, 2), mar = c(4, 5.3, 0.82, 1))
+#' hist(dat2, breaks = "fd", freq = FALSE, ylim = c(0, 1.1))
 #' lines(den1$x, den1$y,lwd=2)
-#' hist(dat1, breaks="fd", freq=FALSE, ylim=c(0,1.1))
+#' hist(dat1, breaks = "fd", freq = FALSE, ylim = c(0, 1.1))
 #' lines(den2$x, den2$y,lwd=2)
 #' par(mfrow=c(1,1))
 #'
@@ -42,8 +38,8 @@
 #' ##  6.957797  31.85638   100   b 
 #' ## 24.789670  49.04686   100   c
 #' }
-runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
-  if ( length(min) != 1 | length(max) != 1 )
+runif_gpu <- function(n, min = 0, max = 1, nthread = 32, dp = FALSE) {
+  if ( length(min) != 1 | length(max) != 1 ) 
     stop("min and max must be a scalar!")
   .C("runif_entry", as.integer(n),  as.double(min), as.double(max),
      as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "gpda")[[6]]
@@ -51,7 +47,7 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 
 #' Generate Gaussian Random Numbers using GPU 
 #'
-#' This function generates random numbers from a normal distribution, using GPU.
+#' This function generates random numbers from a normal distribution.
 #'
 #' @param n numbers of observation. Must be a scalar
 #' @param mean mean. Must be a scalar.
@@ -68,12 +64,12 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #' den2 <- density(dat2)
 #' 
 #' ## Identical 
-#' par(mfrow=c(1,2))
+#' par(mfrow=c(1, 2))
 #' hist(dat2, breaks="fd", freq=FALSE)
 #' lines(den1$x, den1$y,lwd=2)
 #' hist(dat1, breaks="fd", freq=FALSE)
 #' lines(den2$x, den2$y,lwd=2)
-#' par(mfrow=c(1,1))
+#' par(mfrow=c(1, 1))
 #'
 #' \dontrun{
 #' require(microbenchmark)
@@ -90,7 +86,7 @@ runif_gpu <- function(n, min=0, max=1, nthread=32, dp=FALSE) {
 #' ## 34.97274   100    b 
 #' ## 11.70719   100    a  
 #' ## 80.32002   100    c
-rnorm_gpu <- function(n, mean=0, sd=1, nthread=32, dp=FALSE) {
+rnorm_gpu <- function(n, mean = 0, sd = 1, nthread = 32, dp = FALSE) {
   if ( length(mean) != 1 | length(sd) != 1 )
         stop("mean and sd must be a scalar!")
   if (sd < 0) stop("sd must be greater than 0!")
@@ -98,16 +94,16 @@ rnorm_gpu <- function(n, mean=0, sd=1, nthread=32, dp=FALSE) {
     as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "gpda")[[6]]
 }
 
-#' Generate Random numbers from a Truncated Normal Distribution  
+#' Generate Random Numbers from a Truncated Normal Distribution  
 #'
-#' This function generates random numbers using GPU from a truncated normal 
+#' This function generates random numbers from a truncated normal 
 #' distribution.
 #' 
-#' @param n number of observations. Only accept an integer scalar
-#' @param mean mean. Only a scalar
-#' @param sd standard deviations. Only accept a scalar
-#' @param lower lower bound. Only accept a scalar
-#' @param upper upper bound. Only accept a scalar
+#' @param n number of observations. Must be scalar an integer
+#' @param mean mean. Must be a scalar
+#' @param sd standard deviations. Must be a scalar
+#' @param lower lower bound. Must be a scalar
+#' @param upper upper bound. Must be a scalar
 #' @param nthread number of threads launched per block.
 #' @param dp whether calculate using double precision. Default is FALSE.
 #' @return a double vector
@@ -158,13 +154,13 @@ rnorm_gpu <- function(n, mean=0, sd=1, nthread=32, dp=FALSE) {
 #' ##   9.120224  10.220493
 #' ## 119.054471 125.192521
 #' 
-rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE, 
-  nthread=32) 
+rtnorm_gpu <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf, 
+  nthread = 32, dp = FALSE) 
 {
   if( length(mean) != 1 | length(sd) != 1 | length(lower) != 1 | 
-      length(upper) != 1) { stop("mean, sd, lower, or upper must be scalar!") }
+      length(upper) != 1) { stop("mean, sd, lower, or upper must be a scalar!") }
   if(upper <= lower) stop("upper must be greater than lower!")
-  if(sd <= 0) stop("Standard deviation cannot be 0 or negative!") 
+  if(sd < 0) stop("Standard deviation cannot be negative!") 
 
   out <- .C("rtnorm_entry", as.integer(n), as.double(mean),
       as.double(sd), as.double(lower), as.double(upper),
@@ -174,34 +170,38 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 }
 
 
-#' The Random Number Generator of the Basic Linear Ballistic Accumulation Model
+#' Generate Random Numbers from a Canonical LBA Model 
 #'
-#' This function generates two-accumulator LBA random numbers using GPU.
-#' 
-#' rlba_n1 draws only node 1 random numbers.
+#' This function generates two-accumulator LBA random numbers. \code{rlba_n1} 
+#' draws only node 1 random numbers. 
 #'
-#' @param n numbers of observation. This accepts only integer scalar.
-#' @param b threshold.  (b-A/2) is response caution.
-#' @param A starting point upper bound. This is the upper boundary for an 
-#' uniform distribution that draws a realisation of starting point evidence. 
-#' Presumably, across-trial average starting evidence is A/2.
-#' @param mean_v means of drift rate. This must be a vector of 2 values.
-#' @param sd_v drift rate standard deviations. This must be a vector of 2 values.
-#' @param t0 non-decision times. Must be a scalar.
+#' @param n numbers of observation. Must be an integer.
+#' @param b threshold. \eqn{b - A/2} is response caution.
+#' @param A the upper bound of start-point. This is the upper boundary for a 
+#' uniform distribution that draws a start value of the sensory evidence. 
+#' The average (across trials) start-evidence is \eqn{A/2}.
+#' @param mean_v mean drift rates. This must be a 2-element vector.
+#' @param sd_v drift rate standard deviations. This must be a 2-element vector.
+#' @param t0 non-decision time. Must be a scalar.
 #' @param nthread number of threads launched per block.
 #' @param dp whether calculate using double precision. Default is FALSE.
 #' @return a data frame with first column named RT and second column named R.
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rlba(n, nthread=64) 
+#' dat1 <- gpda::rlba(n, nthread = 64) 
 #' \dontrun{
-#' dat2 <- cpda::rlba_test(n)
-#' dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
-#'                       t0=.5, silent=TRUE)
+#' dat2 <- ggdmc::rlba(n , A = .5, b = 1, t0 = .5, mean_v = c(2.4, 1.6), 
+#'                     sd_v = c(1, 1))
+#' dat2 <- data.frame(RT = dat2[,1], R = dat2[,2])
+#' dat3 <- rtdists::rLBA(n, b = 1, A = .5, mean_v = c(2.4, 1.6), sd_v = c(1, 1), 
+#'                       t0 = .5, silent = TRUE)
 #' names(dat3) <- c("RT","R")
 #'
 #' ## Trim ----
+#' ## Show numbers of long RTs; Should be around a few hundreds
+#' ## These RTs are the cause to make Silverman's method not suitable for 
+#' ## choice-RT data. 
 #' sum(dat1$RT>5); sum(dat2$RT>5); sum(dat3$RT>5)
 #' 
 #' dat1 <- dat1[dat1$RT < 5, ]
@@ -257,7 +257,6 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' library(microbenchmark)
 #' res <- microbenchmark(gpda::rlba(n, dp=FALSE),
 #'                       gpda::rlba(n, dp=TRUE),
-#'                       cpda::rlba_test(n),
 #'                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 #' sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 #' }
@@ -266,7 +265,6 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' ##                  expr     min       lq     mean   median       uq      
 #' ## gpda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
 #' ## gpda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
-#' ##  cpda::rlba_test(n)    201.83   202.05   209.32   202.84   225.03   
 #' ## rtdists::rLBA(n, .)  13521.67 13614.74 13799.59 13770.78 13919.77 
 #' ##      max neval cld
 #' ##    11.59    10   a
@@ -276,13 +274,13 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #'
 #' rm(list=ls())
 #' n <- 2^20; n
-#' dat1 <- gpda::rlba_n1(n, nthread=64, dp=TRUE);  str(dat1)
-#' dat2 <- gpda::rlba_n1(n, nthread=64, dp=FALSE); str(dat2)
+#' dat1 <- gpda::rlba_n1(n, nthread = 64, dp=TRUE);  str(dat1)
+#' dat2 <- gpda::rlba_n1(n, nthread = 64, dp=FALSE); str(dat2)
 #'
 #' \dontrun{
 #' res <- microbenchmark::microbenchmark(
-#' gpda::rlba_n1(n, dp=F),
-#' gpda::rlba_n1(n, dp=T), times=10L)
+#' gpda::rlba_n1(n, dp = F),
+#' gpda::rlba_n1(n, dp = T), times = 10L)
 #' res
 #' }
 #' 
@@ -294,13 +292,12 @@ rtnorm_gpu <- function(n, mean=0, sd=1, lower=-Inf , upper=Inf, dp=FALSE,
 #' ## 44.93433    10   a
 #' ## 49.63786    10   a
 #' 
-rlba <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
-  nthread=32, dp=FALSE) {
+rlba <- function(n, b = 1, A = 0.5, mean_v = c(2.4, 1.6), sd_v = c(1, 1), 
+  t0 = 0.5, nthread = 32, dp = FALSE) {
   if (any(sd_v < 0)) stop("Standard deviation must be positive.\n")
   nmean_v <- length(mean_v)
   nsd_v   <- length(sd_v)
-  if (nsd_v == 1) 
-  {
+  if (nsd_v == 1)  {
     sd_v  <- rep(sd_v, nmean_v)
     nsd_v <- length(sd_v)
   }
@@ -324,7 +321,7 @@ rlba <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
 
 #' @rdname rlba
 #' @export
-rlba_n1 <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
+rlba_n1 <- function(n, b = 1, A = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
   nthread=32, dp=FALSE) {
   if (any(sd_v < 0)) stop("Standard deviation must be positive.\n")
   nmean_v <- length(mean_v)
@@ -375,6 +372,8 @@ rlba_n1 <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
 #' for plba3 only.   
 #' @param swt an external switch time when task information changes.   
 #' @param t0 non-decision time.  
+#' @param gpuid select which GPU to conduct model simulation, if running on 
+#' multiple GPU machines.
 #' @param nthread numbers of launched GPU threads. Default is a wrap.
 #' @return a 2-column data frame [RT R]. 
 #' @references Holmes, W., Trueblood, J. S., & Heathcote, A. (2016). A new 
@@ -418,41 +417,58 @@ rlba_n1 <- function(n, b=1, A=0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
 #' ##  gpda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500 
 #' 
 #' @export
-rplba1 <- function(n, b=2.7, A=1.5, mean_v=c(3.3, 2.2), mean_w=c(1.5, 1.2),
-                   sd_v=c(1, 1), rD=.3, swt=.5, t0=.5, nthread=32) {
+rplba0 <- function(n, A = 1.5, b = 2.7, t0 = .5, mean_v = c(3.3, 2.2), 
+mean_w = c(1.5, 1.2), sd_v = c(1, 1), rD = .3, swt = .5, nthread=32,
+gpuid = 0) {
+  T0 <- swt + rD
+  result <- .C("rplba0_entry",
+    as.integer(n),
+    as.double(b), as.double(A),
+    as.double(mean_v), as.integer(length(mean_v)),
+    as.double(mean_w), as.double(sd_v), as.double(t0),
+    as.double(T0), as.integer(nthread), as.integer(gpuid),
+    integer(n), numeric(n), PACKAGE = "gpda")
+  return(data.frame(RT = result[[13]], R = result[[12]]))
+}
+
+#' @rdname rplba0
+#' @export
+rplba1 <- function(n, A = 1.5, b = 2.7, t0 = .5, mean_v = c(3.3, 2.2), 
+  mean_w = c(1.5, 1.2), sd_v = c(1, 1), rD = .3, swt = .5, nthread=32,
+  gpuid = 0) {
     T0 <- swt + rD
     result <- .C("rplba1_entry",
                  as.integer(n),
                  as.double(b), as.double(A),
                  as.double(mean_v), as.integer(length(mean_v)),
                  as.double(mean_w), as.double(sd_v), as.double(t0),
-                 as.double(T0), as.integer(nthread),
+                 as.double(T0), as.integer(nthread), as.integer(gpuid),
                  integer(n), numeric(n), PACKAGE = "gpda")
-    return(data.frame(RT = result[[12]], R = result[[11]]))
+    return(data.frame(RT = result[[13]], R = result[[12]]))
 }
 
-
-#' @rdname rplba1
+#' @rdname rplba0
 #' @export
-rplba2 <- function(n, b=c(2.7, 2.7), A=c(1.5, 1.5), mean_v=c(3.3, 2.2), 
-  mean_w=c(1.5, 3.7), sd_v=c(1, 1), sd_w=c(1, 1), rD=.3, swt=.5, t0=.08, 
-  nthread=32) {
+rplba2 <- function(n, A = c(1.5, 1.5),  b = c(2.7, 2.7), t0 = .08, 
+  mean_v = c(3.3, 2.2), mean_w = c(1.5, 3.7), sd_v = c(1, 1), 
+  sd_w = c(1, 1), rD=.3, swt=.5, nthread = 32, gpuid = 0) {
+  
     T0 <- swt + rD
     result <- .C("rplba2_entry",
                  as.integer(n),
                  as.double(b), as.double(A),
                  as.double(mean_v), as.integer(length(mean_v)),
                  as.double(mean_w), as.double(sd_v), as.double(sd_w),
-                 as.double(t0), as.double(T0), as.integer(nthread),
-                 integer(n), numeric(n), PACKAGE = "gpda")
-    return(data.frame(RT = result[[13]], R = result[[12]]))
+                 as.double(t0), as.double(T0), as.integer(nthread), 
+                 as.integer(gpuid), integer(n), numeric(n),  PACKAGE = "gpda")
+    return(data.frame(RT = result[[14]], R = result[[13]]))
 }
 
-#' @rdname rplba1
+#' @rdname rplba0
 #' @export
 rplba3 <- function(n, A=c(1.5, 1.5), B=c(1.2, 1.2), C=c(.3, .3), 
   mean_v=c(3.3, 2.2), mean_w=c(1.5, 3.7), sd_v=c(1, 1), sd_w=c(1, 1), 
-  rD=.3, tD=.3, swt=.5, t0=.08, nthread=32) {
+  rD=.3, tD=.3, swt=.5, t0=.08, nthread=32, gpuid = 0) {
     b <- c(A[1] + B[1], A[2] + B[2])
     c <- c(b[1] + C[1], b[2] + C[2])
     swt_r <- rD + swt
@@ -479,7 +495,43 @@ rplba3 <- function(n, A=c(1.5, 1.5), B=c(1.2, 1.2), C=c(.3, .3),
                  as.double(mean_v), as.integer(length(mean_v)),
                  as.double(mean_w), as.double(sd_v), as.double(sd_w),
                  as.double(t0), as.double(swt1), as.double(swt2), as.double(swtD),
-                 as.logical(a), as.integer(nthread),
+                 as.logical(a), as.integer(nthread), as.integer(gpuid),
                  integer(n), numeric(n), PACKAGE = "gpda")
-    return(data.frame(RT = result[[17]], R = result[[16]]))
+    return(data.frame(RT = result[[18]], R = result[[17]]))
+}
+
+
+rplba <- function(n, A=c(1.5, 1.5), B=c(1.2, 1.2), C=c(.3, .3), 
+  mean_v=c(3.3, 2.2), mean_w=c(1.5, 3.7), sd_v=c(1, 1), sd_w=c(1, 1), 
+  rD=.3, tD=.3, swt=.5, t0=.08, gpuid = 0, nthread=32) {
+  b <- c(A[1] + B[1], A[2] + B[2])
+  c <- c(b[1] + C[1], b[2] + C[2])
+  swt_r <- rD + swt
+  swt_b <- tD + swt
+  a0 <- FALSE; a1 <- FALSE; a2 <- FALSE
+  if (swt_r == swt_b) {
+    a0 <- TRUE
+    swt1 <- swt_r
+    swt2 <- swt_r
+  } else if ( swt_b < swt_r) {
+    a1 <- TRUE
+    swt1 <- swt_b
+    swt2 <- swt_r
+  } else {
+    a2 <- TRUE
+    swt1 <- swt_r
+    swt2 <- swt_b
+  }
+  a <- c(a0, a1, a2)
+  swtD <- swt2 - swt1
+  result <- .C("rplba3_entry",
+    as.integer(n),
+    as.double(b), as.double(A), as.double(c),
+    as.double(mean_v), as.integer(length(mean_v)),
+    as.double(mean_w), as.double(sd_v), as.double(sd_w),
+    as.double(t0), as.double(swt1), as.double(swt2), as.double(swtD),
+    as.logical(a), as.integer(nthread), as.integer(gpuid),
+    integer(n), numeric(n), PACKAGE = "gpda")
+  return(cbind(result[[18]], result[[17]]))
+  ## return(data.frame(RT = result[[17]], R = result[[16]]))
 }

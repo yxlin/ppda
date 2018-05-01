@@ -23,7 +23,7 @@ LFLAGS=-lcurand -lcufft  ## curand
 INCLUDES = -I"$(CUDA_INCLUDE)" -I"$(R_INCLUDE)"
 LIBS = -L"$(CUDA_LIB)" -lcublas $(R_LIB)
 
-TARGETS = gpda.so
+TARGETS = ppda.so
 
 all: $(TARGETS)
 

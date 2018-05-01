@@ -74,20 +74,35 @@ void rn1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
   double *sd_v, double *t0, int *nth, unsigned int *d_R, float *d_RT0);
 
 
-// A C function to access rplba1_n1_kernel. rplba[1-3] stands for three 
+// C functions to access rplba[0-3]_n1_kernel. rplba0 is Model00 described in 
+// Holmes, Trueblood, & Heathcote (2016). rplba[1-3] stands for three 
 // types of PLBA models, each with a different combination of rate and 
 // threshold delays
+void rplba0_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v, 
+  double *mean_w, double *sd_v, double *t0, double *T0, int *nth, unsigned int *d_R,
+  float *d_RT);
+
+// Type 1 PLBA model
 void rplba1_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
               double *mean_w, double *sd_v, double *t0, double *T0, int *nth,
               unsigned int *d_R, float *d_RT);
 
-// A C function to access rplba2_n1_kernel  
+// Type 2 PLBA model
 void rplba2_n1(int *nsim, double *b, double *A, double *mean_v, int *nmean_v,
                double *mean_w, double *sd_v, double *sd_w,  double *t0,
                double *T0, int *nth, unsigned int *d_R, float *d_RT);
 
-// A C function to access rplba3_n1_kernel  
+// Type 3 PLBA model
 void rplba3_n1(int *nsim, float *b, double *A, float* c, double *mean_v,
                int *nmean_v, double *mean_w, double *sd_v, double *sd_w,
                double *t0, float *swt1, float *swt2, float *swtD, bool *a,
                int *nth, unsigned int *d_R, float *d_RT);
+
+// A C function to access rplba3_kernel; return d_R and d_RT at the device/GPU 
+// memory 
+void rplba3(int *nsim, float *b, double *A, float* c, double *mean_v,
+  int *nmean_v, double *mean_w, double *sd_v, double *sd_w,
+  double *t0, float *swt1, float *swt2, float *swtD, bool *a, int *nth,
+  int *gpuid,
+  unsigned int *d_R, float *d_RT);
+  

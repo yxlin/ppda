@@ -37,22 +37,23 @@ standing for choice 1 or choice 2.}
 a scalar or a pair of scalar values.
 }
 \description{
-sum, min, max, minmax and sd conduct basic math operations on a vector, to
-find summation, minimal, maximal, minimal and maximal at one go, and
-standard deviation. These functions are meant to operate in GPU memory. 
-These R entry points are for testing. The corresponding R functions 
-in base and stats pacakages run faster.
+\code{sum}, \code{min}, \code{max}, \code{minmax} and \code{sd} conduct basic
+math operations on a vector, to find summation, minimal, maximal, minimal 
+and maximal at one go, and standard deviation. These functions are meant to 
+operate in GPU memory. These R entry points are mainly for testing. My tests
+shown in the examples sugges that the R functions in base and stats packages
+are faster.
 }
 \details{
-count is to count the numbers of responses in each response type in a 2AFC
-data set. Again, it meants to operate in GPU memory.
+\code{count} is to count the numbers of responses in each response type in 
+a 2AFC data set. Again, it meants to operate in GPU memory.
 
-n1min designs to find minimal value for node 1.
+\code{n1min} is to find minimal value for node 1 (i.e., the first accumulator
+in a 2 or more accumulator model).
 }
 \examples{
-
-## The smallest vector must be no less than 512 (= 2^9) elements
-dat0   <- rlba(2^20, nthread=64); str(dat0)
+## The smallest vector must be greater than 512 (= 2^9) elements
+dat0   <- rlba(2^20, nthread = 64); str(dat0)
 result <- min_gpu(dat0$RT); result
 result <- max_gpu(dat0$RT); result
 result <- minmax(dat0$RT); result

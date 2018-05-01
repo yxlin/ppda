@@ -45,18 +45,18 @@
 #' x <- seq(0, 3, length.out = 1e3);
 #'
 #' ## Default n (number of simulations) = 1024
-#' den1 <- gpda::n1PDF(x, A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
+#' den1 <- ppda::n1PDF(x, A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
 #' t0 = .5)
 #'
 #' ## Raising number of simulations to 2^20 can improve approximation
-#' den2 <- gpda::n1PDF(x,  A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
+#' den2 <- ppda::n1PDF(x,  A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
 #' t0 = .5, n = 2^20, nthread = 32)
 #' plot(x,  den2, type = "l", xlab = "Quantiles", ylab = "Density")
 #' lines(x, den1, lwd = 1.5)
 #'
 #' ## If you have multiple GPUs on one machine, you can select different a GPU.
 #' ## Raise simulations to 2^27 further improves precision, but not too much
-#' den3 <- gpda::n1PDF(x, A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
+#' den3 <- ppda::n1PDF(x, A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
 #' t0 = .5, n = 2^27, nthread = 32, gpuid = 1)
 #'
 #' \dontrun{
@@ -77,7 +77,7 @@
 #' ## This happens even when we approximate PDF with 2^20 simulations.
 #' ## In trace plots, one can still observe overly noise in Bayesian 
 #' ## computation. 
-#' den5 <- gpda::n1PDF(x, A = .07, b = .09,  mean_v = c(-7.37, -4.36),
+#' den5 <- ppda::n1PDF(x, A = .07, b = .09,  mean_v = c(-7.37, -4.36),
 #'                     sd_v = c(1, 1), t0 = .94, n = 2^20)
 #'
 #' \dontrun{
@@ -179,16 +179,16 @@ n1PDF <- function(x, A, b, mean_v, sd_v, t0, n = 1024, nthread = 32,
 #' #########################30
 #' ## plba0 vs plba1 -------30
 #' #########################30
-#' den0 <- gpda::n1PDF_plba0(x, A = 1.5, b = 2.7, mean_v = c(3.3, 2.2), 
+#' den0 <- ppda::n1PDF_plba0(x, A = 1.5, b = 2.7, mean_v = c(3.3, 2.2), 
 #'   sd_v = c(1, 1), t0 = .08, mean_w = c(1.5, 1.2), rD = .3, swt = .5, n = n, 
 #'   h = .01, debug = FALSE)
 #' 
-#' den1 <- gpda::n1PDF_plba1(x, A = 1.5, b = 2.7, mean_v = c(3.3, 2.2), 
+#' den1 <- ppda::n1PDF_plba1(x, A = 1.5, b = 2.7, mean_v = c(3.3, 2.2), 
 #'   sd_v = c(1, 1), t0 = .08, mean_w = c(1.5, 1.2), rD = .3, swt = .5, n = n, 
 #'   h = .01, debug = FALSE)
 #' 
 #' ## Use the second GPU card, if there is any
-#' ## den2 <- gpda::n1PDF_plba1(x, A = 1.5, b = 2.7, mean_v = c(3.3, 2.2), 
+#' ## den2 <- ppda::n1PDF_plba1(x, A = 1.5, b = 2.7, mean_v = c(3.3, 2.2), 
 #' ##   sd_v = c(1, 1), t0 = .08, mean_w = c(1.5, 1.2), rD = .3, swt = .5, n = n, 
 #' ##   h = .01, gpuid = 1, debug = FALSE)
 #' 
@@ -202,7 +202,7 @@ n1PDF <- function(x, A, b, mean_v, sd_v, t0, n = 1024, nthread = 32,
 #' ## plba2          -------30
 #' #########################30
 #' \dontrun{
-#' den2 <- gpda::n1PDF_plba2(x, nsim=n, b=c(2.7, 2.7), A=c(1.5,1.5),
+#' den2 <- ppda::n1PDF_plba2(x, nsim=n, b=c(2.7, 2.7), A=c(1.5,1.5),
 #' mean_v=c(3.3, 2.2), mean_w=c(1.5, 1.2),
 #' sd_v=c(1, 1), rD=.3, swt=.5, t0=.08)
 #' plot(x, den2, type="l")
@@ -222,7 +222,7 @@ n1PDF <- function(x, A, b, mean_v, sd_v, t0, n = 1024, nthread = 32,
 #'   v1 = 3.32, v2 = 2.24, w1 = 1.51, w2 = 3.69, sv1 = 1, sv2 = 1,
 #'   sw1 = 1, sw2 = 1, rD = 0.15, tD = .1, swt = 0.5, t0 = 0.08)
 #'
-#' den3 <- gpda::n1PDF_plba3(x, nsim = n, B = pvec1[3:4], A =pvec1[1:2],
+#' den3 <- ppda::n1PDF_plba3(x, nsim = n, B = pvec1[3:4], A =pvec1[1:2],
 #'   C = pvec1[5:6], mean_v = pvec1[7:8],
 #'   mean_w = pvec1[9:10], sd_v = pvec1[11:12],
 #'   sd_w = pvec1[13:14], rD = pvec1[15], tD = pvec1[16],

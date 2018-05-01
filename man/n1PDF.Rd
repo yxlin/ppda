@@ -2,109 +2,123 @@
 % Please edit documentation in R/density.R
 \name{n1PDF}
 \alias{n1PDF}
-\alias{n1PDF_ngpu}
-\title{Approximate Node 1 Density of a Canonical LBA Model}
+\title{Approximated Probability Density of the Canonical LBA Model at Node One}
 \usage{
-n1PDF(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-  sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE)
-
-n1PDF_ngpu(x, nsim = 1024, b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-  sd_v = c(1, 1), t0 = 0.5, nthread = 64, h = NA, debug = FALSE)
+n1PDF(x, A, b, mean_v, sd_v, t0, n = 1024, nthread = 32, gpuid = 0,
+  h = NA, debug = FALSE)
 }
 \arguments{
-\item{x}{a numeric vector for estimating likelihood.}
+\item{x}{vector of quantiles.}
 
-\item{nsim}{number of Monte Carlo simulations for building a simulated PDF. 
-This must be a power of two.}
+\item{A}{start point variability. The LBA model draws a start point
+from a uniform distribution. \code{A} is the upper bound of the distribution.}
 
-\item{b}{decision threshold. Default is 1.}
+\item{b}{decision threshold. This must be a scalar}
 
-\item{A}{start point variability. Because the LBA model draws
-realisation of start point from an uniform distribution, \code{A} is the 
-upper bound of the uniform distribution. See the below reference for 
-more details.}
+\item{mean_v}{mean drift rates. This must be a numeric vector with two 
+elements.}
 
-\item{mean_v}{mean drift rate. This must be a two-element numeric vector.}
+\item{sd_v}{standard deviations of the drift rate. This must be a numeric 
+vector with two elements.}
 
-\item{sd_v}{standard deviation of the drift rate. This must be a two-element 
-numeric vector. The LBA model draws realisation of drift rate for a trial 
-from a normal distribution. \code{n1PDF} draws from a truncated normal 
-distribution, eliminating realisation of negative drift rate.  Note in 
-the canonical LBA model, mean drift rate could be negative, but not 
-drift-rate realisation .}
+\item{t0}{non-decision time.}
 
-\item{t0}{nondecision time.}
+\item{n}{number of model simulations. This must be a power of two.}
 
 \item{nthread}{number of GPU threads launched per block. Default is 32. 
-Maximum thread per block is 1024 for K80 and 512 for most early GPU cards.}
+Maximum thread per block is 1024 or 512 depending on GPU.}
 
-\item{h}{kernal density bandwidth}
+\item{gpuid}{a nominal ID to identify which GPU to use on a multiple GPU PC.
+Typically, the ID number starts from 0.}
 
-\item{debug}{a debugging switch. This is for advance users who wish to use 
-CUDA C API.}
+\item{h}{KDE kernel bandwidth}
+
+\item{debug}{a debugging switch. This is for advance users who wish to use
+CUDA C API. When setting it to TRUE, debugging information will be printed.}
 }
 \value{
-a numeric likelihood vector.
+a likelihood vector.
 }
 \description{
-This is the probability density function for the canonical 2-accumualtor LBA 
-model, sampling drift rates from truncated normal distributions. The 
-function approximates model likelihood, instead of calculating analytically.
+Calculate approximated densities of the LBA model, drawing drift 
+rates from truncated normal distributions.
 }
 \details{
-\code{n1PDf_ngpu} uses second GPU card, if there is any.
+This implementation presumes no variability for non-decision times. When 
+negative standard deviations are entered, \code{n1PDF} returns \code{1e-10}.
+Note that lowercase, \code{b}, and uppercase \code{B} are treated 
+differently. The former refers to the decision threshold and the latter, 
+traveling distance of an accumulator. That is, \eqn{b = A + B}.
+
+Brown and Heathcote's (2008) LBA model draws drift rates from a normal 
+distribution. \code{n1PDF} draws from a truncated normal distribution, with 
+a lower bound at 0 [See Robert (1995) for further details]. This makes 
+negative _mean_ drift rates possible, but not a trial will not have a 
+negative drift rate
+.
 }
 \examples{
-##### n1PDF examples 
-data <- seq(0, 3, length.out = 1e3);
+##### n1PDF examples
+x <- seq(0, 3, length.out = 1e3);
 
-## Default parameters are b = 1, A = 0.5, mean_v = c(2.4, 1.6),
-## sd_v = c(1, 1), t0 = 0.5 with nthread = 32 and nsim = 1024 
-den1 <- gpda::n1PDF(data)
+## Default n (number of simulations) = 1024
+den1 <- ppda::n1PDF(x, A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
+t0 = .5)
 
-## Raising nsim to 2^20 can improve approximation
-den2 <- gpda::n1PDF(data, nsim=2^20)
-plot(data,  den2, type="l")
-lines(data, den1, lwd=1.5)
+## Raising number of simulations to 2^20 can improve approximation
+den2 <- ppda::n1PDF(x,  A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
+t0 = .5, n = 2^20, nthread = 32)
+plot(x,  den2, type = "l", xlab = "Quantiles", ylab = "Density")
+lines(x, den1, lwd = 1.5)
+
+## If you have multiple GPUs on one machine, you can select different a GPU.
+## Raise simulations to 2^27 further improves precision, but not too much
+den3 <- ppda::n1PDF(x, A = .5, b = 1, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
+t0 = .5, n = 2^27, nthread = 32, gpuid = 1)
 
 \dontrun{
-den3 <- rtdists::n1PDF(data, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), 
-                       t0=.5, silent=T)
-lines(data, den3, lwd=2)
-all.equal(den1, den3)
-all.equal(den2, den3)
+## Checking against an existing method for calculating n1PDF.
+## The analytic solution of n1PDF is implemented in rtdists
+den4 <- rtdists::n1PDF(x, b = 1, A = .5, mean_v = c(2.4, 1.6), 
+                       sd_v = c(1, 1), t0 = .5, silent = T)
+lines(x, den3, lwd = 2, col = "red")
+all.equal(den1, den4)
+all.equal(den2, den4)
+all.equal(den3, den4)
 ## "Mean relative difference: 0.1675376"
 ## "Mean relative difference: 0.007108101"
+## "Mean relative difference: 0.005110652"
 }
 
-##### An extreme case that rlba does not match dlba 
-## When approximated PDF is almost perfect with 2^20 simulations,
-## one can still observe noise in Bayesian computation. One possible reason
-## is the following:   
-den4 <- gpda::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
-sd_v=c(1, 1), t0=.94, nsim=2^20)
+##### An extreme case that rlba does not match dlba
+## This happens even when we approximate PDF with 2^20 simulations.
+## In trace plots, one can still observe overly noise in Bayesian 
+## computation. 
+den5 <- ppda::n1PDF(x, A = .07, b = .09,  mean_v = c(-7.37, -4.36),
+                    sd_v = c(1, 1), t0 = .94, n = 2^20)
 
 \dontrun{
-den5 <- rtdists::n1PDF(data, b=.09, A=.07, mean_v=c(-7.37, -4.36), 
-sd_v=c(1, 1), t0=.94, silent=T)
-par(mfrow=c(1,2))
-plot(data,  den4, type="l")
-lines(data, den5, lwd=1.5)
+den6 <- rtdists::n1PDF(x, A = .07, b = .09, mean_v = c(-7.37, -4.36),
+                       sd_v = c(1, 1), t0 = .94, silent = T)
+par(mfrow = c(1,2))
+plot(x,  den5, type = "l")
+lines(x, den6, lwd = 1.5)
 
-plot(data, den5,  type="l")
-lines(data, den4, lwd=1.5)
+plot(x, den5,  type = "l")
+lines(x, den4, lwd = 1.5)
 all.equal(den4, den5)
 ## "Mean relative difference: 0.9991495"
 }
 
-## Note both shapes are similar, but dlba method estimates smaller values, 
-## relative to rlba method. This happens in behaviourally less plausible  
-## parameter sets. It takes longer iterations to smooth out the 
-## noise.  That is when a sampler no longer propose these less plausible
-## parameter sets. 
+## Note both shapes are similar, but dlba method estimates smaller values,
+## relative to rlba method. This happens in behaviourally less plausible
+## parameters. It takes some burn-in iterations to smooth out the
+## noise. 
 }
 \references{
-Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice 
-response time: Linear ballistic accumulation. Cognitive psychology, 57(3), 
-153-178. \url{https://doi.org/10.1016/j.cogpsych.2007.12.002}
+Brown, S. D., & Heathcote, A. (2008). The simplest complete model of choice
+response time: Linear ballistic accumulation. Cognitive psychology, 57(3),
+153-178. \url{https://doi.org/10.1016/j.cogpsych.2007.12.002}. \cr
+Robert, C. P. (1995). Simulation of truncated normal variables. Statistics
+and Computing, 5(2), 121-125. \url{https://doi.org/10.1007/BF00143942}.
 }

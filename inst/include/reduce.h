@@ -18,6 +18,9 @@ __global__ void squareSum_kernel(unsigned int* n, float *g_idata, float *g_odata
 
 __global__ void n1min_kernel(float *RT0, float *out);
 __global__ void n1max_kernel(float *RT0, float *out);
+
+__global__ void min2nodes_kernel(float *RT, unsigned int *R, float *out1,
+  float *out2);
   
 __global__ void count_kernel(unsigned int *n, unsigned int *R, unsigned int *out);
 

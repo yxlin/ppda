@@ -2,40 +2,43 @@
 #include <curand_kernel.h> // Device random API
 #include "../inst/include/reduce.h"
 #include "../inst/include/random.h"
-#include "../inst/include/util.h"  
+#include "../inst/include/util.h"
 // #include "../inst/include/common.h"
-#include <armadillo> 
+#include <armadillo>
 
 extern "C" void n1PDF(double *x, int *nx, int *nsim, double *b, double *A,
-                      double *mean_v, int *nmean_v, double *sd_v, double *t0,
-                      int *nth, double *h_in, bool *debug, double *out);
+  double *mean_v, int *nmean_v, double *sd_v, double *t0,
+  int *nth, int *gpuid, double *h_in, bool *debug, double *out);
+
+extern "C" void n1PDF_plba0(double *x, int *nx, int *nsim, double *b, double *A,
+  double *mean_v, int *nmean_v, double *sd_v, double *t0, double *mean_w, 
+  double *rD, double *swt, int *nth, int *gpuid, double *h_in, bool *debug, 
+  double *out);
 
 extern "C" void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A,
-                           double *mean_v, int *nmean_v, double *sd_v,
-                           double *t0, double *mean_w, double *rD, double *swt,
-                           int *nth, bool *debug, double *out);
-                           //int *nth, bool *debug, double *RT, int *R, double *out);
+  double *mean_v, int *nmean_v, double *sd_v, double *t0, double *mean_w, 
+  double *rD, double *swt,
+  int *nth, int *gpuid, double *h_in, bool *debug, double *out);
+//int *nth, bool *debug, double *RT, int *R, double *out);
 
 extern "C" void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A,
-                            double *mean_v, int *nmean_v, double *sd_v,double *sd_w,
-                            double *t0, double *mean_w, double *rD, double *swt,
-                            int *nth, bool *debug, double *out);
-                            //int *nth, bool *debug, double *RT, int *R, double *out);
+  double *mean_v, int *nmean_v, double *sd_v,double *sd_w,
+  double *t0, double *mean_w, double *rD, double *swt,
+  int *nth, int *gpuid, double *h_in, bool *debug, double *out);
+//int *nth, bool *debug, double *RT, int *R, double *out);
 
 extern "C" void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A,
-                            double *C, double *mean_v, int *nmean_v, double *sd_v,
-                            double *sd_w, double *t0, double *mean_w, double *rD,
-                            double *tD, double *swt,
-                            int *nth, bool *debug, double *out);
-                            //int *nth, bool *debug, double *RT, int *R, double *out);
+  double *C, double *mean_v, int *nmean_v, double *sd_v, double *sd_w, 
+  double *t0, double *mean_w, double *rD, double *tD, double *swt,
+  int *nth, int *gpuid, double *h_in, bool *debug, double *out);
+//int *nth, bool *debug, double *RT, int *R, double *out);
 
-extern "C" void histc_entry(double *binedge, double *rng, int nrng, int ngrid, 
+extern "C" void histc_entry(double *binedge, double *rng, int nrng, int ngrid,
   unsigned int *out);
 
-
 extern "C" void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
-  double *mean_v, int *nmean_v, double *sd_v, double *t0, int *nth, 
-  double *h_in, bool *debug, double *out);
+  double *mean_v, int *nmean_v, double *sd_v, double *t0,
+  int *nth, double *h_in, bool *debug, double *out, int *did);
 
 __global__ void histc_kernel(double *binedge, double *rng, unsigned int *nrng,
   unsigned int *out) {
@@ -51,7 +54,7 @@ __global__ void histc_kernel(double *binedge, double *rng, unsigned int *nrng,
     // if out-of-range add 0 to the 1st bin, otherwise add 1 to j bin
     //atomicAdd(&(cache[0]), 0);
   } else {
-    // When 'sim' belongs to 'j' bin, the last line, 'j++' inside 
+    // When 'sim' belongs to 'j' bin, the last line, 'j++' inside
     // while loop will add one more '1' to j, before leaving the loop.
     // So I use cache[j-1].
     while(tmp==0) {
@@ -76,7 +79,7 @@ __global__ void histc_kernel(float *binedge, float *rng, unsigned int *nrng,
   float tmp = 0;
   
   if (rng[i] < binedge[0] || rng[i] >= binedge[1024]) {
-      //atomicAdd(&(cache[0]), 0);
+    //atomicAdd(&(cache[0]), 0);
   } else {
     while(tmp==0) {
       tmp = ((rng[i] >= binedge[j]) && (rng[i] < binedge[j+1])); // 0 or 1;
@@ -93,7 +96,7 @@ __global__ void histc_kernel(float *binedge, float *rng, unsigned int *nrng,
   atomicAdd( &(out[threadIdx.x]), cache[threadIdx.x] );
 }
 
-void histc_entry(double *binedge, double *rng, int nrng, int ngrid, 
+void histc_entry(double *binedge, double *rng, int nrng, int ngrid,
   unsigned int *out) {
   unsigned int *h_nrng, *d_nrng;
   double *d_binedge, *d_rng, *h_binedge, *h_rng;
@@ -121,24 +124,91 @@ void histc_entry(double *binedge, double *rng, int nrng, int ngrid,
   for(int i=0; i<ngrid; i++) { out[i] = h_hist[i]; }
   
   cudaFreeHost(h_hist); cudaFreeHost(h_rng); cudaFreeHost(h_binedge);
-  free(h_nrng); 
+  free(h_nrng);
   cudaFree(d_binedge);
   cudaFree(d_rng);
   cudaFree(d_nrng);
   cudaFree(d_hist);
 }
 
-void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
-           int *nmean_v, double *sd_v, double *t0, int *nth, double *h_in, bool *debug, double *out) 
-{
-  size_t nsimfSize = *nsim * sizeof(float);
-  size_t nsimuSize = *nsim * sizeof(unsigned int);
-  float *d_RT;
-  unsigned int *d_R;
-  cudaMalloc((void**) &d_RT, nsimfSize);
-  cudaMalloc((void**) &d_R,  nsimuSize); // run LBA Monte Carlo simulation 
-  rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT); 
+arma::vec spdf(arma::vec x, arma::vec RT, double h_in) {
+  int nx  = x.n_elem;
+  int nRT = RT.n_elem;
+  arma::vec out(nx);
+  if (nRT <= 10) {
+    out.fill(1e-10);
+  } else {
+    double minRT = RT.min();
+    double maxRT = RT.max();
+    
+    double h  = (h_in == 0) ? (0.8*arma::stddev(RT)*std::pow(nRT, -0.2)) : h_in;
+    double z0 = minRT <= 1e-10 ? 1e-10 : minRT - 3.0*h;
+    if (z0 < 0) { z0 = 0; }
+    double z1 = maxRT > 10.0 ? 10.0 : maxRT + 3.0*h;
+    int ngrid = 1024;
+    int half_ngrid  = 0.5*ngrid;
+    arma::vec z = arma::linspace<arma::vec>(z0, z1, ngrid);
+    double dt = z[1] - z[0];
+    double z1minusz0 = z1 - z0;
+    double fil0_constant = (-2.0*h*h*M_PI*M_PI) / (z1minusz0*z1minusz0);
+    
+    arma::vec filter0(ngrid);
+    arma::vec h_binedge0(ngrid + 1);
+    arma::vec signal0(ngrid);
+    
+    // Get binedge (1025) and histogram (1024) -----------------
+    for(size_t i=0; i<ngrid; i++) {
+      h_binedge0[i] = z0 + dt*((double)i - 0.5); // binedge
+      if (i < (1 + half_ngrid)) {                // Get filter (1024)
+        filter0[i] = std::exp(fil0_constant * (double)(i*i));
+      } else {
+        int j = 2*(i - half_ngrid); // flipping
+        filter0[i] = filter0[i-j];
+      }
+    }
+    
+    h_binedge0[ngrid] = (z0 + ((double)(ngrid - 1))*dt);
+    arma::vec h_hist0 = arma::conv_to<arma::vec>::from(arma::histc(RT, h_binedge0)); // 1025
+    signal0 = h_hist0.rows(0, ngrid-1) / (dt * (double)(nRT));
+    
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
+    arma::vec eDen; // a container for estiamted densities
+    
+    if(z.has_nan()) {
+      eDen.fill(1e-10);
+    } else {
+      arma::vec uniquez = arma::unique(z);
+      if (uniquez.size() <= 1) {
+        eDen.fill(1e-10);
+      } else {
+        arma::interp1(z, sPDF, x, eDen);
+      }
+    }
+    
+    for(size_t i=0; i< nx; i++) {
+      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
+    }
+  }
+  return out;
+}
+
+// void n1PDF_plba0(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
+//   int *nmean_v, double *sd_v, double *t0, double *mean_w, double *rD,
+//   double *swt, int *nth, int *gpuid, double *h_in, bool *debug, double *out) {
   
+void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
+  int *nmean_v, double *sd_v, double *t0, int *nth, int *gpuid, 
+  double *h_in, bool *debug, double *out)
+{
+  cudaSetDevice(*gpuid);  
+  size_t nsimfSize = *nsim * sizeof(double);
+  size_t nsimuSize = *nsim * sizeof(unsigned int);
+  float *d_RT; unsigned int *d_R;
+
+  cudaMalloc((void**) &d_RT, nsimfSize);
+  cudaMalloc((void**) &d_R,  nsimuSize); // run LBA Monte Carlo simulation
+  rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT);
+
   // ------------------------------------------------------------------------80
   float *KDEStats;
   KDEStats = (float *)malloc(sizeof(float) * 4);
@@ -147,47 +217,60 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
   float maxRT0 = KDEStats[1];
   float sd     = KDEStats[2];
   int nsRT0    = (int)KDEStats[3];
-
+  free(KDEStats);
+  
   if (*debug) {
-      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+    Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+    Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
   // ------------------------------------------------------------------------80
   arma::vec data(*nx);
   for(size_t i=0; i<*nx; i++) { data[i] = x[i]; }
   
-  // if (nsRT0 < 10 || (double)minRT0 > data.max() || (double)maxRT0 < data.min() || minRT0 < 0) {
-  if (nsRT0 <= 10) {
-    cudaFree(d_RT); 
+  float h  = std::isnan(*h_in) ? 0.8*sd*std::pow((float)*nsim, -0.2) : (*h_in);
+  if(*debug) Rprintf("h is: %f\n", h);
+  float z0 = minRT0 <= 1e-10 ? 0 : minRT0 - 3.0*h; 
+  if (z0 < 0) {  
+    if(*debug) Rprintf("z0 is: %f\n", z0); 
+    z0 = 0;
+  }
+  float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+  int ngrid = 1024;
+  arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+  
+  if (std::isnan(sd) || sd > 5 || nsRT0 <= 10 || minRT0 < 0 || 
+    std::isinf(minRT0) || maxRT0 <= 0 || z.has_nan() || z.size() <= 10) {
+    cudaFree(d_RT);
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
-    float h  = isnan(*h_in) ? 0.09*sd*std::pow((float)*nsim, -0.2) : (*h_in);
-    if(*debug) Rprintf("h is: %f\n", h);
-    float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
-    float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
-    int ngrid = 1024;
+    //float h  = std::isnan(*h_in) ? 0.8*sd*std::pow((float)*nsim, -0.2) : (*h_in);
+    //if(*debug) Rprintf("h is: %f\n", h);
+    //float z0 = minRT0 <= 1e-10 ? 0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
+    //float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+    //int ngrid = 1024;
     int half_ngrid  = 0.5*ngrid;
     size_t ngrid_plus1fSize = (ngrid + 1) * sizeof(float);
     size_t ngriduSize = ngrid * sizeof(unsigned int);
-    arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    //arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    
     float dt = z[1] - z[0];
     
     arma::vec filter0(ngrid);
     double z1minusz0 = (double)(z1 - z0);
     double fil0_constant = (double)(-2.0*h*h*M_PI*M_PI) / (z1minusz0*z1minusz0);
-
+    
     float *h_binedge0;
     unsigned int *h_hist0;
     h_binedge0 = (float *)malloc(ngrid_plus1fSize);
     h_hist0    = (unsigned int *)malloc(ngriduSize);
-
+    
     // Get binedge (1025) and histogram (1024) -----------------
     for(size_t i=0; i<ngrid; i++) {
       h_binedge0[i] = z0 + dt*((float)i - 0.5); // binedge
       h_hist0[i]    = 0;  // initialize histogram
       if (i < (1 + half_ngrid)) {       // Get filter (1024)
         filter0[i] = std::exp(fil0_constant * (double)(i*i));
-      } else { 
+      } else {
         int j = 2*(i - half_ngrid); // flipping
         filter0[i] = filter0[i-j];
       }
@@ -198,28 +281,42 @@ void n1PDF(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
     if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
     if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-
+    
     arma::vec signal0(ngrid);
-    for(size_t i=0; i<ngrid; i++) { 
-      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim))); 
+    for(size_t i=0; i<ngrid; i++) {
+      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim)));
     }
-    free(h_hist0); 
-
+    free(h_hist0);
+    
     // FFT: Get simulated PDF ---------------------------
-    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ; 
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
     arma::vec eDen; // a container for estiamted densities
-    arma::interp1(z, sPDF, data, eDen);
-    for(size_t i=0; i<*nx; i++) { 
-      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i]; 
+    
+    // Catch undetected bad LBA parameters
+    if (z.has_nan()) {
+      eDen.fill(1e-10);
+    } else {
+      arma::vec uniquez = arma::unique(z);
+      if ( uniquez.size() <= 1 )  {
+        eDen.fill(1e-10);
+      } else {
+        arma::interp1(z, sPDF, data, eDen);
+      }
+    }
+    
+    for(size_t i=0; i<*nx; i++) {
+      out[i] = (eDen[i] <= 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
     }
   }
 }
 
-
-void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
-                int *nmean_v, double *sd_v, double *t0, double *mean_w, double *rD,
-                double *swt, int *nth, bool *debug, double *out) {
-                //double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+void n1PDF_plba0(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
+  int *nmean_v, double *sd_v, double *t0, double *mean_w, double *rD,
+  double *swt, int *nth, int *gpuid, double *h_in, bool *debug, double *out) {
+  //double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+  
+  cudaSetDevice(*gpuid);  
+  
   size_t nsimfSize = *nsim * sizeof(double);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
   float *d_RT; unsigned int *d_R;
@@ -228,21 +325,21 @@ void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *me
   //h_R   = (unsigned int *)malloc(nsimuSize);
   cudaMalloc((void**) &d_RT, nsimfSize);
   cudaMalloc((void**) &d_R,  nsimuSize);
-
+  
   double *T0;
-  T0       = (double *)malloc(sizeof(double) * 1);
+  T0  = (double *)malloc(sizeof(double) * 1);
   *T0 = *rD + *swt;
-
-  rplba1_n1(nsim, b, A, mean_v, nmean_v, mean_w, sd_v, t0, T0, nth, d_R, d_RT); 
-                    
-  //CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
+  
+  rplba0_n1(nsim, b, A, mean_v, nmean_v, mean_w, sd_v, t0, T0, nth, d_R, d_RT);
+  
+  //CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost));
   //CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
   // for(int i=0; i<*nsim; i++) {
   //     RT[i] = h_RT[i];
   //     R[i]  = h_R[i];
   // }
   //free(h_R); free(h_RT);
-
+  
   // ------------------------------------------------------------------------80
   float *KDEStats;
   KDEStats = (float *)malloc(sizeof(float) * 4);
@@ -251,80 +348,104 @@ void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *me
   float maxRT0 = KDEStats[1];
   float sd     = KDEStats[2];
   int nsRT0    = (int)KDEStats[3];
-
+  free(KDEStats);
+  
   if (*debug) {
-      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+    Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+    Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
-
+  
   // ------------------------------------------------------------------------80
   arma::vec data(*nx);
-  for(size_t i=0; i<*nx; i++) { data[i] = x[i]; }
+  for (size_t i=0; i<*nx; i++) { data[i] = x[i]; }
+  float h;
   
-  if (nsRT0 < 10 || (double)minRT0 > data.max() || (double)maxRT0 < data.min() || minRT0 < 0) {
-      cudaFree(d_RT); 
+  if (std::isnan(sd)) {
+    h  = 0.01;
+  } else {
+    h  = std::isnan(*h_in) ? 0.8 * sd * std::pow((float)*nsim, -0.2) : (float)(*h_in);
+  }
+  
+  
+  if(*debug) Rprintf("h is: %f\n", h);
+  float z0 = minRT0 <= (3.0*h) ? 0 : minRT0 - 3.0*h; 
+  if (z0 < 0) {  
+    if(*debug) Rprintf("z0 is: %f\n", z0); 
+    z0 = 0;
+  }
+  float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+  int ngrid = 1024;
+  arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+  
+  if (std::isnan(sd) || sd > 5 || nsRT0 <= 10 || minRT0 < 0 || 
+    std::isinf(minRT0) || std::isinf(maxRT0) || z.has_nan() || z.size() <= 10 || 
+    z0 > z1) {
+    cudaFree(d_RT);
+    if(*debug) Rprintf("[A b t0 rD]: %.3f \t %.3f \t %.3f \t %.3f\n", *A, *b, *t0, *rD); 
+    if(*debug) Rprintf("[mean_v mean_w sd_v]: %.3f %.3f \t %.3f %.3f \t %.3f %.3f\n", 
+      *mean_v, *mean_w, *sd_v); 
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
-    float h  = 0.09*sd*std::pow((float)*nsim, -0.2);
-    float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
-    float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
-    int ngrid = 1024;
     int half_ngrid  = 0.5*ngrid;
     size_t ngrid_plus1fSize = (ngrid + 1) * sizeof(float);
     size_t ngriduSize = ngrid * sizeof(unsigned int);
-    arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    //arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    
     float dt = z[1] - z[0];
     
     arma::vec filter0(ngrid);
     double z1minusz0 = (double)(z1 - z0);
     double fil0_constant = (double)(-2.0*h*h*M_PI*M_PI) / (z1minusz0*z1minusz0);
-
+    
     float *h_binedge0;
     unsigned int *h_hist0;
     h_binedge0 = (float *)malloc(ngrid_plus1fSize);
     h_hist0    = (unsigned int *)malloc(ngriduSize);
-
-    // Get binedge (1025)-----------------------------------------------------80
-    // Get histogram (1024)---------------------------------------------------80
+    
+    // Get binedge (1025) and histogram (1024) -----------------
     for(size_t i=0; i<ngrid; i++) {
       h_binedge0[i] = z0 + dt*((float)i - 0.5); // binedge
       h_hist0[i]    = 0;  // initialize histogram
       if (i < (1 + half_ngrid)) {       // Get filter (1024)
         filter0[i] = std::exp(fil0_constant * (double)(i*i));
-      } else { 
+      } else {
         int j = 2*(i - half_ngrid); // flipping
         filter0[i] = filter0[i-j];
       }
     }
     
     h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
+    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
-    
     if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
     if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
-
+    
     arma::vec signal0(ngrid);
-    for(size_t i=0; i<ngrid; i++) { 
-      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim))); 
+    for(size_t i=0; i<ngrid; i++) {
+      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim)));
     }
-    free(h_hist0); 
-
+    free(h_hist0);
+    
     // FFT: Get simulated PDF ---------------------------
-    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ; 
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
     arma::vec eDen; // a container for estiamted densities
+    
+    // Catch undetected bad LBA parameters
     arma::interp1(z, sPDF, data, eDen);
-    for(size_t i=0; i<*nx; i++) { 
-      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i]; 
+    
+    for(size_t i=0; i<*nx; i++) {
+      out[i] = (eDen[i] <= 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
     }
   }
 }
 
-
-void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
-                 int *nmean_v, double *sd_v, double *sd_w, double *t0, double *mean_w, double *rD,
-                 double *swt, int *nth, bool *debug, double *out) {
-                 //double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+void n1PDF_plba1(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
+  int *nmean_v, double *sd_v, double *t0, double *mean_w, double *rD,
+  double *swt, int *nth, int *gpuid, double *h_in, bool *debug, double *out) {
+  //double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+  
+  cudaSetDevice(*gpuid);  
+  
   size_t nsimfSize = *nsim * sizeof(double);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
   float *d_RT; unsigned int *d_R;
@@ -333,21 +454,21 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
   //h_R   = (unsigned int *)malloc(nsimuSize);
   cudaMalloc((void**) &d_RT, nsimfSize);
   cudaMalloc((void**) &d_R,  nsimuSize);
-
+  
   double *T0;
-  T0       = (double *)malloc(sizeof(double) * 1);
+  T0  = (double *)malloc(sizeof(double) * 1);
   *T0 = *rD + *swt;
-
-  rplba2_n1(nsim, b, A, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, T0, nth, d_R, d_RT); 
-
-  // CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
-  // CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
+  
+  rplba1_n1(nsim, b, A, mean_v, nmean_v, mean_w, sd_v, t0, T0, nth, d_R, d_RT);
+  
+  //CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost));
+  //CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
   // for(int i=0; i<*nsim; i++) {
-  //      RT[i] = h_RT[i];
-  //      R[i]  = h_R[i];
+  //     RT[i] = h_RT[i];
+  //     R[i]  = h_R[i];
   // }
-  // free(h_R); free(h_RT);
-
+  //free(h_R); free(h_RT);
+  
   // ------------------------------------------------------------------------80
   float *KDEStats;
   KDEStats = (float *)malloc(sizeof(float) * 4);
@@ -356,39 +477,181 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
   float maxRT0 = KDEStats[1];
   float sd     = KDEStats[2];
   int nsRT0    = (int)KDEStats[3];
-
+  free(KDEStats);
+  
   if (*debug) {
-      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+    Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+    Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
-
+  
   // ------------------------------------------------------------------------80
   arma::vec data(*nx);
-  for(size_t i=0; i<*nx; i++) { data[i] = x[i]; }
+  for (size_t i=0; i<*nx; i++) { data[i] = x[i]; }
+  float h;
   
-  if (nsRT0 < 10 || (double)minRT0 > data.max() || (double)maxRT0 < data.min() || minRT0 < 0) {
-      cudaFree(d_RT); 
+  if (std::isnan(sd)) {
+    h  = 0.01;
+  } else {
+    h  = std::isnan(*h_in) ? 0.8 * sd * std::pow((float)*nsim, -0.2) : (float)(*h_in);
+  }
+  
+  
+  if(*debug) Rprintf("h is: %f\n", h);
+  float z0 = minRT0 <= (3.0*h) ? 0 : minRT0 - 3.0*h; 
+  if (z0 < 0) {  
+    if(*debug) Rprintf("z0 is: %f\n", z0); 
+    z0 = 0;
+  }
+  float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+  int ngrid = 1024;
+  arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+  
+  if (std::isnan(sd) || sd > 5 || nsRT0 <= 10 || minRT0 < 0 || 
+    std::isinf(minRT0) || std::isinf(maxRT0) || z.has_nan() || z.size() <= 10 || 
+    z0 > z1) {
+    cudaFree(d_RT);
+    if(*debug) Rprintf("[A b t0 rD]: %.3f \t %.3f \t %.3f \t %.3f\n", *A, *b, *t0, *rD); 
+    if(*debug) Rprintf("[mean_v mean_w sd_v]: %.3f %.3f \t %.3f %.3f \t %.3f %.3f\n", 
+      *mean_v, *mean_w, *sd_v); 
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
-    float h  = 0.09*sd*std::pow((float)*nsim, -0.2);
-    float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
-    float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
-    int ngrid = 1024;
     int half_ngrid  = 0.5*ngrid;
     size_t ngrid_plus1fSize = (ngrid + 1) * sizeof(float);
     size_t ngriduSize = ngrid * sizeof(unsigned int);
-    arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    //arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    
     float dt = z[1] - z[0];
     
     arma::vec filter0(ngrid);
     double z1minusz0 = (double)(z1 - z0);
     double fil0_constant = (double)(-2.0*h*h*M_PI*M_PI) / (z1minusz0*z1minusz0);
-
+    
     float *h_binedge0;
     unsigned int *h_hist0;
     h_binedge0 = (float *)malloc(ngrid_plus1fSize);
     h_hist0    = (unsigned int *)malloc(ngriduSize);
+    
+    // Get binedge (1025) and histogram (1024) -----------------
+    for(size_t i=0; i<ngrid; i++) {
+      h_binedge0[i] = z0 + dt*((float)i - 0.5); // binedge
+      h_hist0[i]    = 0;  // initialize histogram
+      if (i < (1 + half_ngrid)) {       // Get filter (1024)
+        filter0[i] = std::exp(fil0_constant * (double)(i*i));
+      } else {
+        int j = 2*(i - half_ngrid); // flipping
+        filter0[i] = filter0[i-j];
+      }
+    }
+    
+    h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
+    if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
+    histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
+    if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
+    if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
+    
+    arma::vec signal0(ngrid);
+    for(size_t i=0; i<ngrid; i++) {
+      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim)));
+    }
+    free(h_hist0);
+    
+    // FFT: Get simulated PDF ---------------------------
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
+    arma::vec eDen; // a container for estiamted densities
+    
+    // Catch undetected bad LBA parameters
+    arma::interp1(z, sPDF, data, eDen);
+    
+    for(size_t i=0; i<*nx; i++) {
+      out[i] = (eDen[i] <= 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
+    }
+  }
+}
 
+
+void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *mean_v,
+  int *nmean_v, double *sd_v, double *sd_w, double *t0, double *mean_w, double *rD,
+  double *swt, int *nth, int *gpuid, double *h_in, bool *debug, double *out) {
+  //double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+  cudaSetDevice(*gpuid);  
+  size_t nsimfSize = *nsim * sizeof(double);
+  size_t nsimuSize = *nsim * sizeof(unsigned int);
+  float *d_RT; unsigned int *d_R;
+  //float *h_RT; unsigned int *h_R;
+  //h_RT  = (float *)malloc(nsimfSize);
+  //h_R   = (unsigned int *)malloc(nsimuSize);
+  cudaMalloc((void**) &d_RT, nsimfSize);
+  cudaMalloc((void**) &d_R,  nsimuSize);
+  
+  double *T0;
+  T0       = (double *)malloc(sizeof(double) * 1);
+  *T0 = *rD + *swt;
+  
+  rplba2_n1(nsim, b, A, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, T0, nth, d_R, d_RT);
+  
+  // CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost));
+  // CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
+  // for(int i=0; i<*nsim; i++) {
+  //      RT[i] = h_RT[i];
+  //      R[i]  = h_R[i];
+  // }
+  // free(h_R); free(h_RT);
+  
+  // ------------------------------------------------------------------------80
+  float *KDEStats;
+  KDEStats = (float *)malloc(sizeof(float) * 4);
+  summary(nsim, d_R, d_RT, KDEStats);
+  float minRT0 = KDEStats[0];
+  float maxRT0 = KDEStats[1];
+  float sd     = KDEStats[2];
+  int nsRT0    = (int)KDEStats[3];
+  free(KDEStats);
+  
+  if (*debug) {
+    Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+    Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+  }
+  
+  // ------------------------------------------------------------------------80
+  arma::vec data(*nx);
+  for(size_t i=0; i<*nx; i++) { data[i] = x[i]; }
+  
+  float h  = std::isnan(*h_in) ? 0.8*sd*std::pow((float)*nsim, -0.2) : (*h_in);
+  if(*debug) Rprintf("h is: %f\n", h);
+  float z0 = minRT0 <= 1e-10 ? 0 : minRT0 - 3.0*h; 
+  if (z0 < 0) {  
+    if(*debug) Rprintf("z0 is: %f\n", z0); 
+    z0 = 0;
+  }
+  float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+  int ngrid = 1024;
+  arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+  
+  
+  if (std::isnan(sd) || sd > 5 || nsRT0 <= 10 || minRT0 < 0 || 
+    std::isinf(minRT0) || maxRT0 <= 0 || z.has_nan() || z.size() <= 10) {
+    cudaFree(d_RT);
+    for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
+  } else {
+    // float h  = 0.09*sd*std::pow((float)*nsim, -0.2);
+    // float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
+    // float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+    //int ngrid = 1024;
+    int half_ngrid  = 0.5*ngrid;
+    size_t ngrid_plus1fSize = (ngrid + 1) * sizeof(float);
+    size_t ngriduSize = ngrid * sizeof(unsigned int);
+    //arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    float dt = z[1] - z[0];
+    
+    arma::vec filter0(ngrid);
+    double z1minusz0 = (double)(z1 - z0);
+    double fil0_constant = (double)(-2.0*h*h*M_PI*M_PI) / (z1minusz0*z1minusz0);
+    
+    float *h_binedge0;
+    unsigned int *h_hist0;
+    h_binedge0 = (float *)malloc(ngrid_plus1fSize);
+    h_hist0    = (unsigned int *)malloc(ngriduSize);
+    
     // Get binedge (1025)-----------------------------------------------------80
     // Get histogram (1024)---------------------------------------------------80
     for(size_t i=0; i<ngrid; i++) {
@@ -396,7 +659,7 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
       h_hist0[i]    = 0;  // initialize histogram
       if (i < (1 + half_ngrid)) {       // Get filter (1024)
         filter0[i] = std::exp(fil0_constant * (double)(i*i));
-      } else { 
+      } else {
         int j = 2*(i - half_ngrid); // flipping
         filter0[i] = filter0[i-j];
       }
@@ -409,25 +672,31 @@ void n1PDF_plba2(double *x, int *nx, int *nsim, double *b, double *A, double *me
     if (*debug) Rprintf("binedge[0 & 1024]: %f %f\n", h_binedge0[0], h_binedge0[ngrid]);
     
     arma::vec signal0(ngrid);
-    for(size_t i=0; i<ngrid; i++) { 
-      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim))); 
+    for(size_t i=0; i<ngrid; i++) {
+      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim)));
     }
-    free(h_hist0); 
-
+    free(h_hist0);
+    
     // FFT: Get simulated PDF ---------------------------
-    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ; 
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
     arma::vec eDen; // a container for estiamted densities
     arma::interp1(z, sPDF, data, eDen);
-    for(size_t i=0; i<*nx; i++) { 
-      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i]; 
+    for(size_t i=0; i<*nx; i++) {
+      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
     }
   }
 }
 
-void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C, double *mean_v,
-                 int *nmean_v, double *sd_v, double *sd_w, double *t0, double *mean_w, double *rD,
-                 double *tD, double *swt, int *nth, bool *debug, double *out) {
-                 //double *tD, double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+
+
+void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
+  double *mean_v, int *nmean_v, double *sd_v, double *sd_w, double *t0, 
+  double *mean_w, double *rD, double *tD, double *swt, int *nth, int *gpuid, 
+  double *h_in, bool *debug,  double *out) {
+  //double *tD, double *swt, int *nth, bool *debug, double *RT, int *R, double *out) {
+  
+  cudaSetDevice(*gpuid);
+  
   size_t nsimfSize = sizeof(float) * (*nsim);
   size_t nsimuSize = sizeof(unsigned int) * (*nsim);
   size_t fSize     = sizeof(float) * 1;
@@ -440,10 +709,10 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
   b    = (float *)malloc(vfSize);
   c    = (float *)malloc(vfSize);
   for(size_t i=0; i<*nmean_v; i++) {
-      b[i] = A[i] + B[i];
-      c[i] = b[i] + C[i];
+    b[i] = A[i] + B[i];
+    c[i] = b[i] + C[i];
   }
-
+  
   float swt_r = *rD + *swt;
   float swt_b = *tD + *swt;
   float *swt1, *swt2, *swtD;
@@ -469,13 +738,14 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
     *swt2 = swt_b;
   }
   *swtD = *swt2 - *swt1;
-
+  
   cudaMalloc((void**) &d_RT, nsimfSize);
   cudaMalloc((void**) &d_R,  nsimuSize);
-
-  rplba3_n1(nsim, b, A, c, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, swt1, swt2, swtD, a, nth, d_R, d_RT); 
-
-  // CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost)); 
+  
+  rplba3_n1(nsim, b, A, c, mean_v, nmean_v, mean_w, sd_v, sd_w, t0, swt1, swt2, 
+    swtD, a, nth, d_R, d_RT);
+  
+  // CHECK(cudaMemcpy(h_R,  d_R,  nsimuSize, cudaMemcpyDeviceToHost));
   // CHECK(cudaMemcpy(h_RT, d_RT, nsimfSize, cudaMemcpyDeviceToHost));
   // for(int i=0; i<*nsim; i++) {
   //      RT[i] = h_RT[i];
@@ -483,7 +753,7 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
   // }
   // free(h_R); free(h_RT);
   free(b); free(c); free(swt1); free(swt2); free(swtD); free(a);
-
+  
   // ------------------------------------------------------------------------80
   float *KDEStats;
   KDEStats = (float *)malloc(sizeof(float) * 4);
@@ -492,30 +762,43 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
   float maxRT0 = KDEStats[1];
   float sd     = KDEStats[2];
   int nsRT0    = (int)KDEStats[3];
-
+  free(KDEStats);
+  
   if (*debug) {
-      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+    Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+    Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
-
+  
   // ------------------------------------------------------------------------80
   arma::vec data(*nx);
   for(size_t i=0; i<*nx; i++) { data[i] = x[i]; }
   
-  if (nsRT0 < 10 || (double)minRT0 > data.max() || (double)maxRT0 < data.min() || minRT0 < 0) {
-      cudaFree(d_RT);
+  float h  = std::isnan(*h_in) ? 0.8*sd*std::pow((float)*nsim, -0.2) : (*h_in);
+  if(*debug) Rprintf("h is: %f\n", h);
+  float z0 = minRT0 <= 1e-10 ? 0 : minRT0 - 3.0*h; 
+  if (z0 < 0) {  
+    if(*debug) Rprintf("z0 is: %f\n", z0); 
+    z0 = 0;
+  }
+  float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+  int ngrid = 1024;
+  arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+  
+  if (std::isnan(sd) || sd > 5 || nsRT0 <= 10 || minRT0 < 0 || 
+    std::isinf(minRT0) || maxRT0 <= 0 || z.has_nan() || z.size() <= 10) {
+    cudaFree(d_RT);
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
-    float h  = 0.09*sd*std::pow((float)*nsim, -0.2);
-    float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
-    float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
-    int ngrid = 1024;
+    //float h  = std::isnan(*h_in) ? 0.8*sd*std::pow((float)*nsim, -0.2) : (*h_in);
+    //float z0 = minRT0 <= 0 ? minRT0 : minRT0 - 3.0*h; if (z0 < 0) z0 = 0;
+    //float z1 = maxRT0 > 10.0 ? 10.0 : maxRT0 + 3.0*h;
+    //int ngrid = 1024;
     int half_ngrid  = 0.5*ngrid;
     size_t ngrid_plus1fSize = (ngrid + 1) * sizeof(float);
     size_t ngriduSize = ngrid * sizeof(unsigned int);
-    arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
+    //arma::vec z = arma::linspace<arma::vec>((double)z0, (double)z1, ngrid);
     float dt = z[1] - z[0];
-
+    
     // Get filter, binedge (1025) and histogram (1024)----------------------80
     arma::vec filter0(ngrid);
     double z1minusz0 = (double)(z1 - z0);
@@ -531,42 +814,62 @@ void n1PDF_plba3(double *x, int *nx, int *nsim, double *B, double *A, double *C,
       h_hist0[i]    = 0;  // initialize histogram
       if (i < (1 + half_ngrid)) {       // Get filter (1024)
         filter0[i] = std::exp(fil0_constant * (double)(i*i));
-      } else { 
+      } else {
         int j = 2*(i - half_ngrid); // flipping
         filter0[i] = filter0[i-j];
       }
     }
     
     h_binedge0[ngrid] = (z0 + ((float)(ngrid - 1))*dt);
-    histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc    
-
+    histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
+    
     arma::vec signal0(ngrid);
     for(size_t i=0; i<ngrid; i++) { signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim))); }
-    free(h_hist0); 
-
+    free(h_hist0);
+    
     // FFT: Get simulated PDF ---------------------------
-    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ; 
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
     arma::vec eDen; // a container for estiamted densities
     arma::interp1(z, sPDF, data, eDen);
-    for(size_t i=0; i<*nx; i++) { 
-      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i]; 
+    for(size_t i=0; i<*nx; i++) {
+      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
     }
   }
 }
 
-void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A, 
-                double *mean_v, int *nmean_v, double *sd_v, double *t0,
-                int *nth, double *h_in, bool *debug, double *out)
+void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
+  double *mean_v, int *nmean_v, double *sd_v, double *t0,
+  int *nth, double *h_in, bool *debug, double *out, int *did)
 {
-  cudaSetDevice(1);
-
+  if(*debug) {
+    int deviceCount = 0;
+    cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
+    
+    if (error_id != cudaSuccess)
+    {
+      Rprintf("cudaGetDeviceCount returned %d\n-> %s\n", (int)error_id, cudaGetErrorString(error_id));
+      Rprintf("Result = FAIL\n");
+      //exit(EXIT_FAILURE);
+    }
+    
+    for (int dev = 0; dev < deviceCount; ++dev)
+    {
+      cudaSetDevice(dev);
+      cudaDeviceProp deviceProp;
+      cudaGetDeviceProperties(&deviceProp, dev);
+      Rprintf("\nDevice %d: \"%s\"\n", dev, deviceProp.name);
+    }
+  }
+  
+  cudaSetDevice(*did);
+  
   size_t nsimfSize = *nsim * sizeof(float);
   size_t nsimuSize = *nsim * sizeof(unsigned int);
   float *d_RT;
   unsigned int *d_R;
   cudaMalloc((void**) &d_RT, nsimfSize);
-  cudaMalloc((void**) &d_R,  nsimuSize); // run LBA Monte Carlo simulation 
-  rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT); 
+  cudaMalloc((void**) &d_R,  nsimuSize); // run LBA Monte Carlo simulation
+  rn1(nsim, b, A, mean_v, nmean_v, sd_v, t0, nth, d_R, d_RT);
   
   // ------------------------------------------------------------------------80
   float *KDEStats;
@@ -576,18 +879,19 @@ void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
   float maxRT0 = KDEStats[1];
   float sd     = KDEStats[2];
   int nsRT0    = (int)KDEStats[3];
-
+  free(KDEStats);
+  
   if (*debug) {
-      Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
-      Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
+    Rprintf("RT0 [minimum maximum]: %.2f %.2f\n", minRT0, maxRT0);
+    Rprintf("RT0 [nsRT0 sd]: %d %f\n", nsRT0, sd);
   }
   // ------------------------------------------------------------------------80
   arma::vec data(*nx);
   for(size_t i=0; i<*nx; i++) { data[i] = x[i]; }
-
+  
   // if (nsRT0 < 10 || (double)minRT0 > data.max() || (double)maxRT0 < data.min() || minRT0 < 0) {
   if (nsRT0 <= 10) {
-    cudaFree(d_RT); 
+    cudaFree(d_RT);
     for(size_t i=0; i<*nx; i++) { out[i] = 1e-10; }
   } else {
     float h  = isnan(*h_in) ? 0.09*sd*std::pow((float)*nsim, -0.2) : (*h_in);
@@ -605,19 +909,19 @@ void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
     arma::vec filter0(ngrid);
     double z1minusz0 = (double)(z1 - z0);
     double fil0_constant = (double)(-2.0*h*h*M_PI*M_PI) / (z1minusz0*z1minusz0);
-
+    
     float *h_binedge0;
     unsigned int *h_hist0;
     h_binedge0 = (float *)malloc(ngrid_plus1fSize);
     h_hist0    = (unsigned int *)malloc(ngriduSize);
-
+    
     // Get binedge (1025) and histogram (1024) -----------------
     for(size_t i=0; i<ngrid; i++) {
       h_binedge0[i] = z0 + dt*((float)i - 0.5); // binedge
       h_hist0[i]    = 0;  // initialize histogram
       if (i < (1 + half_ngrid)) {       // Get filter (1024)
         filter0[i] = std::exp(fil0_constant * (double)(i*i));
-      } else { 
+      } else {
         int j = 2*(i - half_ngrid); // flipping
         filter0[i] = filter0[i-j];
       }
@@ -628,19 +932,20 @@ void n1PDF_ngpu(double *x, int *nx, int *nsim, double *b, double *A,
     histc(nsim, ngrid, h_binedge0, d_RT, h_hist0); // d_RT is free inside histc
     if (*debug) Rprintf("min max RT0 : %.3f %.3f\n", minRT0, maxRT0);
     if (*debug) Rprintf("h z0 z1: %.3f %.3f %.3f\n", h, z0, z1);
-
+    
     arma::vec signal0(ngrid);
-    for(size_t i=0; i<ngrid; i++) { 
-      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim))); 
+    for(size_t i=0; i<ngrid; i++) {
+      signal0[i] = (double)((float)h_hist0[i] / (dt * (float)(*nsim)));
     }
-    free(h_hist0); 
-
+    free(h_hist0);
+    
     // FFT: Get simulated PDF ---------------------------
-    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ; 
+    arma::vec sPDF = arma::real(arma::ifft(filter0 % arma::fft(signal0))) ;
     arma::vec eDen; // a container for estiamted densities
     arma::interp1(z, sPDF, data, eDen);
-    for(size_t i=0; i<*nx; i++) { 
-      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i]; 
+    for(size_t i=0; i<*nx; i++) {
+      out[i] = (eDen[i] < 1e-10 || std::isnan(eDen[i])) ? 1e-10 : eDen[i];
     }
   }
 }
+

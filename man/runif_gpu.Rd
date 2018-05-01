@@ -7,24 +7,19 @@
 runif_gpu(n, min = 0, max = 1, nthread = 32, dp = FALSE)
 }
 \arguments{
-\item{n}{numbers of observation. This must be a scalar.}
+\item{n}{number of observations. This must be a scalar.}
 
-\item{min}{lower bound of the uniform distribution. Must be finite. 
-This must be a scalar.}
-
-\item{max}{upper bound of the uniform distribution. Must be finite. 
-This must be a scalar.}
+\item{min, max}{lower and upper bounds of the distribution. Must be finite.}
 
 \item{nthread}{number of threads launched per block.}
 
 \item{dp}{whether calculate using double precision. Default is FALSE.}
 }
 \value{
-a double vector
+a vector of random deviates.
 }
 \description{
-This function generates random numbers from an uniform distribution 
-using GPU.
+This function generates random numbers from a uniform distribution.
 }
 \examples{
 n <- 2^20
@@ -34,10 +29,10 @@ den1 <- density(dat1)
 den2 <- density(dat2)
 
 ## Identical result
-par(mfrow=c(1,2))
-hist(dat2, breaks="fd", freq=FALSE, ylim=c(0,1.1))
+par(mfrow=c(1, 2), mar = c(4, 5.3, 0.82, 1))
+hist(dat2, breaks = "fd", freq = FALSE, ylim = c(0, 1.1))
 lines(den1$x, den1$y,lwd=2)
-hist(dat1, breaks="fd", freq=FALSE, ylim=c(0,1.1))
+hist(dat1, breaks = "fd", freq = FALSE, ylim = c(0, 1.1))
 lines(den2$x, den2$y,lwd=2)
 par(mfrow=c(1,1))
 
