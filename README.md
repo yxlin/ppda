@@ -164,7 +164,7 @@ install.packages("ppda_0.1.8.5.tar.gz", repos = NULL, type="source")
  - Nvidia GPU card Compute Capability (>= 2.0)
  - Nvidia's CUDA toolkit (>= release 7.5)
  - [Armadillo](http://arma.sourceforge.net/download.html) (>= 5.100)
- - Ubuntu Linux >= 16.04 
+ - Ubuntu Linux >= 16.04 (may work on OS X and other Linux distributions)
 
 ## Known Workable Nvidia GPU Cards
  - GeForce GT 720M

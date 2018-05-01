@@ -6,7 +6,7 @@
 #' approximation of cognitive/biological models.  
 #'
 #' @keywords ppda
-#' @name gpda
+#' @name ppda
 #' @docType package
 #' @author  Yi-Shin Lin <yishin.lin@utas.edu.au> \cr
 #' Andrew Heathcote <andrew.heathcote@utas.edu.au> \cr
@@ -34,5 +34,5 @@
 #' Silverman, B. W. (1986). \emph{Density estimation for statistics and data 
 #' analysis}. Vol. 26. CRC press.  
 #'  
-#' @useDynLib gpda
+#' @useDynLib ppda
 NULL
