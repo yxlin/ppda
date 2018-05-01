@@ -155,7 +155,7 @@ plot(RT, den3, type="l")
 ## From github
 devtools::install_github("TasCL/ppda")
 ## From source: 
-install.packages("gpda_0.1.8.5.tar.gz", repos = NULL, type="source")
+install.packages("ppda_0.1.8.5.tar.gz", repos = NULL, type="source")
 ```
 
 ## Prerequisites
@@ -178,7 +178,7 @@ install.packages("gpda_0.1.8.5.tar.gz", repos = NULL, type="source")
 - William Holmes 
 
 ## Acknowledgments
-* gpda R packaging is based on gputools 1.1.
+* ppda R packaging is based on gputools 1.1.
 
 ## References
 

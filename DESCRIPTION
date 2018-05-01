@@ -1,7 +1,7 @@
-Package: gpda
-Version: 0.1.8
-Date: 2017-07-03
-Title: Probability Density Approximation Using Graphics Processing Unit
+Package: ppda
+Version: 0.1.8.5
+Date: 2018-05-01
+Title: Probability Density Approximation Using Graphics Processing Units
 Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
                     role = c("aut", "cre")),
   person("Andrew", "Heathcote", email = "andrew.heathcote@utas.edu.au",
@@ -10,13 +10,12 @@ Authors@R: c(person("Yi-Shin", "Lin", email = "yishin.lin@utas.edu.au",
   role = "aut"))
 Maintainer: Yi-Shin Lin <yishin.lin@utas.edu.au>
 Depends: R (>= 3.0.2)
-Description: Use graphics processing unit (GPU) to conduct  
-    Monte Carlo simulations of canonical and piece-wise linear ballistic 
-    accumulator models. The simulations are used to approximate the model 
-    likelihood via a resample method described in Homles (2015). 
-License: GPL-2 
-URL: https://github.com/TasCL/gpda
-BugReports: https://github.com/TasCL/gpda/issues
+Description: Using graphics processing units (GPU) and Nvidia CUDA libraries 
+    to conduct Monte Carlo simulations of canonical and piecewise linear  
+    ballistic accumulation models. 
+License: GPL-2
+URL: https://github.com/TasCL/ppda
+BugReports: https://github.com/TasCL/ppda/issues
 SystemRequirements: Nvidia's CUDA toolkit (>= release 7.5)
 NeedsCompilation: yes
 RoxygenNote: 6.0.1
