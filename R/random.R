@@ -10,7 +10,7 @@
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::runif_gpu(n)
+#' dat1 <- ppda::runif_gpu(n)
 #' dat2 <- stats::runif(n)
 #' den1 <- density(dat1)
 #' den2 <- density(dat2)
@@ -25,13 +25,13 @@
 #'
 #' \dontrun{
 #' require(microbenchmark)
-#' res <- microbenchmark(gpda::runif_gpu(n, dp=FALSE), 
-#'                       gpda::runif_gpu(n, dp=TRUE),
+#' res <- microbenchmark(ppda::runif_gpu(n, dp=FALSE), 
+#'                       ppda::runif_gpu(n, dp=TRUE),
 #'                       stats::runif(n), times=100L)
 #' ## Unit: milliseconds
 #' ##                        expr       min        lq      mean    median  
-#' ##  gpda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  
-#' ##  gpda::runif(n, dp = TRUE)   5.876643  6.592802  7.122335  6.731998  
+#' ##  ppda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  
+#' ##  ppda::runif(n, dp = TRUE)   5.876643  6.592802  7.122335  6.731998  
 #' ##             stats::runif(n) 23.213792 23.983485 24.776863 24.022213 
 #' ##        uq       max neval cld
 #' ##  5.310155  28.70379   100   a  
@@ -42,7 +42,7 @@ runif_gpu <- function(n, min = 0, max = 1, nthread = 32, dp = FALSE) {
   if ( length(min) != 1 | length(max) != 1 ) 
     stop("min and max must be a scalar!")
   .C("runif_entry", as.integer(n),  as.double(min), as.double(max),
-     as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "gpda")[[6]]
+     as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "ppda")[[6]]
 }
 
 #' Generate Gaussian Random Numbers using GPU 
@@ -58,7 +58,7 @@ runif_gpu <- function(n, min = 0, max = 1, nthread = 32, dp = FALSE) {
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rnorm_gpu(n)
+#' dat1 <- ppda::rnorm_gpu(n)
 #' dat2 <- stats::rnorm(n)
 #' den1 <- density(dat1)
 #' den2 <- density(dat2)
@@ -73,14 +73,14 @@ runif_gpu <- function(n, min = 0, max = 1, nthread = 32, dp = FALSE) {
 #'
 #' \dontrun{
 #' require(microbenchmark)
-#' res <- microbenchmark(gpda::rnorm_gpu(n, dp=TRUE), 
-#'                       gpda::rnorm_gpu(n, dp=FALSE),
+#' res <- microbenchmark(ppda::rnorm_gpu(n, dp=TRUE), 
+#'                       ppda::rnorm_gpu(n, dp=FALSE),
 #'                       stats::rnorm(n), times=100L)
 #' }
 #' ## Unit: milliseconds
 #' ##                     expr       min        lq      mean    median        uq
-#' ## gpda::rnorm(n, dp=TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
-#' ## gpda::rnorm(n, dp=FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
+#' ## ppda::rnorm(n, dp=TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
+#' ## ppda::rnorm(n, dp=FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
 #' ## stats::rnorm(n)          58.169916 58.236266 59.341414 58.283129 58.880208
 #' ##       max neval cld
 #' ## 34.97274   100    b 
@@ -91,7 +91,7 @@ rnorm_gpu <- function(n, mean = 0, sd = 1, nthread = 32, dp = FALSE) {
         stop("mean and sd must be a scalar!")
   if (sd < 0) stop("sd must be greater than 0!")
   .C("rnorm_entry", as.integer(n), as.double(mean), as.double(sd),
-    as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "gpda")[[6]]
+    as.integer(nthread), as.logical(dp), numeric(n), PACKAGE = "ppda")[[6]]
 }
 
 #' Generate Random Numbers from a Truncated Normal Distribution  
@@ -110,7 +110,7 @@ rnorm_gpu <- function(n, mean = 0, sd = 1, nthread = 32, dp = FALSE) {
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rtnorm_gpu(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+#' dat1 <- ppda::rtnorm_gpu(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 #' 
 #' \dontrun{
 #' ## https://github.com/TasCL/tnorm
@@ -146,7 +146,7 @@ rnorm_gpu <- function(n, mean = 0, sd = 1, nthread = 32, dp = FALSE) {
 #' 
 #' ## Unit: milliseconds
 #' ##            expr         min         lq       mean     median         
-#' ##  gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   
+#' ##  ppda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   
 #' ## tnorm::rtnorm(n)   7.475374   8.317984   8.544317   8.345958   
 #' ##   msm::rtnorm(n)  54.597366 109.426265 103.025877 110.050924 
 #' ##         uq        max
@@ -165,7 +165,7 @@ rtnorm_gpu <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf,
   out <- .C("rtnorm_entry", as.integer(n), as.double(mean),
       as.double(sd), as.double(lower), as.double(upper),
       as.integer(nthread), as.logical(dp), numeric(n), NAOK = TRUE, 
-    PACKAGE = "gpda")[[8]]
+    PACKAGE = "ppda")[[8]]
   return(out)
 }
 
@@ -189,7 +189,7 @@ rtnorm_gpu <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf,
 #' @export
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rlba(n, nthread = 64) 
+#' dat1 <- ppda::rlba(n, nthread = 64) 
 #' \dontrun{
 #' dat2 <- ggdmc::rlba(n , A = .5, b = 1, t0 = .5, mean_v = c(2.4, 1.6), 
 #'                     sd_v = c(1, 1))
@@ -255,16 +255,16 @@ rtnorm_gpu <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf,
 #' ## microbenchmark can still give reliable and precise estimation.
 #' \dontrun{
 #' library(microbenchmark)
-#' res <- microbenchmark(gpda::rlba(n, dp=FALSE),
-#'                       gpda::rlba(n, dp=TRUE),
+#' res <- microbenchmark(ppda::rlba(n, dp=FALSE),
+#'                       ppda::rlba(n, dp=TRUE),
 #'                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 #' sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 #' }
 #'
 #' ## Unit: milliseconds
 #' ##                  expr     min       lq     mean   median       uq      
-#' ## gpda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
-#' ## gpda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
+#' ## ppda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
+#' ## ppda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
 #' ## rtdists::rLBA(n, .)  13521.67 13614.74 13799.59 13770.78 13919.77 
 #' ##      max neval cld
 #' ##    11.59    10   a
@@ -274,20 +274,20 @@ rtnorm_gpu <- function(n, mean = 0, sd = 1, lower = -Inf, upper = Inf,
 #'
 #' rm(list=ls())
 #' n <- 2^20; n
-#' dat1 <- gpda::rlba_n1(n, nthread = 64, dp=TRUE);  str(dat1)
-#' dat2 <- gpda::rlba_n1(n, nthread = 64, dp=FALSE); str(dat2)
+#' dat1 <- ppda::rlba_n1(n, nthread = 64, dp=TRUE);  str(dat1)
+#' dat2 <- ppda::rlba_n1(n, nthread = 64, dp=FALSE); str(dat2)
 #'
 #' \dontrun{
 #' res <- microbenchmark::microbenchmark(
-#' gpda::rlba_n1(n, dp = F),
-#' gpda::rlba_n1(n, dp = T), times = 10L)
+#' ppda::rlba_n1(n, dp = F),
+#' ppda::rlba_n1(n, dp = T), times = 10L)
 #' res
 #' }
 #' 
 #' ## Unit: milliseconds
 #' ##                     expr       min        lq     mean   median       uq
-#' ## gpda::rlba_n1(n, dp = F)  9.572601  9.949197 17.33809 10.82227 11.41039
-#' ## gpda::rlba_n1(n, dp = T) 13.774382 14.742762 21.77835 15.07504 15.45775
+#' ## ppda::rlba_n1(n, dp = F)  9.572601  9.949197 17.33809 10.82227 11.41039
+#' ## ppda::rlba_n1(n, dp = T) 13.774382 14.742762 21.77835 15.07504 15.45775
 #' ##      max neval cld
 #' ## 44.93433    10   a
 #' ## 49.63786    10   a
@@ -307,12 +307,12 @@ rlba <- function(n, b = 1, A = 0.5, mean_v = c(2.4, 1.6), sd_v = c(1, 1),
       result <- .C("rlbad_entry", as.integer(n), as.double(b), 
         as.double(A), as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
         as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
-        numeric(n), integer(n), PACKAGE = "gpda")
+        numeric(n), integer(n), PACKAGE = "ppda")
   } else {
       result <- .C("rlbaf_entry", as.integer(n), as.double(b), as.double(A),
                as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
                as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
-               numeric(n), integer(n), PACKAGE = "gpda")
+               numeric(n), integer(n), PACKAGE = "ppda")
   }
   
   return(data.frame(RT = result[[10]], R = result[[11]]))
@@ -336,12 +336,12 @@ rlba_n1 <- function(n, b = 1, A = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
       result <- .C("rlbad_n1", as.integer(n), as.double(b), as.double(A),
                as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
                as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
-               numeric(n), integer(n), PACKAGE = "gpda")
+               numeric(n), integer(n), PACKAGE = "ppda")
   } else {
       result <- .C("rlbaf_n1", as.integer(n), as.double(b), as.double(A),
                as.double(mean_v), as.integer(nmean_v), as.double(sd_v),
                as.integer(length(sd_v)), as.double(t0), as.integer(nthread),
-               numeric(n), integer(n), PACKAGE = "gpda")
+               numeric(n), integer(n), PACKAGE = "ppda")
   }
   return(data.frame(RT1 = result[[10]], R = result[[11]]))
 }
@@ -382,9 +382,9 @@ rlba_n1 <- function(n, b = 1, A = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
 #' 1--29, \cr doi: \url{http://dx.doi.org/10.1016/j.cogpsych.2015.11.002}.
 #' @examples
 #' n <- 2^20
-#' dat1 <- gpda::rplba1(n)
-#' dat2 <- gpda::rplba2(n)
-#' dat3 <- gpda::rplba3(n)
+#' dat1 <- ppda::rplba1(n)
+#' dat2 <- ppda::rplba2(n)
+#' dat3 <- ppda::rplba3(n)
 #' 
 #' crt1 <- dat1[dat1$R==1,"RT"]
 #' ert1 <- dat1[dat1$R==2,"RT"]
@@ -405,16 +405,16 @@ rlba_n1 <- function(n, b = 1, A = 0.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=0.5,
 #' ## It takes about 10 ms to simulate 2^20 rplba random numbers.
 #' \dontrun{
 #' require(microbenchmark)
-#' res <- microbenchmark(gpda::rplba1(n),
-#'                       gpda::rplba2(n),
-#'                       gpda::rplba3(n), times=10L)
+#' res <- microbenchmark(ppda::rplba1(n),
+#'                       ppda::rplba2(n),
+#'                       ppda::rplba3(n), times=10L)
 #' }
 #' 
 #' ## Unit: milliseconds
 #' ##             expr      min       lq     mean   median       uq      max 
-#' ##  gpda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669 
-#' ##  gpda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774 
-#' ##  gpda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500 
+#' ##  ppda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669 
+#' ##  ppda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774 
+#' ##  ppda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500 
 #' 
 #' @export
 rplba0 <- function(n, A = 1.5, b = 2.7, t0 = .5, mean_v = c(3.3, 2.2), 
@@ -427,7 +427,7 @@ gpuid = 0) {
     as.double(mean_v), as.integer(length(mean_v)),
     as.double(mean_w), as.double(sd_v), as.double(t0),
     as.double(T0), as.integer(nthread), as.integer(gpuid),
-    integer(n), numeric(n), PACKAGE = "gpda")
+    integer(n), numeric(n), PACKAGE = "ppda")
   return(data.frame(RT = result[[13]], R = result[[12]]))
 }
 
@@ -443,7 +443,7 @@ rplba1 <- function(n, A = 1.5, b = 2.7, t0 = .5, mean_v = c(3.3, 2.2),
                  as.double(mean_v), as.integer(length(mean_v)),
                  as.double(mean_w), as.double(sd_v), as.double(t0),
                  as.double(T0), as.integer(nthread), as.integer(gpuid),
-                 integer(n), numeric(n), PACKAGE = "gpda")
+                 integer(n), numeric(n), PACKAGE = "ppda")
     return(data.frame(RT = result[[13]], R = result[[12]]))
 }
 
@@ -460,7 +460,7 @@ rplba2 <- function(n, A = c(1.5, 1.5),  b = c(2.7, 2.7), t0 = .08,
                  as.double(mean_v), as.integer(length(mean_v)),
                  as.double(mean_w), as.double(sd_v), as.double(sd_w),
                  as.double(t0), as.double(T0), as.integer(nthread), 
-                 as.integer(gpuid), integer(n), numeric(n),  PACKAGE = "gpda")
+                 as.integer(gpuid), integer(n), numeric(n),  PACKAGE = "ppda")
     return(data.frame(RT = result[[14]], R = result[[13]]))
 }
 
@@ -496,7 +496,7 @@ rplba3 <- function(n, A=c(1.5, 1.5), B=c(1.2, 1.2), C=c(.3, .3),
                  as.double(mean_w), as.double(sd_v), as.double(sd_w),
                  as.double(t0), as.double(swt1), as.double(swt2), as.double(swtD),
                  as.logical(a), as.integer(nthread), as.integer(gpuid),
-                 integer(n), numeric(n), PACKAGE = "gpda")
+                 integer(n), numeric(n), PACKAGE = "ppda")
     return(data.frame(RT = result[[18]], R = result[[17]]))
 }
 
@@ -531,7 +531,7 @@ rplba <- function(n, A=c(1.5, 1.5), B=c(1.2, 1.2), C=c(.3, .3),
     as.double(mean_w), as.double(sd_v), as.double(sd_w),
     as.double(t0), as.double(swt1), as.double(swt2), as.double(swtD),
     as.logical(a), as.integer(nthread), as.integer(gpuid),
-    integer(n), numeric(n), PACKAGE = "gpda")
+    integer(n), numeric(n), PACKAGE = "ppda")
   return(cbind(result[[18]], result[[17]]))
   ## return(data.frame(RT = result[[17]], R = result[[16]]))
 }
