@@ -34,28 +34,28 @@
 #' @export
 sum_gpu <- function(x, debug=FALSE) {
     .C("sum_entry", as.double(x), as.integer(length(x)),
-      as.logical(debug), numeric(1), PACKAGE='gpda')[[4]]
+      as.logical(debug), numeric(1), PACKAGE='ppda')[[4]]
 }
 
 #' @rdname sum_gpu
 #' @export
 min_gpu <- function(x, debug=FALSE) {
   .C("min_entry", as.double(x), as.integer(length(x)),
-    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+    as.logical(debug), numeric(1), PACKAGE = "ppda")[[4]]
 }
 
 #' @rdname sum_gpu
 #' @export
 max_gpu <- function(x, debug=FALSE) {
   .C("max_entry", as.double(x), as.integer(length(x)),
-    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+    as.logical(debug), numeric(1), PACKAGE = "ppda")[[4]]
 }
 
 #' @rdname sum_gpu
 #' @export
 minmax <- function(x, debug=FALSE) {
   .C("minmax_entry", as.double(x), as.integer(length(x)),
-    as.logical(debug), numeric(2), PACKAGE = "gpda")[[4]]
+    as.logical(debug), numeric(2), PACKAGE = "ppda")[[4]]
 }
 
 #' @rdname sum_gpu
@@ -63,28 +63,28 @@ minmax <- function(x, debug=FALSE) {
 sqsum <- function(x, debug=FALSE) {
   .C("sqsum_entry", as.double(x), as.integer(length(x)), 
     as.logical(debug), numeric(1),
-    PACKAGE="gpda")[[4]]
+    PACKAGE="ppda")[[4]]
 }
 
 #' @rdname sum_gpu
 #' @export
 sd_gpu <- function(x, debug=FALSE) {
   .C("sd_entry", as.double(x), as.integer(length(x)), 
-    as.logical(debug), numeric(1), PACKAGE="gpda")[[4]]
+    as.logical(debug), numeric(1), PACKAGE="ppda")[[4]]
 }
 
 #' @rdname sum_gpu
 #' @export
 count <- function(x, debug=FALSE) {
   .C("count_entry", as.integer(length(x)), as.integer(x),
-    as.logical(debug), numeric(2), PACKAGE="gpda")[[4]]
+    as.logical(debug), numeric(2), PACKAGE="ppda")[[4]]
 }
 
 #' @rdname sum_gpu
 #' @export
 n1min <- function(x, debug=FALSE) {
   .C("n1min_entry", as.double(x), as.integer(length(x)), as.logical(debug), 
-    numeric(1), PACKAGE="gpda")[[4]]
+    numeric(1), PACKAGE="ppda")[[4]]
 }
 
 #' Test if an integer is a power of 2
@@ -100,7 +100,7 @@ isp2 <- function(n) {
   ## test if n is a power of 2.
   if (n == 0) stop("n cannot be 0.")
   if (!is.integer(n)) stop("n must be an integer.")
-  .C("isp2", as.integer(n), as.logical(1), PACKAGE = "gpda")[[2]]
+  .C("isp2", as.integer(n), as.logical(1), PACKAGE = "ppda")[[2]]
 }
 
 
@@ -110,15 +110,15 @@ isp2 <- function(n) {
 ## these reduction algorithms do not run faster.  
 sumur <- function(x, debug=TRUE) {
   .C("sumur_entry", as.double(x), as.integer(length(x)),
-    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+    as.logical(debug), numeric(1), PACKAGE = "ppda")[[4]]
 }
 
 sqsumur <- function(x, debug=TRUE) {
   .C("sqsumur_entry", as.double(x), as.integer(length(x)),
-    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+    as.logical(debug), numeric(1), PACKAGE = "ppda")[[4]]
 }
 
 sqsumurd <- function(x, debug=TRUE) {
   .C("sqsumurd_entry", as.double(x), as.integer(length(x)),
-    as.logical(debug), numeric(1), PACKAGE = "gpda")[[4]]
+    as.logical(debug), numeric(1), PACKAGE = "ppda")[[4]]
 }

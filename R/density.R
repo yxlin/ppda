@@ -123,7 +123,7 @@ n1PDF <- function(x, A, b, mean_v, sd_v, t0, n = 1024, nthread = 32,
       as.integer(nthread), as.integer(gpuid),
       as.double(h),
       as.logical(debug),  numeric(length(x)),
-      NAOK = TRUE,        PACKAGE='gpda')
+      NAOK = TRUE,        PACKAGE='ppda')
     out <- res[[14]]
   }
   return(out)
@@ -249,7 +249,7 @@ n1PDF_plba0 <- function(x, A, b, mean_v, sd_v, t0, mean_w, rD, swt, n = 1024,
       as.double(swt),
       as.integer(nthread), as.integer(gpuid),
       as.double(h), as.logical(debug),
-      numeric(length(x)), NAOK = TRUE, PACKAGE = "gpda")
+      numeric(length(x)), NAOK = TRUE, PACKAGE = "ppda")
     out <- res[[17]]
   }
   return(out)
@@ -275,7 +275,7 @@ n1PDF_plba1 <- function(x, A, b, mean_v, sd_v, t0, mean_w, rD, swt, n = 1024,
       as.double(swt),
       as.integer(nthread), as.integer(gpuid),
       as.double(h), as.logical(debug),
-      numeric(length(x)), NAOK = TRUE, PACKAGE = "gpda")
+      numeric(length(x)), NAOK = TRUE, PACKAGE = "ppda")
   out <- res[[17]]
   }
   return(out)
@@ -301,7 +301,7 @@ n1PDF_plba2 <- function(x, nsim = 1024, b=c(2.7, 2.7), A=c(1.5, 1.5),
       as.double(swt),
       as.integer(nthread), as.integer(gpuid),
       as.double(h), as.logical(debug),
-      numeric(length(x)), NAOK = TRUE, PACKAGE = "gpda")
+      numeric(length(x)), NAOK = TRUE, PACKAGE = "ppda")
     out <- res[[18]]
   }
   return(out)
@@ -332,7 +332,7 @@ n1PDF_plba3 <- function(x, nsim = 1024, B=c(1.2, 1.2), A=c(1.5, 1.5), C=c(.3, .3
       as.double(swt),
       as.integer(nthread), as.integer(gpuid), as.double(h),
       as.logical(debug),
-      numeric(length(x)), NAOK = TRUE, PACKAGE = "gpda")
+      numeric(length(x)), NAOK = TRUE, PACKAGE = "ppda")
     out <- res[[20]]
   }
   return(out)
@@ -359,7 +359,7 @@ n1PDF_plba3 <- function(x, nsim = 1024, B=c(1.2, 1.2), A=c(1.5, 1.5), C=c(.3, .3
 #     as.double(t0),     as.integer(nthread),
 #     as.double(h),
 #     as.logical(debug), numeric(length(x)), as.integer(deviceid),
-#     NAOK = TRUE, PACKAGE='gpda')
+#     NAOK = TRUE, PACKAGE='ppda')
 #   return(out[[13]])
 # 
 # }
