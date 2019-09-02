@@ -15,9 +15,9 @@ rplba1(n, A = 1.5, b = 2.7, t0 = 0.5, mean_v = c(3.3, 2.2),
   mean_w = c(1.5, 1.2), sd_v = c(1, 1), rD = 0.3, swt = 0.5,
   nthread = 32, gpuid = 0)
 
-rplba2(n, A = c(1.5, 1.5), b = c(2.7, 2.7), t0 = 0.08, mean_v = c(3.3,
-  2.2), mean_w = c(1.5, 3.7), sd_v = c(1, 1), sd_w = c(1, 1), rD = 0.3,
-  swt = 0.5, nthread = 32, gpuid = 0)
+rplba2(n, A = c(1.5, 1.5), b = c(2.7, 2.7), t0 = 0.08,
+  mean_v = c(3.3, 2.2), mean_w = c(1.5, 3.7), sd_v = c(1, 1),
+  sd_w = c(1, 1), rD = 0.3, swt = 0.5, nthread = 32, gpuid = 0)
 
 rplba3(n, A = c(1.5, 1.5), B = c(1.2, 1.2), C = c(0.3, 0.3),
   mean_v = c(3.3, 2.2), mean_w = c(1.5, 3.7), sd_v = c(1, 1),
@@ -73,9 +73,9 @@ This function generates two-accumulator pLBA random numbers using GPU.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rplba1(n)
-dat2 <- gpda::rplba2(n)
-dat3 <- gpda::rplba3(n)
+dat1 <- ppda::rplba1(n)
+dat2 <- ppda::rplba2(n)
+dat3 <- ppda::rplba3(n)
 
 crt1 <- dat1[dat1$R==1,"RT"]
 ert1 <- dat1[dat1$R==2,"RT"]
@@ -96,16 +96,16 @@ par(mfrow=c(1,1))
 ## It takes about 10 ms to simulate 2^20 rplba random numbers.
 \dontrun{
 require(microbenchmark)
-res <- microbenchmark(gpda::rplba1(n),
-                      gpda::rplba2(n),
-                      gpda::rplba3(n), times=10L)
+res <- microbenchmark(ppda::rplba1(n),
+                      ppda::rplba2(n),
+                      ppda::rplba3(n), times=10L)
 }
 
 ## Unit: milliseconds
 ##             expr      min       lq     mean   median       uq      max 
-##  gpda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669 
-##  gpda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774 
-##  gpda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500 
+##  ppda::rplba1(n) 9.046328 10.00658 10.68783 10.72616 11.37464 12.02669 
+##  ppda::rplba2(n) 9.349161 11.00560 14.71400 11.19560 13.47059 41.00774 
+##  ppda::rplba3(n) 9.870809 10.06734 11.36654 11.19728 11.79733 14.41500 
 
 }
 \references{

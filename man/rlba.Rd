@@ -39,7 +39,7 @@ draws only node 1 random numbers.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rlba(n, nthread = 64) 
+dat1 <- ppda::rlba(n, nthread = 64) 
 \dontrun{
 dat2 <- ggdmc::rlba(n , A = .5, b = 1, t0 = .5, mean_v = c(2.4, 1.6), 
                     sd_v = c(1, 1))
@@ -105,16 +105,16 @@ lines(den3e$x, den3e$y, col="blue", lwd=2, lty="dashed")
 ## microbenchmark can still give reliable and precise estimation.
 \dontrun{
 library(microbenchmark)
-res <- microbenchmark(gpda::rlba(n, dp=FALSE),
-                      gpda::rlba(n, dp=TRUE),
+res <- microbenchmark(ppda::rlba(n, dp=FALSE),
+                      ppda::rlba(n, dp=TRUE),
                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6),
 sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 }
 
 ## Unit: milliseconds
 ##                  expr     min       lq     mean   median       uq      
-## gpda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
-## gpda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
+## ppda::rlba(n, dp=F)      8.31     8.47     9.17     8.53     9.21    
+## ppda::rlba(n, dp=T)     11.86    11.96    12.31    12.06    12.17    
 ## rtdists::rLBA(n, .)  13521.67 13614.74 13799.59 13770.78 13919.77 
 ##      max neval cld
 ##    11.59    10   a
@@ -124,20 +124,20 @@ sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 
 rm(list=ls())
 n <- 2^20; n
-dat1 <- gpda::rlba_n1(n, nthread = 64, dp=TRUE);  str(dat1)
-dat2 <- gpda::rlba_n1(n, nthread = 64, dp=FALSE); str(dat2)
+dat1 <- ppda::rlba_n1(n, nthread = 64, dp=TRUE);  str(dat1)
+dat2 <- ppda::rlba_n1(n, nthread = 64, dp=FALSE); str(dat2)
 
 \dontrun{
 res <- microbenchmark::microbenchmark(
-gpda::rlba_n1(n, dp = F),
-gpda::rlba_n1(n, dp = T), times = 10L)
+ppda::rlba_n1(n, dp = F),
+ppda::rlba_n1(n, dp = T), times = 10L)
 res
 }
 
 ## Unit: milliseconds
 ##                     expr       min        lq     mean   median       uq
-## gpda::rlba_n1(n, dp = F)  9.572601  9.949197 17.33809 10.82227 11.41039
-## gpda::rlba_n1(n, dp = T) 13.774382 14.742762 21.77835 15.07504 15.45775
+## ppda::rlba_n1(n, dp = F)  9.572601  9.949197 17.33809 10.82227 11.41039
+## ppda::rlba_n1(n, dp = T) 13.774382 14.742762 21.77835 15.07504 15.45775
 ##      max neval cld
 ## 44.93433    10   a
 ## 49.63786    10   a

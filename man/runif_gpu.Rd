@@ -23,7 +23,7 @@ This function generates random numbers from a uniform distribution.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::runif_gpu(n)
+dat1 <- ppda::runif_gpu(n)
 dat2 <- stats::runif(n)
 den1 <- density(dat1)
 den2 <- density(dat2)
@@ -38,13 +38,13 @@ par(mfrow=c(1,1))
 
 \dontrun{
 require(microbenchmark)
-res <- microbenchmark(gpda::runif_gpu(n, dp=FALSE), 
-                      gpda::runif_gpu(n, dp=TRUE),
+res <- microbenchmark(ppda::runif_gpu(n, dp=FALSE), 
+                      ppda::runif_gpu(n, dp=TRUE),
                       stats::runif(n), times=100L)
 ## Unit: milliseconds
 ##                        expr       min        lq      mean    median  
-##  gpda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  
-##  gpda::runif(n, dp = TRUE)   5.876643  6.592802  7.122335  6.731998  
+##  ppda::runif(n, dp = FALSE)  3.960948  4.710212  5.179495  4.877518  
+##  ppda::runif(n, dp = TRUE)   5.876643  6.592802  7.122335  6.731998  
 ##             stats::runif(n) 23.213792 23.983485 24.776863 24.022213 
 ##        uq       max neval cld
 ##  5.310155  28.70379   100   a  

@@ -25,7 +25,7 @@ This function generates random numbers from a normal distribution.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rnorm_gpu(n)
+dat1 <- ppda::rnorm_gpu(n)
 dat2 <- stats::rnorm(n)
 den1 <- density(dat1)
 den2 <- density(dat2)
@@ -40,14 +40,14 @@ par(mfrow=c(1, 1))
 
 \dontrun{
 require(microbenchmark)
-res <- microbenchmark(gpda::rnorm_gpu(n, dp=TRUE), 
-                      gpda::rnorm_gpu(n, dp=FALSE),
+res <- microbenchmark(ppda::rnorm_gpu(n, dp=TRUE), 
+                      ppda::rnorm_gpu(n, dp=FALSE),
                       stats::rnorm(n), times=100L)
 }
 ## Unit: milliseconds
 ##                     expr       min        lq      mean    median        uq
-## gpda::rnorm(n, dp=TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
-## gpda::rnorm(n, dp=FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
+## ppda::rnorm(n, dp=TRUE)   6.616550  6.845842  7.452962  6.978157  7.537696
+## ppda::rnorm(n, dp=FALSE)  4.002644  4.140652  4.479556  4.258824  4.752049
 ## stats::rnorm(n)          58.169916 58.236266 59.341414 58.283129 58.880208
 ##       max neval cld
 ## 34.97274   100    b 

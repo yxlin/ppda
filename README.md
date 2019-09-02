@@ -2,25 +2,29 @@
 
 [![DOI](https://zenodo.org/badge/95934306.svg)](https://zenodo.org/badge/latestdoi/95934306)
 
-_ppda_ is an R package, conducting probability density approximation 
+_ppda_ is an R package for conducting probability density approximation 
 (PDA; Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP).  _ppda_ provides R 
 functions and CUDA C API to harness the parallel computing power of graphics 
-processing unit (GPU), making PDA efficient. Current release, version 0.18.5, 
+processing unit (GPU), making PDA efficient. Current release, version 0.1.8.6, 
 provides,
 
   * CUDA C API, which allows C programmers to construct their own 
   probability density approximation routines for biological or cognitive 
   models and,
-  * R functions, calculating approximated likelihood of the canonical linear 
+  * R functions, calculating approximated likelihoods of the canonical linear 
   ballistic accumulation (LBA) and piecewise LBA models 
   (Holmes, Trueblood, & Heathcote, 2016).  
 
-PDA calculates likelihood even when their analytic functions are 
+PDA calculates likelihoods even when their analytic functions are 
 unavailable.  It allows researchers to model computationally complex 
 biological processes, which in the past could only be approached by simplified 
-models. PDA is however computationally demanding.  It conducts a large number 
+models. One criticl contrast is that the conventional methods of  
+minimizing the cost function with least square requires one to decide what 
+summary statistics to minimize. PDA instead can use all the observations. 
+However, PDA is computationally demanding.  It conducts a large number 
 of Monte Carlo simulations to attain satisfactory precision. Monte Carlo 
-simulations however demand computational resources. 
+simulations when being conducted repeated, such as in Bayesian MCMC, demand 
+huge computational resources. 
 
 We implement _ppda_, in Armadillo C++ and CUDA C libraries to provide
 a practical and efficient solution for PDA, which is ready to apply on 
@@ -28,13 +32,12 @@ Bayesian computation. _ppda_ enables parallel computation with millions of
 threads using GPUs and avoids moving large chunk of memories back and forth 
 the system and GPU memories. Hence, _ppda_ practically removes the computational
 burden that involves large numbers (>1e6) of model simulations without 
-suffering the limitation of (GPU) memory bandwidth. This solution allows one to
+suffering by the limitation of GPU memory bandwidth. This solution allows one to
 rapidly approximate probability densities with ultra-high precision.
 
-This manuscript assocaited with this project is under preparation. We are glad 
-if you find software here is useful.  Please email the package maintainer 
-at <yishin.lin@utas.edu.au>, if you've found any bugs or have any suggestions,  
-
+The paper associated with this package can be viewed / downloaded 
+[here](http://link.springer.com/article/10.3758/s13428-018-1153-1) or [here](https://rdcu.be/bPYrT). We are glad if you find the software here is 
+useful.  Please open an issue thread here or email the package maintainer at <yishinlin001@gmail.com>, if you find any bugs or have any suggestions.  
 
 ## Getting Started
 
@@ -77,15 +80,15 @@ par(mfrow = c(1,1))
 ## Comparing the speed of using double-precision, single-precision, 
 ## and R's script. 'dp=F' stands for turning off double-precision. 
 library(microbenchmark)
-res <- microbenchmark(gpda::rlba(n, dp=F),
-                      gpda::rlba(n, dp=T),
+res <- microbenchmark(ppda::rlba(n, dp=F),
+                      ppda::rlba(n, dp=T),
                       rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), 
                          sd_v=c(1, 1), t0=.5, silent=TRUE), times=10L)
 
 ## Unit: milliseconds
 ##                  expr            min           lq         mean       median    
-## gpda::rlba(n, dp = F)       8.310137     8.465464     9.171308     8.529089     
-## gpda::rlba(n, dp = T)      11.860449    11.955713    12.313426    12.061767    
+## ppda::rlba(n, dp = F)       8.310137     8.465464     9.171308     8.529089     
+## ppda::rlba(n, dp = T)      11.860449    11.955713    12.313426    12.061767    
 ## rtdists::rLBA(n,... )   13521.669045 13614.740048 13799.592982 13770.777719 
 
 ```
@@ -112,10 +115,12 @@ lines(den1$x, den1$y,lwd=2) ## gpu
 lines(den2$x, den2$y,lwd=2, col = "blue") ## tnorm
 lines(den3$x, den3$y,lwd=2, col = "red") ## msn
 
+## tnorm is a small C++ package I developed when testing this package. It is
+## defunct. Please see my ggdmc package for C++ tnorm functions.
 
 ## Unit: milliseconds
 ##            expr       min         lq       mean     median         uq        max
-## gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   1.580943   6.976541
+## ppda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   1.580943   6.976541
 ## tnorm::rtnorm(n)  7.475374   8.317984   8.544317   8.345958   9.120224  10.220493
 ## msm::rtnorm(n)   54.597366 109.426265 103.025877 110.050924 119.054471 125.192521
 
@@ -153,9 +158,9 @@ plot(RT, den3, type="l")
 
 ```
 ## From github
-devtools::install_github("TasCL/ppda")
+devtools::install_github("yxlin/ppda")
 ## From source: 
-install.packages("ppda_0.1.8.5.tar.gz", repos = NULL, type="source")
+install.packages("ppda_0.1.8.6.tar.gz", repos = NULL, type="source")
 ```
 
 ## Prerequisites
@@ -164,16 +169,17 @@ install.packages("ppda_0.1.8.5.tar.gz", repos = NULL, type="source")
  - Nvidia GPU card Compute Capability (>= 2.0)
  - Nvidia's CUDA toolkit (>= release 7.5)
  - [Armadillo](http://arma.sourceforge.net/download.html) (>= 5.100)
- - Ubuntu Linux >= 16.04 (may work on OS X and other Linux distributions)
+ - Ubuntu Linux >= 16.04 (may work on macOS and other Linux distributions)
 
 ## Known Workable Nvidia GPU Cards
  - GeForce GT 720M
  - GeForce GTX 980
+ - GeForce GTX 1050
  - Tesla K80
  - Tesla K20
  
 ## Contributors
-- Yi-Shin Lin <yishin.lin@utas.edu.au> 
+- Yi-Shin Lin <yishinlin001@gmail.com> 
 - Andrew Heathcote 
 - William Holmes 
 
@@ -181,8 +187,8 @@ install.packages("ppda_0.1.8.5.tar.gz", repos = NULL, type="source")
 * ppda R packaging is based on gputools 1.1.
 
 ## References
-* Lin, Y.-S., Heathcote, A., & Holmes, W. (Manuscript in prepration). Parallel
-Probability Density Approximation.
+* Lin, Y.-S., Heathcote, A., & Holmes, W. (2019). [Parallel
+Probability Density Approximation](https://rdcu.be/bPYrT). _Behavioral Research Methods_, 1--23. 
 
 * Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.

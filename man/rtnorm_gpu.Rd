@@ -31,7 +31,7 @@ distribution.
 }
 \examples{
 n <- 2^20
-dat1 <- gpda::rtnorm_gpu(n, mean=-1, sd=1.2, lower=0, upper=Inf)
+dat1 <- ppda::rtnorm_gpu(n, mean=-1, sd=1.2, lower=0, upper=Inf)
 
 \dontrun{
 ## https://github.com/TasCL/tnorm
@@ -67,7 +67,7 @@ par(mfrow=c(1,1))
 
 ## Unit: milliseconds
 ##            expr         min         lq       mean     median         
-##  gpda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   
+##  ppda::rtnorm(n)   1.173537   1.417016   1.978613   1.423757   
 ## tnorm::rtnorm(n)   7.475374   8.317984   8.544317   8.345958   
 ##   msm::rtnorm(n)  54.597366 109.426265 103.025877 110.050924 
 ##         uq        max
