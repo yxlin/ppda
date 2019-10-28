@@ -2,10 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/95934306.svg)](https://zenodo.org/badge/latestdoi/95934306)
 
-_ppda_ is an R package for conducting probability density approximation 
-(PDA; Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP).  _ppda_ provides R 
-functions and CUDA C API to harness the parallel computing power of graphics 
-processing unit (GPU), making PDA efficient. Current release, version 0.1.8.6, 
+Probability density approximation (PDA) is a one of the MCMC methods in approximation Bayesian Computation (ABC) (Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP). _ppda_ implements this particular method is an R package, using a heterogeneous programming framework of GPU and CPU. This approach provides not only a user-friendly R interface, but also high-performance parallel computation, solving the computation bottleneck plagued often in ABC.  _ppda_ provides R functions and CUDA C API to harness the parallel computing power of graphics processing unit (GPU), making PDA efficient. Current release, version 0.1.8.6, 
 provides,
 
   * CUDA C API, which allows C programmers to construct their own 
@@ -186,10 +183,11 @@ install.packages("ppda_0.1.8.6.tar.gz", repos = NULL, type="source")
 ## Acknowledgments
 * ppda R packaging is based on gputools 1.1.
 
-## References
+## Download the paper 
 * Lin, Y.-S., Heathcote, A., & Holmes, W. (2019). [Parallel
 Probability Density Approximation](https://rdcu.be/bPYrT). _Behavioral Research Methods_, 1--23. 
 
+## References
 * Holmes, W. (2015). A practical guide to the Probability Density
 Approximation (PDA) with improved implementation and error characterization.
 _Journal of Mathematical Psychology_, 68-69, 13--24,
