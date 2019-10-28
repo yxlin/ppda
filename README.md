@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/95934306.svg)](https://zenodo.org/badge/latestdoi/95934306)
 
-Probability density approximation (PDA) is a one of the MCMC methods in approximation Bayesian Computation (ABC) (Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP). _ppda_ implements this particular method is an R package, using a heterogeneous programming framework of GPU and CPU. This approach provides not only a user-friendly R interface, but also high-performance parallel computation, solving the computation bottleneck plagued often in ABC.  _ppda_ provides R functions and CUDA C API to harness the parallel computing power of graphics processing unit (GPU), making PDA efficient. Current release, version 0.1.8.6, 
+Probability density approximation (PDA) is a one of the MCMC methods in approximate Bayesian Computation (ABC) (Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP). _ppda_ implements this particular method is an R package, using a heterogeneous programming framework of GPU and CPU. This approach provides not only a user-friendly R interface, but also high-performance parallel computation, solving the computation bottleneck plagued often in ABC.  _ppda_ provides R functions and CUDA C API to harness the parallel computing power of graphics processing unit (GPU), making PDA efficient. Current release, version 0.1.8.6, 
 provides,
 
   * CUDA C API, which allows C programmers to construct their own 
