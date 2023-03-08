@@ -2,8 +2,11 @@
 
 [![DOI](https://zenodo.org/badge/95934306.svg)](https://zenodo.org/badge/latestdoi/95934306)
 
-Probability density approximation (PDA) is a one of the MCMC methods in approximate Bayesian Computation (ABC) (Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP). _ppda_ implements this particular method is an R package, using a heterogeneous programming framework of GPU and CPU. This approach provides not only a user-friendly R interface, but also high-performance parallel computation, solving the computation bottleneck plagued often in ABC.  _ppda_ provides R functions and CUDA C API to harness the parallel computing power of graphics processing unit (GPU), making PDA efficient. Current release, version 0.1.8.6, 
-provides,
+pPDA implements probability density approximation (PDA), a method in approximate Bayesian 
+computation (Turner & Sederberg, 2014, PBR; Holmes, 2015, JMP). The package uses a 
+heterogeneous programming framework of GPU and CPU and provides an R interface.  
+
+Current release, version 0.1.8.6, provides,
 
   * CUDA C API, which allows C programmers to construct their own 
   probability density approximation routines for biological or cognitive 
@@ -12,40 +15,35 @@ provides,
   ballistic accumulation (LBA) and piecewise LBA models 
   (Holmes, Trueblood, & Heathcote, 2016).  
 
-PDA calculates likelihoods even when their analytic functions are 
-unavailable.  It allows researchers to model computationally complex 
-biological processes, which in the past could only be approached by simplified 
-models. One criticl contrast is that the conventional methods of  
-minimizing the cost function with least square requires one to decide what 
-summary statistics to minimize. PDA instead can use all the observations. 
-However, PDA is computationally demanding.  It conducts a large number 
-of Monte Carlo simulations to attain satisfactory precision. Monte Carlo 
-simulations when being conducted repeated, such as in Bayesian MCMC, demand 
-huge computational resources. 
+PDA calculates likelihoods even when their analytic solutions are 
+unavailable.  It allows researchers to calculate mathematicl solutions for complex 
+biological processes, which, in the past, could only be approximated by using 
+simplified models.  PDA is computationally demanding.  It conducts 
+many Monte Carlo simulations in every iteration of, for instance Bayesian
+inference, to construct a (temporary) likelihood function.  
 
-We implement _ppda_, in Armadillo C++ and CUDA C libraries to provide
-a practical and efficient solution for PDA, which is ready to apply on 
-Bayesian computation. _ppda_ enables parallel computation with millions of
-threads using GPUs and avoids moving large chunk of memories back and forth 
-the system and GPU memories. Hence, _ppda_ practically removes the computational
-burden that involves large numbers (>1e6) of model simulations without 
-suffering by the limitation of GPU memory bandwidth. This solution allows one to
-rapidly approximate probability densities with ultra-high precision.
+We implement _ppda_, using Armadillo C++ and CUDA C libraries, to provide
+a practical and efficient solution for PDA. _ppda_ enables parallel 
+computation with millions of threads using GPUs and avoids moving large 
+chunk of memories back and forth between CPU and GPU memories. 
+(We have tested and it can simulate up to near one billion simulations, 
+concurrently using multiple K80 GPUs.)
 
 The paper associated with this package can be viewed / downloaded 
-[here](http://link.springer.com/article/10.3758/s13428-018-1153-1) or [here](https://rdcu.be/bPYrT). We are glad if you find the software here is 
-useful.  Please open an issue thread here or email the package maintainer at <yishinlin001@gmail.com>, if you find any bugs or have any suggestions.  
+[here](http://link.springer.com/article/10.3758/s13428-018-1153-1) or [here](https://rdcu.be/bPYrT). 
+If you find the software useful, please open an issue thread or email the package 
+maintainer at <yishinlin001@gmail.com>. 
 
 ## Getting Started
 
-The main reason that _ppda_ runs fast is it easily simulates millions of 
+The main reason that _ppda_ runs fast is it simulates millions of 
 random numbers without being impeded by GPU bandwidth bottleneck. For example, 
-it can simulates 2^20 random numbers from the LBA model quickly. 
+it can simulates 2^20 random numbers. 
 
 ```
 require(ppda)
 rm(list = ls())
-n <- 2^20     ## This must be a power of two
+n <- 2^20     ## This must be a power of two, because a GPU parallel algorithm we used in CUDA
 dat1 <- ppda::rlba(n, nthread=64);  
 dat3 <- rtdists::rLBA(n, b=1, A=.5, mean_v=c(2.4, 1.6), sd_v=c(1, 1), t0=.5, 
    silent=TRUE)
@@ -90,7 +88,7 @@ res <- microbenchmark(ppda::rlba(n, dp=F),
 
 ```
 
-_ppda_ also provides functions to generate random numbers from truncated normal 
+_ppda_ also provides functions to generate random numbers of truncated normal 
 distributions. Again, _n_ must be power of 2.
 
 
@@ -112,8 +110,8 @@ lines(den1$x, den1$y,lwd=2) ## gpu
 lines(den2$x, den2$y,lwd=2, col = "blue") ## tnorm
 lines(den3$x, den3$y,lwd=2, col = "red") ## msn
 
-## tnorm is a small C++ package I developed when testing this package. It is
-## defunct. Please see my ggdmc package for C++ tnorm functions.
+## tnorm is a small C++ package I developed when testing this package.
+## Please see my ggdmc package for C++ tnorm functions.
 
 ## Unit: milliseconds
 ##            expr       min         lq       mean     median         uq        max
